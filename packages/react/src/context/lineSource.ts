@@ -1,4 +1,4 @@
-import type { DocumentModel, FoldRange, Span } from '@krona/core'
+import type { CollapsedRegion, DocumentModel, ExpandDirection, FoldRange, Span } from '@krona/core'
 import type { VirtualItem, Virtualizer } from '@tanstack/react-virtual'
 import { createContext, type RefObject, useContext } from 'react'
 import type { KronaLabels } from '../labels'
@@ -18,6 +18,11 @@ export interface RenderRow {
   readonly intraline?: readonly Span[]
   /** True when the whole line should read as changed rather than parts of it. */
   readonly wholeLine?: boolean
+  /**
+   * Set when this row stands in for a hidden run of unchanged diff rows; the
+   * parts render an expand bar instead of a line.
+   */
+  readonly expandRegion?: number
 }
 
 /**
@@ -47,6 +52,12 @@ export interface LineSource {
   isFolded(startLine: number): boolean
   toggleFold(startLine: number): void
   foldAt(lineIndex: number): FoldRange | undefined
+  /** Diff only: the hidden unchanged runs, indexed by region. */
+  readonly regions?: readonly (CollapsedRegion | null)[]
+  /** Diff only: reveals part of a hidden unchanged run. */
+  expandContext?(regionIndex: number, direction: ExpandDirection, step?: number): void
+  /** Diff only: rows revealed by one up / down click. */
+  readonly step?: number
 }
 
 export const LineSourceContext = createContext<LineSource | null>(null)

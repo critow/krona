@@ -3,6 +3,7 @@ import { type CSSProperties, Fragment, memo, type ReactNode } from 'react'
 import { useLineSource } from '../context/lineSource'
 import type { KronaLabels } from '../labels'
 import { buildSegments } from '../render/segments'
+import { ExpandBar } from './ExpandBar'
 
 /** Props of `<Krona.Lines>`. */
 export interface KronaLinesProps {
@@ -82,6 +83,17 @@ const LinesBase = memo(function Lines({ className, style }: KronaLinesProps) {
         const row = rows[item.index]
         if (!row) return null
         const { lineIndex, tone } = row
+        if (row.expandRegion !== undefined) {
+          return (
+            <div
+              key={item.key}
+              className="krona-row krona-row--expand"
+              style={{ transform: `translateY(${item.start}px)` }}
+            >
+              <ExpandBar regionIndex={row.expandRegion} />
+            </div>
+          )
+        }
         if (lineIndex === null) {
           return (
             <div

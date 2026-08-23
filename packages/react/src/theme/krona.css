@@ -355,28 +355,25 @@
   color: var(--krona-removed-marker);
 }
 
+.krona-row--expand {
+  background: var(--krona-bg-gutter);
+  border-block: 1px solid var(--krona-border);
+}
+
+.krona-lines .krona-row--expand {
+  padding-inline: 0;
+  width: 100%;
+  min-width: 100%;
+}
+
 .krona-expand-bar {
-  all: unset;
-  box-sizing: border-box;
   display: flex;
   align-items: center;
   gap: 0.5rem;
   width: 100%;
-  height: var(--krona-line-height);
+  height: 100%;
   padding-inline: var(--krona-padding-inline);
-  background: var(--krona-bg-gutter);
   color: var(--krona-fg-muted);
-  border-block: 1px solid var(--krona-border);
-  cursor: pointer;
-}
-
-.krona-expand-bar:hover {
-  background: var(--krona-bg-hover);
-}
-
-.krona-expand-bar:focus-visible {
-  outline: 2px solid var(--krona-token-key);
-  outline-offset: -2px;
 }
 
 .krona-expand-actions {

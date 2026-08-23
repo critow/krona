@@ -1,7 +1,11 @@
+import { KronaDiff } from './diff/Diff'
+import { Panel } from './diff/Panel'
 import { KronaRoot } from './KronaRoot'
 import { Diagnostics } from './parts/Diagnostics'
+import { ExpandBar } from './parts/ExpandBar'
 import { Gutter } from './parts/Gutter'
 import { Lines } from './parts/Lines'
+import { Minimap } from './parts/Minimap'
 import { Toolbar } from './parts/Toolbar'
 import { KronaViewer } from './viewer/Viewer'
 
@@ -43,8 +47,12 @@ import { KronaViewer } from './viewer/Viewer'
  */
 export const Krona = Object.assign(KronaRoot, {
   Viewer: KronaViewer,
+  Diff: KronaDiff,
+  Panel,
   Gutter,
   Lines,
   Toolbar,
   Diagnostics,
+  Minimap,
+  ExpandBar,
 })

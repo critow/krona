@@ -58,6 +58,15 @@ const GutterBase = memo(function Gutter({
         const row = rows[item.index]
         if (!row) return null
         const { lineIndex, tone } = row
+        if (row.expandRegion !== undefined) {
+          return (
+            <div
+              key={item.key}
+              className="krona-row krona-row--expand"
+              style={{ transform: `translateY(${item.start}px)` }}
+            />
+          )
+        }
         const range = lineIndex === null ? undefined : source.foldAt(lineIndex)
         const folded = range ? source.isFolded(range.startLine) : false
         return (

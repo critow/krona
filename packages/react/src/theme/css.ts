@@ -11,8 +11,8 @@
 export const KRONA_CSS = `:where(.krona) {
   /* Layout */
   --krona-line-height: 20px;
-  --krona-font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
-    "Liberation Mono", monospace;
+  --krona-font-family:
+    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
   --krona-font-size: 12.5px;
   --krona-gutter-width: 3.5rem;
   --krona-padding-inline: 0.75rem;
@@ -49,7 +49,7 @@ export const KRONA_CSS = `:where(.krona) {
   --krona-unsafe-fg: #ffffff;
 }
 
-:where(.krona[data-theme='dark']) {
+:where(.krona[data-theme="dark"]) {
   --krona-bg: #0d1117;
   --krona-bg-gutter: #010409;
   --krona-bg-hover: #161b22;
@@ -79,7 +79,7 @@ export const KRONA_CSS = `:where(.krona) {
 }
 
 @media (prefers-color-scheme: dark) {
-  :where(.krona[data-theme='auto']) {
+  :where(.krona[data-theme="auto"]) {
     --krona-bg: #0d1117;
     --krona-bg-gutter: #010409;
     --krona-bg-hover: #161b22;
@@ -234,7 +234,7 @@ export const KRONA_CSS = `:where(.krona) {
   transition: transform 80ms linear;
 }
 
-.krona-fold-toggle[aria-expanded='false'] svg {
+.krona-fold-toggle[aria-expanded="false"] svg {
   transform: rotate(-90deg);
 }
 
@@ -365,28 +365,25 @@ export const KRONA_CSS = `:where(.krona) {
   color: var(--krona-removed-marker);
 }
 
+.krona-row--expand {
+  background: var(--krona-bg-gutter);
+  border-block: 1px solid var(--krona-border);
+}
+
+.krona-lines .krona-row--expand {
+  padding-inline: 0;
+  width: 100%;
+  min-width: 100%;
+}
+
 .krona-expand-bar {
-  all: unset;
-  box-sizing: border-box;
   display: flex;
   align-items: center;
   gap: 0.5rem;
   width: 100%;
-  height: var(--krona-line-height);
+  height: 100%;
   padding-inline: var(--krona-padding-inline);
-  background: var(--krona-bg-gutter);
   color: var(--krona-fg-muted);
-  border-block: 1px solid var(--krona-border);
-  cursor: pointer;
-}
-
-.krona-expand-bar:hover {
-  background: var(--krona-bg-hover);
-}
-
-.krona-expand-bar:focus-visible {
-  outline: 2px solid var(--krona-token-key);
-  outline-offset: -2px;
 }
 
 .krona-expand-actions {

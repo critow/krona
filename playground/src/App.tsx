@@ -1,6 +1,6 @@
 import { Krona } from 'krona'
-import { useMemo, useState } from 'react'
 import 'krona/yaml'
+import { useMemo, useState } from 'react'
 import { DICTS, type Lang } from './i18n'
 import { SAMPLES } from './samples'
 
@@ -62,14 +62,33 @@ export function App() {
         labels={dict.kronaLabels}
         style={{ ['--krona-height' as string]: '70vh' }}
       >
-        {mode === 'viewer' || !canDiff ? (
+        {mode === 'diff' && canDiff ? (
+          <Krona.Diff
+            key={`${sample.id}-diff`}
+            left={sample.left}
+            right={sample.right as string}
+            collapseUnchanged
+            showMinimap
+          >
+            <Krona.Toolbar />
+            <Krona.Panel side="left">
+              <Krona.Gutter />
+              <Krona.Lines />
+            </Krona.Panel>
+            <Krona.Minimap />
+            <Krona.Panel side="right">
+              <Krona.Gutter />
+              <Krona.Lines />
+            </Krona.Panel>
+          </Krona.Diff>
+        ) : (
           <Krona.Viewer key={`${sample.id}-viewer`} source={sample.left}>
             <Krona.Toolbar />
             <Krona.Diagnostics />
             <Krona.Gutter />
             <Krona.Lines />
           </Krona.Viewer>
-        ) : null}
+        )}
       </Krona>
 
       {mode === 'diff' && !canDiff ? <p className="notice">{dict.noDiffSample}</p> : null}
