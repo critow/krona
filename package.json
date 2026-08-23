@@ -9,7 +9,7 @@
   "scripts": {
     "build": "pnpm -r --filter=./packages/* build",
     "dev": "pnpm --filter krona-playground dev",
-    "test": "vitest run",
+    "test": "vitest run --project core",
     "test:watch": "vitest",
     "test:browser": "vitest run --project browser",
     "test:visual": "playwright test",
@@ -20,7 +20,10 @@
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",
     "check-deps": "node scripts/check-deps.mjs",
-    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+    "verify": "pnpm lint && pnpm check-css && pnpm typecheck && pnpm test:all && pnpm build",
+    "test:all": "vitest run",
+    "build:css": "node scripts/build-css.mjs",
+    "check-css": "node scripts/build-css.mjs --check"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "catalog:",
@@ -29,11 +32,16 @@
     "@types/node": "^26.2.0",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
     "@vitest/browser": "catalog:",
+    "@vitest/browser-playwright": "^4.1.11",
     "playwright": "catalog:",
     "publint": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "vitest-browser-react": "^2.2.0"
   }
 }

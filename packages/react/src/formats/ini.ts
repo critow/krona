@@ -1,1 +1,1 @@
-export {}
+export { iniProvider } from '@krona/core/ini'

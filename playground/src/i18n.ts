@@ -1,3 +1,5 @@
+import type { KronaLabels } from 'krona'
+
 /**
  * The playground demonstrates that Krona itself ships no i18n runtime:
  * every visible string comes from this plain dictionary and is handed to the
@@ -15,26 +17,8 @@ export interface Dict {
   light: string
   dark: string
   language: string
-  expandAll: string
-  collapseAll: string
   noDiffSample: string
-  kronaLabels: {
-    expandAll: string
-    collapseAll: string
-    expandRange: string
-    collapseRange: string
-    hiddenLines: (count: string) => string
-    expandUp: string
-    expandDown: string
-    expandAllContext: string
-    added: string
-    removed: string
-    changed: string
-    unchanged: string
-    leftPanel: string
-    rightPanel: string
-    changeMap: string
-  }
+  kronaLabels: Partial<KronaLabels>
 }
 
 const en: Dict = {
@@ -47,26 +31,20 @@ const en: Dict = {
   light: 'Light',
   dark: 'Dark',
   language: 'Language',
-  expandAll: 'Expand all',
-  collapseAll: 'Collapse all',
   noDiffSample: 'This sample has no second version to diff against.',
-  kronaLabels: {
-    expandAll: 'Expand all',
-    collapseAll: 'Collapse all',
-    expandRange: 'Expand block',
-    collapseRange: 'Collapse block',
-    hiddenLines: (count) => `⋯ ${count} lines`,
-    expandUp: 'Expand up',
-    expandDown: 'Expand down',
-    expandAllContext: 'Expand all',
-    added: 'Added',
-    removed: 'Removed',
-    changed: 'Changed',
-    unchanged: 'Unchanged',
-    leftPanel: 'Left version',
-    rightPanel: 'Right version',
-    changeMap: 'Change map',
-  },
+  // English is already Krona's default, so nothing needs overriding here.
+  kronaLabels: {},
+}
+
+const ruNumbers = new Intl.NumberFormat('ru')
+
+/** Russian needs three plural forms, which is exactly why plurals live in the app. */
+function ruLines(count: number): string {
+  const mod10 = count % 10
+  const mod100 = count % 100
+  if (mod10 === 1 && mod100 !== 11) return 'строка'
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'строки'
+  return 'строк'
 }
 
 const ru: Dict = {
@@ -79,25 +57,26 @@ const ru: Dict = {
   light: 'Светлая',
   dark: 'Тёмная',
   language: 'Язык',
-  expandAll: 'Развернуть всё',
-  collapseAll: 'Свернуть всё',
   noDiffSample: 'У этого примера нет второй версии для сравнения.',
   kronaLabels: {
     expandAll: 'Развернуть всё',
     collapseAll: 'Свернуть всё',
-    expandRange: 'Развернуть блок',
-    collapseRange: 'Свернуть блок',
-    hiddenLines: (count) => `⋯ ${count} строк`,
+    expandBlock: 'Развернуть блок',
+    collapseBlock: 'Свернуть блок',
+    foldedLines: (count) => `${ruNumbers.format(count)} ${ruLines(count)}`,
+    hiddenLines: (count) => `${ruNumbers.format(count)} ${ruLines(count)} без изменений`,
     expandUp: 'Развернуть вверх',
     expandDown: 'Развернуть вниз',
-    expandAllContext: 'Развернуть всё',
+    expandAllHidden: 'Развернуть всё',
     added: 'Добавлено',
     removed: 'Удалено',
     changed: 'Изменено',
     unchanged: 'Без изменений',
-    leftPanel: 'Левая версия',
-    rightPanel: 'Правая версия',
+    leftPanel: 'Предыдущая версия',
+    rightPanel: 'Текущая версия',
     changeMap: 'Карта изменений',
+    unsafeCharacter: (code) => `Скрытый символ ${code}`,
+    document: 'Конфигурационный файл',
   },
 }
 

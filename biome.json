@@ -11,7 +11,8 @@
       "!**/dist",
       "!**/node_modules",
       "!playground/src/samples",
-      "!**/__screenshots__"
+      "!**/__screenshots__",
+      "!packages/react/src/theme/css.ts"
     ]
   },
   "formatter": {

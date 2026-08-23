@@ -1,8 +1,18 @@
-:where(.krona) {
+/**
+ * GENERATED FILE — edit src/theme/krona.css and run `pnpm build:css`.
+ *
+ * Krona's stylesheet is mirrored here so it can be injected at runtime for
+ * zero-config usage, while `krona/styles.css` ships the same bytes for
+ * consumers who own their CSS pipeline.
+ *
+ * Everything is driven by `--krona-*` custom properties: override them on any
+ * ancestor to theme the viewer without touching a selector.
+ */
+export const KRONA_CSS = `:where(.krona) {
   /* Layout */
   --krona-line-height: 20px;
-  --krona-font-family:
-    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --krona-font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
   --krona-font-size: 12.5px;
   --krona-gutter-width: 3.5rem;
   --krona-padding-inline: 0.75rem;
@@ -39,7 +49,7 @@
   --krona-unsafe-fg: #ffffff;
 }
 
-:where(.krona[data-theme="dark"]) {
+:where(.krona[data-theme='dark']) {
   --krona-bg: #0d1117;
   --krona-bg-gutter: #010409;
   --krona-bg-hover: #161b22;
@@ -69,7 +79,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :where(.krona[data-theme="auto"]) {
+  :where(.krona[data-theme='auto']) {
     --krona-bg: #0d1117;
     --krona-bg-gutter: #010409;
     --krona-bg-hover: #161b22;
@@ -224,7 +234,7 @@
   transition: transform 80ms linear;
 }
 
-.krona-fold-toggle[aria-expanded="false"] svg {
+.krona-fold-toggle[aria-expanded='false'] svg {
   transform: rotate(-90deg);
 }
 
@@ -493,3 +503,4 @@
   white-space: nowrap;
   border: 0;
 }
+`
