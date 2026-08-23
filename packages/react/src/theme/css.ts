@@ -450,6 +450,9 @@ export const KRONA_CSS = `:where(.krona) {
 /* Minimap ----------------------------------------------------------------- */
 
 .krona-minimap {
+  all: unset;
+  box-sizing: border-box;
+  display: block;
   position: relative;
   width: 12px;
   background: var(--krona-bg-gutter);

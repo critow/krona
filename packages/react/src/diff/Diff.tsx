@@ -173,7 +173,7 @@ export function KronaDiff({
       const cached = intralineCache.current.get(row)
       if (cached) return cached
       const aligning = aligned.rows[row]
-      if (!aligning || aligning.kind !== 'changed') return NO_INTRALINE
+      if (aligning?.kind !== 'changed') return NO_INTRALINE
       if (aligning.left === null || aligning.right === null) return NO_INTRALINE
       const result = intralineDiff(
         leftModel.lines[aligning.left]?.text ?? '',

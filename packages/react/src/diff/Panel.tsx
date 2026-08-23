@@ -96,7 +96,7 @@ function PanelBase({ side, className, style, children }: KronaPanelProps) {
 
   return (
     <LineSourceContext.Provider value={lineSource}>
-      <div
+      <section
         className={
           className
             ? `krona-panel krona-panel--${side} ${className}`
@@ -110,7 +110,7 @@ function PanelBase({ side, className, style, children }: KronaPanelProps) {
             {canvas}
           </div>
         </div>
-      </div>
+      </section>
     </LineSourceContext.Provider>
   )
 }

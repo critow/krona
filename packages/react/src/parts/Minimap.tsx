@@ -1,4 +1,4 @@
-import { type CSSProperties, useCallback, useContext, useMemo } from 'react'
+import { type CSSProperties, type MouseEvent, useCallback, useContext, useMemo } from 'react'
 import { DiffContext } from '../diff/DiffContext'
 import { PanelLayoutContext } from '../diff/PanelLayoutContext'
 
@@ -44,7 +44,7 @@ function MinimapBase({ className, style }: KronaMinimapProps) {
   }, [diff.alignedRows, total])
 
   const jump = useCallback(
-    (event: React.MouseEvent<HTMLDivElement>) => {
+    (event: MouseEvent<HTMLButtonElement>) => {
       const bounds = event.currentTarget.getBoundingClientRect()
       const ratio = (event.clientY - bounds.top) / bounds.height
       // Display items, not aligned rows: hidden rows take up no vertical space.
@@ -55,16 +55,12 @@ function MinimapBase({ className, style }: KronaMinimapProps) {
   )
 
   return (
-    <div
+    <button
+      type="button"
       className={className ? `krona-minimap ${className}` : 'krona-minimap'}
       style={style}
-      role="button"
-      tabIndex={0}
       aria-label={diff.labels.changeMap}
       onClick={jump}
-      onKeyDown={(event) => {
-        if (event.key === 'Enter' || event.key === ' ') event.currentTarget.click()
-      }}
     >
       {marks.map((mark) => (
         <span
@@ -73,7 +69,7 @@ function MinimapBase({ className, style }: KronaMinimapProps) {
           style={{ top: `${mark.top}%`, height: `${mark.height}%` }}
         />
       ))}
-    </div>
+    </button>
   )
 }
 
