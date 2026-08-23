@@ -50,3 +50,12 @@ import { textProvider } from './formats/text'
 import { registerFormat } from './model/registry'
 
 registerFormat(textProvider)
+
+export type { AlignedDiff, AlignedRow, AlignOptions, DiffStats, RowKind } from './diff/align'
+export { alignDiff, nextChangedRow, previousChangedRow, similarityOf } from './diff/align'
+export type { CollapsedRegion, CollapseOptions, ExpandDirection } from './diff/collapse'
+export { collapseUnchanged, expandRegion, hiddenCount, hiddenRowSet } from './diff/collapse'
+export type { IntralineOptions, IntralineResult, Span } from './diff/intraline'
+export { intralineDiff, tokenizeWords } from './diff/intraline'
+export type { DiffChange, DiffOp, DiffResult, LineDiffOptions } from './diff/myers'
+export { diffLineArrays, diffLines } from './diff/myers'
