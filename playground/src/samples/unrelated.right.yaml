@@ -1,0 +1,11 @@
+database:
+  engine: sqlite
+  path: ./data/app.db
+cache:
+  ttl: 300
+  size: 512
+logging:
+  level: warn
+  sinks:
+    - stdout
+    - file

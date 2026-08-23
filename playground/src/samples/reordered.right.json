@@ -1,0 +1,12 @@
+{
+  "database": {
+    "driver": "postgres",
+    "pool": { "min": 2, "max": 16 }
+  },
+  "server": {
+    "port": 8080,
+    "host": "0.0.0.0"
+  },
+  "version": "1.4.2",
+  "name": "krona-demo"
+}

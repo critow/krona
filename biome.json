@@ -10,9 +10,14 @@
       "**",
       "!**/dist",
       "!**/node_modules",
-      "!playground/src/samples",
+      "!packages/react/src/theme/css.ts",
+      "!playground/src/samples/*.json",
+      "!playground/src/samples/*.yaml",
+      "!playground/src/samples/*.toml",
+      "!playground/src/samples/*.ini",
+      "!playground/src/samples/.env.sample",
       "!**/__screenshots__",
-      "!packages/react/src/theme/css.ts"
+      "!e2e/**/*-snapshots"
     ]
   },
   "formatter": {

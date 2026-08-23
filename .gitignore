@@ -6,5 +6,7 @@ coverage/
 playground/dist/
 test-results/
 playwright-report/
-**/__screenshots__/**/*-actual.png
-**/__screenshots__/**/*-diff.png
+
+# Reference screenshots ARE committed; only the failure artefacts are not.
+**/*-actual.png
+**/*-diff.png
