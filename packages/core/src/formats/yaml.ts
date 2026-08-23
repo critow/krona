@@ -14,8 +14,6 @@ import { classifyScalar, indentOf, isBlank, push, scanQuoted } from './shared'
 const IN_BLOCK_SCALAR = 1 << 0
 const IN_FLOW = 1 << 1
 
-/** Above this size the structural scan still runs, but validation is skipped. */
-const MAX_VALIDATED_LENGTH = 1024 * 1024
 const MAX_REPORTED_ERRORS = 20
 
 interface OpenBlock {
@@ -128,16 +126,24 @@ function analyze(
   closeTo(0, lastContent)
 
   ranges.sort((a, b) => a.startLine - b.startLine || a.level - b.level)
-  return { foldingRanges: ranges, lineStates: states, diagnostics: validate(source) }
+  return {
+    foldingRanges: ranges,
+    lineStates: states,
+    diagnostics: validate(source, options.limits.maxValidatedLength),
+  }
 }
 
 /**
  * Structural problems are reported by the `yaml` parser, which builds a CST and
  * an AST but never resolves aliases into values — so a "billion laughs" file
  * costs no more than its own size.
+ *
+ * It is also about ten times more expensive than the structural scan above, so
+ * it runs only up to `maxValidatedLength`; folding and highlighting never
+ * depend on it.
  */
-function validate(source: string): Diagnostic[] {
-  if (source.length > MAX_VALIDATED_LENGTH) return []
+function validate(source: string, maxValidatedLength: number): Diagnostic[] {
+  if (source.length > maxValidatedLength) return []
   const diagnostics: Diagnostic[] = []
   try {
     const lineCounter = new LineCounter()

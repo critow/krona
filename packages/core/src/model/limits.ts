@@ -9,6 +9,7 @@ export const DEFAULT_LIMITS: ParseLimits = {
   maxDepth: 64,
   maxFoldRanges: 200_000,
   maxTokenizedLineLength: 10_000,
+  maxValidatedLength: 64 * 1024,
 }
 
 /** Applies {@link DEFAULT_LIMITS} to the caller's partial overrides. */
@@ -22,6 +23,7 @@ export function resolveOptions(options: ParseOptions | undefined): ResolvedParse
       maxFoldRanges: overrides.maxFoldRanges ?? DEFAULT_LIMITS.maxFoldRanges,
       maxTokenizedLineLength:
         overrides.maxTokenizedLineLength ?? DEFAULT_LIMITS.maxTokenizedLineLength,
+      maxValidatedLength: overrides.maxValidatedLength ?? DEFAULT_LIMITS.maxValidatedLength,
     },
   }
 }

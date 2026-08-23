@@ -171,6 +171,12 @@ for the file this project benchmarks against — two versions of a ~60k line
 
 Run it yourself with `pnpm bench`.
 
+YAML is the one format that also runs an optional validation pass to report
+syntax errors, and it costs about ten times the structural scan. It therefore
+runs only up to `limits.maxValidatedLength` (64 KiB by default) — every
+hand-written config still gets diagnostics, and a 67 KB lockfile parses in
+~6 ms instead of ~51 ms. Folding and highlighting never depend on it.
+
 Above roughly a megabyte, do the work off the main thread. The model is plain
 data, so a worker can hand it back:
 

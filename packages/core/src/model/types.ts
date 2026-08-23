@@ -90,6 +90,16 @@ export interface ParseLimits {
   readonly maxFoldRanges: number
   /** Lines longer than this are not tokenized (rendered as plain text). Default 10_000. */
   readonly maxTokenizedLineLength: number
+  /**
+   * Above this input size, providers skip optional validation and report no
+   * diagnostics. Folding and highlighting are unaffected.
+   *
+   * The YAML provider validates by running the `yaml` parser, which costs
+   * roughly ten times its own structural scan; bounding it is what keeps a
+   * large file from turning parsing into a long task. Default 64 KiB, which
+   * still covers essentially every hand-written configuration file.
+   */
+  readonly maxValidatedLength: number
 }
 
 /** Options accepted by {@link parseDocument}. */

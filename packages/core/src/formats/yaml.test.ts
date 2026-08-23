@@ -90,6 +90,14 @@ describe('yaml provider', () => {
     expect(performance.now() - started).toBeLessThan(1000)
   })
 
+  it('skips validation on files past the limit, keeping folding intact', () => {
+    const source = ['a:', '  b: 1', ' bad-indent: 2'].join('\n')
+    expect(doc(source).diagnostics.length).toBeGreaterThan(0)
+    const unvalidated = parseDocument(source, 'yaml', { limits: { maxValidatedLength: 4 } })
+    expect(unvalidated.diagnostics).toEqual([])
+    expect(unvalidated.foldingRanges).toEqual(doc(source).foldingRanges)
+  })
+
   it('degrades gracefully on garbage', () => {
     const model = doc('  :::: [[[[ }}}}')
     expect(model.lines).toHaveLength(1)
