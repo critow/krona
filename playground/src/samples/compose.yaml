@@ -1,0 +1,50 @@
+# Krona sample — docker-compose style YAML
+version: "3.9"
+
+x-common: &common
+  restart: unless-stopped
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+services:
+  api:
+    <<: *common
+    image: ghcr.io/acme/api:1.4.2
+    ports:
+      - "8080:8080"
+      - "9090:9090"
+    environment:
+      DATABASE_URL: postgres://api@db:5432/api
+      LOG_LEVEL: info
+    depends_on:
+      - db
+      - cache
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
+      interval: 10s
+      retries: 3
+    command: |
+      sh -c '
+        migrate up &&
+        exec ./api serve
+      '
+  db:
+    <<: *common
+    image: postgres:16-alpine
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: api
+      POSTGRES_PASSWORD: hunter2
+  cache:
+    image: redis:7-alpine
+
+volumes:
+  pgdata: {}
+
+notes: >
+  Folded scalars collapse newlines into spaces,
+  which makes them a single folding range in Krona.

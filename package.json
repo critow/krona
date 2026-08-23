@@ -1,0 +1,39 @@
+{
+  "name": "krona-monorepo",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=20.19"
+  },
+  "scripts": {
+    "build": "pnpm -r --filter=./packages/* build",
+    "dev": "pnpm --filter krona-playground dev",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:browser": "vitest run --project browser",
+    "test:visual": "playwright test",
+    "test:visual:update": "playwright test --update-snapshots",
+    "bench": "vitest bench --run",
+    "typecheck": "tsc --build",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "check-deps": "node scripts/check-deps.mjs",
+    "verify": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "catalog:",
+    "@biomejs/biome": "catalog:",
+    "@playwright/test": "catalog:",
+    "@types/node": "^26.2.0",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitest/browser": "catalog:",
+    "playwright": "catalog:",
+    "publint": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:"
+  }
+}

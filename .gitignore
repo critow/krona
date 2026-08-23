@@ -1,0 +1,10 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+.DS_Store
+playground/dist/
+test-results/
+playwright-report/
+**/__screenshots__/**/*-actual.png
+**/__screenshots__/**/*-diff.png

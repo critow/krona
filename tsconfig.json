@@ -1,0 +1,25 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false,
+    "paths": {
+      "@krona/core": ["./packages/core/src/index.ts"],
+      "@krona/core/*": ["./packages/core/src/formats/*.ts"],
+      "krona": ["./packages/react/src/index.ts"],
+      "krona/*": ["./packages/react/src/*"]
+    },
+    "types": ["node", "vite/client"]
+  },
+  "include": [
+    "packages/*/src/**/*",
+    "playground/src/**/*",
+    "playground/*.ts",
+    "packages/*/*.ts",
+    "*.ts",
+    "scripts/**/*",
+    "e2e/**/*"
+  ]
+}
