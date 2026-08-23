@@ -14,7 +14,7 @@
     "test:browser": "vitest run --project browser",
     "test:visual": "playwright test",
     "test:visual:update": "playwright test --update-snapshots",
-    "bench": "vitest bench --run",
+    "bench": "vitest bench --run --project core",
     "typecheck": "tsc --build",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",

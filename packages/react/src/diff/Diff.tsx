@@ -2,6 +2,7 @@ import {
   alignDiff,
   type CollapsedRegion,
   collapseUnchanged,
+  type DocumentModel,
   diffLines,
   type ExpandDirection,
   type Format,
@@ -32,10 +33,14 @@ export interface CollapseUnchangedOptions {
 
 /** Props of `<Krona.Diff>`. */
 export interface KronaDiffProps {
-  /** Previous version. */
-  left: string
-  /** Current version. */
-  right: string
+  /** Previous version. Provide this or {@link KronaDiffProps.leftModel}. */
+  left?: string
+  /** Current version. Provide this or {@link KronaDiffProps.rightModel}. */
+  right?: string
+  /** A previously parsed model for the left side, e.g. produced in a Worker. */
+  leftModel?: DocumentModel
+  /** A previously parsed model for the right side. */
+  rightModel?: DocumentModel
   /** Overrides the format from the enclosing `<Krona>`. */
   format?: Format
   /** Overrides the labels from the enclosing `<Krona>`. */
@@ -74,6 +79,8 @@ const NO_INTRALINE: IntralineResult = { left: [], right: [], wholeLine: false }
 export function KronaDiff({
   left,
   right,
+  leftModel: providedLeft,
+  rightModel: providedRight,
   format,
   labels,
   collapseUnchanged: collapse = false,
@@ -87,8 +94,14 @@ export function KronaDiff({
 }: KronaDiffProps) {
   const config = useKronaConfig()
   const activeFormat = format ?? config.format
-  const leftModel = useDocument(left, activeFormat, config.limits, config.providers)
-  const rightModel = useDocument(right, activeFormat, config.limits, config.providers)
+  const leftModel = useDocument(left, providedLeft, activeFormat, config.limits, config.providers)
+  const rightModel = useDocument(
+    right,
+    providedRight,
+    activeFormat,
+    config.limits,
+    config.providers,
+  )
 
   const resolvedLabels = useMemo(
     () => (labels ? resolveLabels({ ...config.labels, ...labels }, config.locale) : config.labels),
@@ -96,8 +109,8 @@ export function KronaDiff({
   )
 
   const aligned = useMemo(
-    () => alignDiff(diffLines(left, right, { ignoreTrailingWhitespace })),
-    [left, right, ignoreTrailingWhitespace],
+    () => alignDiff(diffLines(leftModel.source, rightModel.source, { ignoreTrailingWhitespace })),
+    [leftModel.source, rightModel.source, ignoreTrailingWhitespace],
   )
 
   const rowIndex = useMemo(

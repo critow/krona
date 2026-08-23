@@ -1,5 +1,6 @@
 import { diffArrays } from 'diff'
 import { splitLines } from '../model/lines'
+import { anchoredDiff, mergeChanges } from './anchor'
 
 /** How a run of lines relates the two sides. */
 export type DiffOp = 'equal' | 'insert' | 'delete'
@@ -37,6 +38,13 @@ export interface LineDiffOptions {
   readonly timeout?: number
   /** Compare lines ignoring trailing whitespace. Default false. */
   readonly ignoreTrailingWhitespace?: boolean
+  /**
+   * `'anchored'` (default) splits the documents at lines that occur exactly
+   * once on each side before running Myers inside each piece — much faster on
+   * large files with many changes, and it anchors on the lines a reader would.
+   * `'myers'` runs the plain algorithm over the whole document.
+   */
+  readonly strategy?: 'anchored' | 'myers'
 }
 
 const DEFAULT_TIMEOUT = 1500
@@ -78,6 +86,14 @@ export function diffLineArrays(
   const compareLeft = options?.ignoreTrailingWhitespace ? left.map(trimEnd) : left
   const compareRight = options?.ignoreTrailingWhitespace ? right.map(trimEnd) : right
 
+  const deadline = Date.now() + timeout
+  if ((options?.strategy ?? 'anchored') === 'anchored') {
+    const anchored = anchoredDiff(compareLeft, compareRight, deadline)
+    return anchored === undefined
+      ? { left, right, changes: approximate(compareLeft, compareRight), approximate: true }
+      : { left, right, changes: anchored, approximate: false }
+  }
+
   const raw = diffArrays<string>([...compareLeft], [...compareRight], { timeout })
   if (raw === undefined) {
     return { left, right, changes: approximate(compareLeft, compareRight), approximate: true }
@@ -101,7 +117,7 @@ export function diffLineArrays(
       rightIndex += count
     }
   }
-  return { left, right, changes, approximate: false }
+  return { left, right, changes: mergeChanges(changes), approximate: false }
 }
 
 /**

@@ -1,4 +1,4 @@
-import type { Format } from '@krona/core'
+import type { DocumentModel, Format } from '@krona/core'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { type CSSProperties, type ReactNode, useMemo, useRef } from 'react'
 import { useKronaConfig } from '../context/config'
@@ -14,8 +14,13 @@ import { ViewerContext } from './ViewerContext'
 
 /** Props of `<Krona.Viewer>`. */
 export interface KronaViewerProps {
-  /** File contents to display. */
-  source: string
+  /** File contents to display. Provide this or {@link KronaViewerProps.model}. */
+  source?: string
+  /**
+   * A model parsed elsewhere — in a Web Worker, for instance — used as is.
+   * Takes precedence over `source`.
+   */
+  model?: DocumentModel
   /** Overrides the format from the enclosing `<Krona>`. */
   format?: Format
   /** Overrides the labels from the enclosing `<Krona>`. */
@@ -59,6 +64,7 @@ export interface KronaViewerProps {
  */
 export function KronaViewer({
   source,
+  model: providedModel,
   format,
   labels,
   defaultCollapsedDepth,
@@ -69,7 +75,13 @@ export function KronaViewer({
   children,
 }: KronaViewerProps) {
   const config = useKronaConfig()
-  const model = useDocument(source, format ?? config.format, config.limits, config.providers)
+  const model = useDocument(
+    source,
+    providedModel,
+    format ?? config.format,
+    config.limits,
+    config.providers,
+  )
   const foldState = useFoldState(model, defaultCollapsedDepth)
 
   const resolvedLabels = useMemo(
