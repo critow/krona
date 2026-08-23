@@ -1,8 +1,18 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.5.10/schema.json",
-  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
   "files": {
-    "includes": ["**", "!**/dist", "!**/node_modules", "!**/*.snap"]
+    "includes": [
+      "**",
+      "!**/dist",
+      "!**/node_modules",
+      "!playground/src/samples",
+      "!**/__screenshots__"
+    ]
   },
   "formatter": {
     "enabled": true,
@@ -20,7 +30,7 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true,
+      "preset": "recommended",
       "security": {
         "noDangerouslySetInnerHtml": "error",
         "noDangerouslySetInnerHtmlWithChildren": "error",
@@ -28,7 +38,12 @@
       },
       "suspicious": {
         "noExplicitAny": "error",
-        "noConsole": { "level": "error", "options": { "allow": ["warn", "error"] } }
+        "noConsole": {
+          "level": "error",
+          "options": {
+            "allow": ["warn", "error"]
+          }
+        }
       },
       "complexity": {
         "noForEach": "off"
@@ -45,8 +60,12 @@
       "includes": ["**/*.test.ts", "**/*.test.tsx", "**/*.bench.ts", "scripts/**", "playground/**"],
       "linter": {
         "rules": {
-          "suspicious": { "noConsole": "off" },
-          "style": { "noNonNullAssertion": "off" }
+          "suspicious": {
+            "noConsole": "off"
+          },
+          "style": {
+            "noNonNullAssertion": "off"
+          }
         }
       }
     }

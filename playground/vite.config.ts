@@ -14,7 +14,7 @@ export default defineConfig({
       },
       {
         find: /^krona\/(.*)$/,
-        replacement: new URL('../packages/react/src/', import.meta.url).pathname + '$1',
+        replacement: `${new URL('../packages/react/src/', import.meta.url).pathname}$1`,
       },
       {
         find: /^@krona\/core$/,
@@ -22,7 +22,7 @@ export default defineConfig({
       },
       {
         find: /^@krona\/core\/(.*)$/,
-        replacement: new URL('../packages/core/src/formats/', import.meta.url).pathname + '$1.ts',
+        replacement: `${new URL('../packages/core/src/formats/', import.meta.url).pathname}$1.ts`,
       },
     ],
   },
