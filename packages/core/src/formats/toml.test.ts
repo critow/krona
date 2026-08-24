@@ -7,10 +7,11 @@ const doc = (source: string) => parseDocument(source, 'toml')
 describe('toml provider', () => {
   it('folds tables and nests them by dotted path', () => {
     const model = doc(['[a]', 'x = 1', '', '[a.b]', 'y = 2', '', '[c]', 'z = 3'].join('\n'))
+    // `[a]` holds one key and one child table; `[a.b]` and `[c]` hold one key each.
     expect(model.foldingRanges).toEqual([
-      { startLine: 0, endLine: 4, level: 0, kind: 'section', summary: '[…]' },
-      { startLine: 3, endLine: 4, level: 1, kind: 'section', summary: '[…]' },
-      { startLine: 6, endLine: 7, level: 0, kind: 'section', summary: '[…]' },
+      { startLine: 0, endLine: 4, level: 0, kind: 'section', summary: '{…}', childCount: 2 },
+      { startLine: 3, endLine: 4, level: 1, kind: 'section', summary: '{…}', childCount: 1 },
+      { startLine: 6, endLine: 7, level: 0, kind: 'section', summary: '{…}', childCount: 1 },
     ])
   })
 

@@ -47,6 +47,46 @@ describe('collapseUnchanged', () => {
   it('handles an empty document', () => {
     expect(collapseUnchanged([])).toEqual([])
   })
+
+  it('splits a run around rows that must stay visible', () => {
+    const regions = collapseUnchanged(rows(`x${'='.repeat(60)}x`), {
+      context: 3,
+      keepRows: new Set([30]),
+    })
+    expect(regions).toEqual([
+      { startRow: 4, endRow: 29 },
+      { startRow: 31, endRow: 57 },
+    ])
+  })
+
+  it('keeps a lone foldable row on screen instead of hiding it', () => {
+    // The case that made a real diff unfoldable: the only row with a chevron
+    // sat at the very top of an unchanged run.
+    const regions = collapseUnchanged(rows(`${'='.repeat(40)}x`), {
+      context: 3,
+      keepRows: new Set([0]),
+    })
+    expect(regions).toEqual([{ startRow: 1, endRow: 36 }])
+    expect(regions.some((r) => r.startRow <= 0 && r.endRow >= 0)).toBe(false)
+  })
+
+  it('drops fragments too short to be worth a bar', () => {
+    const regions = collapseUnchanged(rows(`x${'='.repeat(30)}x`), {
+      context: 3,
+      minimumHidden: 10,
+      keepRows: new Set([8]),
+    })
+    // 4..7 is only four rows, so it stays visible; 9..27 still collapses.
+    expect(regions).toEqual([{ startRow: 9, endRow: 27 }])
+  })
+
+  it('ignores an empty keep set', () => {
+    const withEmpty = collapseUnchanged(rows(`x${'='.repeat(30)}x`), {
+      context: 3,
+      keepRows: new Set(),
+    })
+    expect(withEmpty).toEqual(collapseUnchanged(rows(`x${'='.repeat(30)}x`), { context: 3 }))
+  })
 })
 
 describe('expandRegion', () => {

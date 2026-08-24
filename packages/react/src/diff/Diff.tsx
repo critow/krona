@@ -19,7 +19,7 @@ import { Minimap } from '../parts/Minimap'
 import { DiffContext } from './DiffContext'
 import { Panel } from './Panel'
 import { PanelLayoutContext } from './PanelLayoutContext'
-import { buildRowIndex, useDisplayItems } from './rows'
+import { buildRowIndex, hasFoldAt, useDisplayItems } from './rows'
 
 /** How much of an unchanged run stays visible around a change. */
 export interface CollapseUnchangedOptions {
@@ -123,15 +123,27 @@ export function KronaDiff({
     return collapse === true ? {} : collapse
   }, [collapse])
 
+  // Rows that open a folding range must survive the unchanged-run collapse:
+  // hiding one takes its chevron with it, and a file whose only foldable line
+  // sits in an unchanged run would offer nothing to fold.
+  const foldStartRows = useMemo(() => {
+    const rows = new Set<number>()
+    for (let row = 0; row < aligned.rows.length; row++) {
+      if (hasFoldAt(row, aligned.rows, leftModel, rightModel)) rows.add(row)
+    }
+    return rows
+  }, [aligned.rows, leftModel, rightModel])
+
   const initialRegions = useMemo<(CollapsedRegion | null)[]>(() => {
     if (!collapseOptions) return []
     return collapseUnchanged(aligned.rows, {
+      keepRows: foldStartRows,
       ...(collapseOptions.context !== undefined ? { context: collapseOptions.context } : {}),
       ...(collapseOptions.minimumHidden !== undefined
         ? { minimumHidden: collapseOptions.minimumHidden }
         : {}),
     })
-  }, [aligned.rows, collapseOptions])
+  }, [aligned.rows, collapseOptions, foldStartRows])
 
   const [regions, setRegions] = useState(initialRegions)
   const lastInitial = useRef(initialRegions)

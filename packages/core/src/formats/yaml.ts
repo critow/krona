@@ -19,6 +19,11 @@ const MAX_REPORTED_ERRORS = 20
 interface OpenBlock {
   readonly indent: number
   readonly startLine: number
+  /** Indentation of this block's direct children, once the first one is seen. */
+  childIndent: number
+  childCount: number
+  /** True when the first child is a `- ` entry, making the block a sequence. */
+  isSequence: boolean
 }
 
 function analyze(
@@ -45,11 +50,14 @@ function analyze(
     while (stack.length > 0 && (stack[stack.length - 1] as OpenBlock).indent >= indent) {
       const block = stack.pop() as OpenBlock
       if (endLine > block.startLine) {
+        const kind = block.childCount === 0 ? 'block' : block.isSequence ? 'array' : 'object'
         emit({
           startLine: block.startLine,
           endLine,
           level: stack.length,
-          kind: 'block',
+          kind,
+          ...(kind === 'block' ? {} : { summary: kind === 'array' ? '[…]' : '{…}' }),
+          ...(block.childCount > 0 ? { childCount: block.childCount } : {}),
         })
       }
     }
@@ -103,6 +111,17 @@ function analyze(
     closeTo(indent, lastContent)
     lastContent = i
 
+    // After closeTo, the stack top is this line's parent block, so a line counts
+    // itself as one of that block's items.
+    const parent = stack[stack.length - 1]
+    if (parent) {
+      if (parent.childIndent === -1) {
+        parent.childIndent = indent
+        parent.isSequence = text.charCodeAt(indent) === 45 && isSpaceOrEnd(text, indent + 1)
+      }
+      if (indent === parent.childIndent) parent.childCount++
+    }
+
     if (opensBlockScalar(text)) {
       scalarIndent = indent
       scalarStart = i
@@ -116,7 +135,20 @@ function analyze(
       continue
     }
 
-    stack.push({ indent, startLine: i })
+    // `- name: a` opens a mapping whose first entry sits on the dash line
+    // itself, where an indentation walk cannot see it; seed the count so the
+    // count matches what a reader counts.
+    const inlineEntry =
+      text.charCodeAt(indent) === 45 &&
+      isSpaceOrEnd(text, indent + 1) &&
+      findKeyColon(text, skipSpace(text, indent + 1)) !== -1
+    stack.push({
+      indent,
+      startLine: i,
+      childIndent: -1,
+      childCount: inlineEntry ? 1 : 0,
+      isSequence: false,
+    })
   }
 
   if (scalarIndent >= 0) endScalar(lastContent)

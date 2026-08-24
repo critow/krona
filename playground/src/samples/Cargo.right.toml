@@ -1,0 +1,41 @@
+# Krona sample — TOML with nested tables and arrays of tables
+[package]
+name = "krona-demo"
+version = "1.5.0"
+edition = "2024"
+authors = ["Acme <dev@acme.test>", "Contrib <hi@acme.test>"]
+description = """
+Multi-line basic strings are one folding range,
+just like YAML block scalars.
+"""
+
+[dependencies]
+serde = { version = "1.0", features = ["derive", "rc"] }
+tokio = { version = "1.41", features = ["full"] }
+tracing = "0.1"
+
+[dependencies.reqwest]
+version = "0.12"
+default-features = false
+features = ["json", "rustls-tls", "gzip"]
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+strip = true
+
+[[bin]]
+name = "api"
+path = "src/bin/api.rs"
+
+[[bin]]
+name = "worker"
+path = "src/bin/worker.rs"
+
+[[bin]]
+name = "migrate"
+path = "src/bin/migrate.rs"
+
+[workspace]
+members = ["crates/*"]

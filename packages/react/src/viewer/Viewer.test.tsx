@@ -54,10 +54,22 @@ describe('Krona.Viewer', () => {
   it('shows a placeholder that expands the block when clicked', async () => {
     const { screen, lineNumbers } = await renderViewer()
     await screen.getByRole('button', { name: 'Collapse block' }).nth(1).click()
-    const placeholder = screen.getByRole('button', { name: /lines/ }).first()
+    // The `server` object holds two keys, and the placeholder says so.
+    const placeholder = screen.getByRole('button', { name: '{ 2 items }' }).first()
     await expect.element(placeholder).toBeVisible()
     await placeholder.click()
     await expect.poll(() => lineNumbers().length).toBe(10)
+  })
+
+  it('counts items for the collapsed placeholder in every format', async () => {
+    const screen = await render(
+      <Krona format="ini">
+        <Krona.Viewer source={'[server]\nhost = 0.0.0.0\nport = 8080\nworkers = 4'} />
+      </Krona>,
+    )
+    await expect.element(screen.getByRole('button', { name: 'Collapse block' })).toBeVisible()
+    await screen.getByRole('button', { name: 'Collapse block' }).click()
+    await expect.element(screen.getByRole('button', { name: '{ 3 items }' })).toBeVisible()
   })
 
   it('is operable from the keyboard, with aria-expanded reflecting the state', async () => {

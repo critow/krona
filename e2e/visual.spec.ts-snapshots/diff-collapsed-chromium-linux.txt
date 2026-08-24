@@ -1,0 +1,10 @@
+1:normal           | 1:normal
+bar                | bar
+60:normal          | 60:normal
+61:normal          | 61:normal
+62:normal          | 62:normal
+63:changed         | 63:changed
+64:normal          | 64:normal
+65:normal          | 65:normal
+66:normal          | 66:normal
+bar                | bar

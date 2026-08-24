@@ -12,9 +12,9 @@ describe('ini provider', () => {
       ),
     )
     expect(model.foldingRanges).toEqual([
-      { startLine: 0, endLine: 4, level: 0, kind: 'section', summary: '[…]' },
-      { startLine: 3, endLine: 4, level: 1, kind: 'section', summary: '[…]' },
-      { startLine: 6, endLine: 7, level: 0, kind: 'section', summary: '[…]' },
+      { startLine: 0, endLine: 4, level: 0, kind: 'section', summary: '{…}', childCount: 2 },
+      { startLine: 3, endLine: 4, level: 1, kind: 'section', summary: '{…}', childCount: 1 },
+      { startLine: 6, endLine: 7, level: 0, kind: 'section', summary: '{…}', childCount: 1 },
     ])
   })
 
