@@ -32,7 +32,6 @@ export function App() {
 
   const dict = DICTS[lang]
   const sample = useMemo(() => SAMPLES.find((s) => s.id === sampleId) ?? SAMPLES[0]!, [sampleId])
-  const canDiff = sample.right !== undefined
 
   const syncUrl = useCallback(
     (next: Partial<{ mode: Mode; sample: string; theme: Theme; lang: Lang }>) => {
@@ -113,11 +112,11 @@ export function App() {
         labels={dict.kronaLabels}
         style={{ ['--krona-height' as string]: '70vh' }}
       >
-        {mode === 'diff' && canDiff ? (
+        {mode === 'diff' ? (
           <Krona.Diff
             key={`${sample.id}-diff`}
             left={sample.left}
-            right={sample.right as string}
+            right={sample.right}
             collapseUnchanged={initial.collapse}
             showMinimap
           >
@@ -141,8 +140,6 @@ export function App() {
           </Krona.Viewer>
         )}
       </Krona>
-
-      {mode === 'diff' && !canDiff ? <p className="notice">{dict.noDiffSample}</p> : null}
     </main>
   )
 }

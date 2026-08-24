@@ -17,7 +17,6 @@ export interface Dict {
   light: string
   dark: string
   language: string
-  noDiffSample: string
   kronaLabels: Partial<KronaLabels>
 }
 
@@ -31,7 +30,6 @@ const en: Dict = {
   light: 'Light',
   dark: 'Dark',
   language: 'Language',
-  noDiffSample: 'This sample has no second version to diff against.',
   // English is already Krona's default, so nothing needs overriding here.
   kronaLabels: {},
 }
@@ -39,12 +37,12 @@ const en: Dict = {
 const ruNumbers = new Intl.NumberFormat('ru')
 
 /** Russian needs three plural forms, which is exactly why plurals live in the app. */
-function ruLines(count: number): string {
+function ruPlural(count: number, one: string, few: string, many: string): string {
   const mod10 = count % 10
   const mod100 = count % 100
-  if (mod10 === 1 && mod100 !== 11) return 'строка'
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'строки'
-  return 'строк'
+  if (mod10 === 1 && mod100 !== 11) return one
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return few
+  return many
 }
 
 const ru: Dict = {
@@ -57,14 +55,17 @@ const ru: Dict = {
   light: 'Светлая',
   dark: 'Тёмная',
   language: 'Язык',
-  noDiffSample: 'У этого примера нет второй версии для сравнения.',
   kronaLabels: {
     expandAll: 'Развернуть всё',
     collapseAll: 'Свернуть всё',
     expandBlock: 'Развернуть блок',
     collapseBlock: 'Свернуть блок',
-    foldedLines: (count) => `${ruNumbers.format(count)} ${ruLines(count)}`,
-    hiddenLines: (count) => `${ruNumbers.format(count)} ${ruLines(count)} без изменений`,
+    foldedItems: (count) =>
+      `${ruNumbers.format(count)} ${ruPlural(count, 'элемент', 'элемента', 'элементов')}`,
+    foldedLines: (count) =>
+      `${ruNumbers.format(count)} ${ruPlural(count, 'строка', 'строки', 'строк')}`,
+    hiddenLines: (count) =>
+      `${ruNumbers.format(count)} ${ruPlural(count, 'строка', 'строки', 'строк')} без изменений`,
     expandUp: 'Развернуть вверх',
     expandDown: 'Развернуть вниз',
     expandAllHidden: 'Развернуть всё',

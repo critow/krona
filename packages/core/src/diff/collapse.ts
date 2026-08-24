@@ -20,6 +20,16 @@ export interface CollapseOptions {
    * vertical space than the lines it hides. Default 10.
    */
   readonly minimumHidden?: number
+  /**
+   * Rows that must stay on screen even when they fall inside an unchanged run.
+   *
+   * A diff viewer that also folds has two ways to hide a line, and they can
+   * collide: hiding the one row that opens a folding range takes its chevron
+   * with it, so a file whose only foldable line sits in an unchanged run ends
+   * up with nothing to click. Passing those rows here splits the run around
+   * them instead.
+   */
+  readonly keepRows?: ReadonlySet<number>
 }
 
 const DEFAULT_CONTEXT = 3
@@ -46,8 +56,13 @@ export function collapseUnchanged(
   const context = Math.max(0, options?.context ?? DEFAULT_CONTEXT)
   const minimumHidden = Math.max(1, options?.minimumHidden ?? DEFAULT_MINIMUM_HIDDEN)
 
+  const keepRows = options?.keepRows
   const regions: CollapsedRegion[] = []
   let runStart = -1
+
+  const emit = (start: number, end: number): void => {
+    if (end - start + 1 >= minimumHidden) regions.push({ startRow: start, endRow: end })
+  }
 
   const flush = (runEnd: number): void => {
     if (runStart < 0) return
@@ -57,8 +72,23 @@ export function collapseUnchanged(
     const trailingContext = runEnd === rows.length - 1 ? 0 : context
     const start = runStart + leadingContext
     const end = runEnd - trailingContext
-    if (end - start + 1 >= minimumHidden) regions.push({ startRow: start, endRow: end })
     runStart = -1
+    if (end < start) return
+
+    if (!keepRows || keepRows.size === 0) {
+      emit(start, end)
+      return
+    }
+    // Split the run around every row that has to stay visible. Fragments below
+    // the minimum simply stay on screen, which keeps the splitting from
+    // shredding a long run into a ladder of one-line bars.
+    let segmentStart = start
+    for (let row = start; row <= end; row++) {
+      if (!keepRows.has(row)) continue
+      emit(segmentStart, row - 1)
+      segmentStart = row + 1
+    }
+    emit(segmentStart, end)
   }
 
   for (let i = 0; i < rows.length; i++) {

@@ -12,10 +12,13 @@ describe('yaml provider', () => {
         '\n',
       ),
     )
+    // A mapping and a sequence are told apart, and each carries its item count,
+    // so the collapsed placeholder can read `{ 2 items }` rather than a bare
+    // line count.
     expect(model.foldingRanges).toEqual([
-      { startLine: 0, endLine: 4, level: 0, kind: 'block' },
-      { startLine: 1, endLine: 4, level: 1, kind: 'block' },
-      { startLine: 3, endLine: 4, level: 2, kind: 'block' },
+      { startLine: 0, endLine: 4, level: 0, kind: 'object', summary: '{…}', childCount: 1 },
+      { startLine: 1, endLine: 4, level: 1, kind: 'object', summary: '{…}', childCount: 2 },
+      { startLine: 3, endLine: 4, level: 2, kind: 'array', summary: '[…]', childCount: 1 },
     ])
   })
 
@@ -38,7 +41,9 @@ describe('yaml provider', () => {
 
   it('keeps a left-margin comment from cutting a nested block short', () => {
     const model = doc(['a:', '  b: 1', '# note', '  c: 2', 'd: 3'].join('\n'))
-    expect(model.foldingRanges).toEqual([{ startLine: 0, endLine: 3, level: 0, kind: 'block' }])
+    expect(model.foldingRanges).toEqual([
+      { startLine: 0, endLine: 3, level: 0, kind: 'object', summary: '{…}', childCount: 2 },
+    ])
   })
 
   it('tokenizes keys, comments, anchors and aliases', () => {
@@ -62,9 +67,9 @@ describe('yaml provider', () => {
 
   it('marks sequence dashes as punctuation and folds their items', () => {
     const model = doc(['items:', '  - name: a', '    id: 1', '  - name: b'].join('\n'))
-    expect(model.foldingRanges.map((r) => [r.startLine, r.endLine])).toEqual([
-      [0, 3],
-      [1, 2],
+    expect(model.foldingRanges.map((r) => [r.startLine, r.endLine, r.kind, r.childCount])).toEqual([
+      [0, 3, 'array', 2],
+      [1, 2, 'object', 2],
     ])
     expect(model.tokensAt(1)[0]).toEqual({ type: 'punctuation', start: 2, end: 3 })
   })

@@ -16,9 +16,12 @@ export default defineConfig({
   reporter: process.env.CI ? 'github' : 'list',
   expect: {
     toHaveScreenshot: {
-      // Font rasterisation differs a hair between machines; a real layout break
-      // moves far more than this.
-      maxDiffPixelRatio: 0.01,
+      // Tight on purpose. At 1% this suite silently accepted a whole extra row
+      // and a 20px shift of every line below it — the exact class of breakage
+      // it exists to catch. Text is sparse, so a moved row changes far fewer
+      // pixels than the area it occupies; the budget has to be near zero and
+      // still leave room for antialiasing jitter.
+      maxDiffPixelRatio: 0.001,
     },
   },
   use: {

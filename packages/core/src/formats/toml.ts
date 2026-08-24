@@ -73,6 +73,8 @@ interface OpenSection {
   readonly path: readonly string[]
   readonly startLine: number
   readonly level: number
+  /** Direct key assignments plus child tables, for the collapsed placeholder. */
+  childCount: number
 }
 
 function analyze(
@@ -106,7 +108,8 @@ function analyze(
           endLine: end,
           level: top.level,
           kind: 'section',
-          summary: '[…]',
+          summary: '{…}',
+          childCount: top.childCount,
         })
       }
     }
@@ -154,9 +157,14 @@ function analyze(
     if (header) {
       closeSections(header.path, i - 1)
       const level = sections.length
-      sections.push({ path: header.path, startLine: i, level })
+      const parent = sections[sections.length - 1]
+      if (parent) parent.childCount++
+      sections.push({ path: header.path, startLine: i, level, childCount: 0 })
       continue
     }
+
+    const section = sections[sections.length - 1]
+    if (section && findAssignment(text, indentOf(text)) !== -1) section.childCount++
 
     const opened = openMultiline(text)
     if (opened) {

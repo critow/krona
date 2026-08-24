@@ -1,4 +1,4 @@
-import type { FoldRange, Token } from '@krona/core'
+import type { FoldKind, FoldRange, Token } from '@krona/core'
 import { type CSSProperties, Fragment, memo, type ReactNode } from 'react'
 import { useLineSource } from '../context/lineSource'
 import type { KronaLabels } from '../labels'
@@ -48,6 +48,19 @@ function renderSegments(
   })
 }
 
+/**
+ * Brackets come from the range's kind rather than its `summary`, so a collapsed
+ * block reads the way the format writes it — `{ 3 items }` for a mapping,
+ * `[ 3 items ]` for a sequence — in every format, not just JSON.
+ */
+const BRACKETS: Record<FoldKind, readonly [string, string] | null> = {
+  object: ['{', '}'],
+  section: ['{', '}'],
+  block: ['{', '}'],
+  array: ['[', ']'],
+  scalar: null,
+}
+
 function FoldPlaceholder({
   range,
   labels,
@@ -57,11 +70,20 @@ function FoldPlaceholder({
   labels: KronaLabels
   onExpand: () => void
 }) {
-  const hidden = range.endLine - range.startLine
+  const hiddenLines = range.endLine - range.startLine
+  const inside =
+    range.childCount === undefined
+      ? labels.foldedLines(hiddenLines)
+      : labels.foldedItems(range.childCount)
+  const brackets = BRACKETS[range.kind]
   return (
-    <button type="button" className="krona-fold-placeholder" onClick={onExpand}>
-      {range.summary ? `${range.summary} ` : ''}
-      {labels.foldedLines(hidden)}
+    <button
+      type="button"
+      className="krona-fold-placeholder"
+      onClick={onExpand}
+      title={labels.expandBlock}
+    >
+      {brackets ? `${brackets[0]} ${inside} ${brackets[1]}` : inside}
     </button>
   )
 }

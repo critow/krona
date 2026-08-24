@@ -46,6 +46,8 @@ interface OpenSection {
   readonly path: readonly string[]
   readonly startLine: number
   readonly level: number
+  /** Direct keys plus child sections, for the collapsed placeholder. */
+  childCount: number
 }
 
 function analyze(
@@ -69,7 +71,8 @@ function analyze(
           endLine: end,
           level: top.level,
           kind: 'section',
-          summary: '[…]',
+          summary: '{…}',
+          childCount: top.childCount,
         })
       }
     }
@@ -81,9 +84,15 @@ function analyze(
     const at = indentOf(text)
     if (isComment(text, at)) continue
     const header = parseHeader(text)
-    if (!header) continue
+    if (!header) {
+      const section = open[open.length - 1]
+      if (section && findSeparator(text, at) !== -1) section.childCount++
+      continue
+    }
     close(header.path, i - 1)
-    open.push({ path: header.path, startLine: i, level: open.length })
+    const parent = open[open.length - 1]
+    if (parent) parent.childCount++
+    open.push({ path: header.path, startLine: i, level: open.length, childCount: 0 })
   }
   close(undefined, lines.length - 1)
 

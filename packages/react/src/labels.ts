@@ -18,7 +18,9 @@ export interface KronaLabels {
   expandBlock: string
   /** Accessible name of a gutter chevron that will collapse its block. */
   collapseBlock: string
-  /** Placeholder next to a collapsed block, e.g. `12 lines`. */
+  /** Placeholder for a collapsed block whose item count is known, e.g. `6 items`. */
+  foldedItems: (count: number) => string
+  /** Placeholder for a collapsed block counted in lines, e.g. `12 lines`. */
   foldedLines: (count: number) => string
   /** Bar standing in for a hidden run of unchanged diff rows. */
   hiddenLines: (count: number) => string
@@ -55,7 +57,8 @@ export function createDefaultLabels(locale?: string): KronaLabels {
     collapseAll: 'Collapse all',
     expandBlock: 'Expand block',
     collapseBlock: 'Collapse block',
-    foldedLines: (count) => `${format.format(count)} lines`,
+    foldedItems: (count) => `${format.format(count)} ${count === 1 ? 'item' : 'items'}`,
+    foldedLines: (count) => `${format.format(count)} ${count === 1 ? 'line' : 'lines'}`,
     hiddenLines: (count) => `${format.format(count)} unchanged lines`,
     expandUp: 'Expand up',
     expandDown: 'Expand down',
