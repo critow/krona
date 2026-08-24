@@ -31,7 +31,9 @@ jobs:
       - run: pnpm --filter @krona/core exec publint
       - run: pnpm --filter krona exec publint
       - run: pnpm --filter @krona/core exec attw --pack . --profile node16
-      - run: pnpm --filter krona exec attw --pack . --profile node16
+      # styles.css is excluded because attw judges every entrypoint by whether it
+      # resolves to JS or type declarations, which a stylesheet never can.
+      - run: pnpm --filter krona exec attw --pack . --profile node16 --exclude-entrypoints styles.css
 
   browser:
     runs-on: ubuntu-latest

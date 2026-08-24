@@ -32,6 +32,10 @@ jobs:
         env:
           KRONA_BASE: /krona/
       - uses: actions/configure-pages@v5
+        with:
+          # Without this the first run fails on a repository where Pages has
+          # never been turned on: the action reads the site config and 404s.
+          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: playground/dist
