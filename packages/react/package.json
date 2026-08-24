@@ -69,7 +69,7 @@
   "types": "./dist/index.d.cts",
   "scripts": {
     "build": "node ../../scripts/build-css.mjs && tsdown",
-    "prepublishOnly": "pnpm build && publint && attw --pack . --profile node16"
+    "prepublishOnly": "pnpm build && publint && attw --pack . --profile node16 --exclude-entrypoints styles.css"
   },
   "dependencies": {
     "@krona/core": "workspace:*",
