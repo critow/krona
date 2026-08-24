@@ -31,11 +31,13 @@ jobs:
       - run: pnpm --filter krona-playground build
         env:
           KRONA_BASE: /krona/
+      # Pages must already be enabled for the repository, with the source set to
+      # GitHub Actions (Settings -> Pages -> Build and deployment -> Source).
+      # This job cannot do it: creating a Pages site needs repository admin
+      # rights, which GITHUB_TOKEN never has, whatever `permissions:` says.
+      # Until that one-time switch is flipped, this step fails with
+      # "Resource not accessible by integration".
       - uses: actions/configure-pages@v5
-        with:
-          # Without this the first run fails on a repository where Pages has
-          # never been turned on: the action reads the site config and 404s.
-          enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
           path: playground/dist
