@@ -5,11 +5,13 @@ import { expect, type Page, test } from '@playwright/test'
  * about the DOM would catch: panel alignment, gutter width, token colours.
  */
 const VIEWS = [
-  { name: 'viewer-large-json', query: 'mode=viewer&sample=big' },
-  { name: 'viewer-yaml-block-scalars', query: 'mode=viewer&sample=yaml' },
-  { name: 'viewer-toml-nested-tables', query: 'mode=viewer&sample=toml' },
-  { name: 'diff-reordered-keys', query: 'mode=diff&sample=reordered' },
-  { name: 'diff-unrelated-files', query: 'mode=diff&sample=unrelated' },
+  // The theme is pinned on every view: the demo page defaults to dark, and a
+  // reference screenshot should not change meaning when that default does.
+  { name: 'viewer-large-json', query: 'mode=viewer&sample=big&theme=light' },
+  { name: 'viewer-yaml-block-scalars', query: 'mode=viewer&sample=yaml&theme=light' },
+  { name: 'viewer-toml-nested-tables', query: 'mode=viewer&sample=toml&theme=light' },
+  { name: 'diff-reordered-keys', query: 'mode=diff&sample=reordered&theme=light' },
+  { name: 'diff-unrelated-files', query: 'mode=diff&sample=unrelated&theme=light' },
   { name: 'diff-dark-theme', query: 'mode=diff&sample=json&theme=dark' },
 ] as const
 
@@ -73,7 +75,7 @@ test.describe('collapsed unchanged runs', () => {
   test.use({ viewport: { width: 1400, height: 900 } })
 
   test('are hidden behind a bar, and reappear when expanded', async ({ page }) => {
-    await page.goto('/?mode=diff&sample=collapsed')
+    await page.goto('/?mode=diff&sample=collapsed&theme=light')
     await settle(page)
     await expect(page.locator('.krona-expand-bar').first()).toBeVisible()
     expect(await alignmentFingerprint(page)).toMatchSnapshot('diff-collapsed.txt')

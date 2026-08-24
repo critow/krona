@@ -22,18 +22,56 @@ export interface Sample {
   id: string
   label: string
   format: 'json' | 'yaml' | 'toml' | 'ini'
+  /** One line on what this sample is here to show. */
+  note: string
   left: string
   right: string
 }
 
 export const SAMPLES: Sample[] = [
-  { id: 'json', label: 'app.json (JSONC)', format: 'json', left: appJson, right: appRightJson },
-  { id: 'yaml', label: 'compose.yaml', format: 'yaml', left: composeYaml, right: composeRightYaml },
-  { id: 'toml', label: 'Cargo.toml', format: 'toml', left: cargoToml, right: cargoRightToml },
-  { id: 'ini', label: 'app.ini', format: 'ini', left: appIni, right: appRightIni },
-  { id: 'env', label: '.env', format: 'ini', left: envSample, right: envRightSample },
+  {
+    id: 'json',
+    note: 'Comments and trailing commas survive; objects and arrays fold.',
+    label: 'app.json (JSONC)',
+    format: 'json',
+    left: appJson,
+    right: appRightJson,
+  },
+  {
+    id: 'yaml',
+    note: 'Block scalars and anchors, folded by indentation.',
+    label: 'compose.yaml',
+    format: 'yaml',
+    left: composeYaml,
+    right: composeRightYaml,
+  },
+  {
+    id: 'toml',
+    note: 'Tables nest by dotted path; arrays of tables stay siblings.',
+    label: 'Cargo.toml',
+    format: 'toml',
+    left: cargoToml,
+    right: cargoRightToml,
+  },
+  {
+    id: 'ini',
+    note: 'Sections fold, dotted names nest.',
+    label: 'app.ini',
+    format: 'ini',
+    left: appIni,
+    right: appRightIni,
+  },
+  {
+    id: 'env',
+    note: 'Flat by design — nothing to fold, only highlighting.',
+    label: '.env',
+    format: 'ini',
+    left: envSample,
+    right: envRightSample,
+  },
   {
     id: 'reordered',
+    note: 'Moving a key is a real difference, exactly as in git.',
     label: 'Reordered keys',
     format: 'json',
     left: reorderedJson,
@@ -41,6 +79,7 @@ export const SAMPLES: Sample[] = [
   },
   {
     id: 'unrelated',
+    note: 'Two files with nothing in common.',
     label: 'Unrelated files',
     format: 'yaml',
     left: unrelatedLeftYaml,
@@ -48,6 +87,7 @@ export const SAMPLES: Sample[] = [
   },
   {
     id: 'big',
+    note: '28k lines, virtualized; a scattered dependency bump.',
     label: 'Large lockfile (28k lines)',
     format: 'json',
     left: bigJson(),
@@ -55,6 +95,7 @@ export const SAMPLES: Sample[] = [
   },
   {
     id: 'collapsed',
+    note: 'One change buried in a long file, unchanged runs folded away.',
     label: 'One change in a long file',
     format: 'json',
     left: mostlyUnchanged('left'),
