@@ -1,0 +1,27 @@
+{
+  // Krona sample — JSONC is supported: comments survive parsing.
+  "name": "krona-demo",
+  "version": "1.4.2",
+  "private": false,
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8080,
+    "tls": {
+      "enabled": true,
+      "cert": "/etc/ssl/certs/demo.pem",
+      "ciphers": ["TLS_AES_128_GCM_SHA256", "TLS_AES_256_GCM_SHA384"]
+    },
+    "timeouts": { "read": 30, "write": 30, "idle": 120 }
+  },
+  "database": {
+    "driver": "postgres",
+    "pool": { "min": 2, "max": 16 },
+    "replicas": [
+      { "host": "db-1.internal", "weight": 1 },
+      { "host": "db-2.internal", "weight": 2 }
+    ]
+  },
+  "features": { "search": true, "billing": false, "beta": null },
+  "empty": {},
+  "emptyList": []
+}

@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+.DS_Store
+playground/dist/
+test-results/
+playwright-report/
+
+# Reference screenshots ARE committed; only the failure artefacts are not.
+**/*-actual.png
+**/*-diff.png

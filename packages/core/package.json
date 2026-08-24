@@ -1,0 +1,101 @@
+{
+  "name": "@krona/core",
+  "version": "0.1.0",
+  "description": "Framework-agnostic core for Krona: config file document model, format providers and line diff.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./json": {
+      "import": {
+        "types": "./dist/formats/json.d.mts",
+        "default": "./dist/formats/json.mjs"
+      },
+      "require": {
+        "types": "./dist/formats/json.d.cts",
+        "default": "./dist/formats/json.cjs"
+      }
+    },
+    "./yaml": {
+      "import": {
+        "types": "./dist/formats/yaml.d.mts",
+        "default": "./dist/formats/yaml.mjs"
+      },
+      "require": {
+        "types": "./dist/formats/yaml.d.cts",
+        "default": "./dist/formats/yaml.cjs"
+      }
+    },
+    "./toml": {
+      "import": {
+        "types": "./dist/formats/toml.d.mts",
+        "default": "./dist/formats/toml.mjs"
+      },
+      "require": {
+        "types": "./dist/formats/toml.d.cts",
+        "default": "./dist/formats/toml.cjs"
+      }
+    },
+    "./ini": {
+      "import": {
+        "types": "./dist/formats/ini.d.mts",
+        "default": "./dist/formats/ini.mjs"
+      },
+      "require": {
+        "types": "./dist/formats/ini.d.cts",
+        "default": "./dist/formats/ini.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.cts",
+  "scripts": {
+    "build": "tsdown",
+    "prepublishOnly": "pnpm build && publint && attw --pack . --profile node16"
+  },
+  "dependencies": {
+    "diff": "catalog:",
+    "jsonc-parser": "catalog:",
+    "yaml": "catalog:"
+  },
+  "devDependencies": {
+    "tsdown": "catalog:",
+    "typescript": "catalog:"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/critow/krona.git",
+    "directory": "packages/core"
+  },
+  "keywords": [
+    "json",
+    "yaml",
+    "toml",
+    "ini",
+    "diff",
+    "viewer",
+    "folding"
+  ],
+  "engines": {
+    "node": ">=20.19"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

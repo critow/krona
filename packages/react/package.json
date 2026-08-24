@@ -1,0 +1,112 @@
+{
+  "name": "krona",
+  "version": "0.1.0",
+  "description": "Collapsible tree viewer and side-by-side diff for JSON, YAML, TOML and INI/.env config files.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./json": {
+      "import": {
+        "types": "./dist/formats/json.d.mts",
+        "default": "./dist/formats/json.mjs"
+      },
+      "require": {
+        "types": "./dist/formats/json.d.cts",
+        "default": "./dist/formats/json.cjs"
+      }
+    },
+    "./yaml": {
+      "import": {
+        "types": "./dist/formats/yaml.d.mts",
+        "default": "./dist/formats/yaml.mjs"
+      },
+      "require": {
+        "types": "./dist/formats/yaml.d.cts",
+        "default": "./dist/formats/yaml.cjs"
+      }
+    },
+    "./toml": {
+      "import": {
+        "types": "./dist/formats/toml.d.mts",
+        "default": "./dist/formats/toml.mjs"
+      },
+      "require": {
+        "types": "./dist/formats/toml.d.cts",
+        "default": "./dist/formats/toml.cjs"
+      }
+    },
+    "./ini": {
+      "import": {
+        "types": "./dist/formats/ini.d.mts",
+        "default": "./dist/formats/ini.mjs"
+      },
+      "require": {
+        "types": "./dist/formats/ini.d.cts",
+        "default": "./dist/formats/ini.cjs"
+      }
+    },
+    "./styles.css": "./dist/styles.css",
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.cts",
+  "scripts": {
+    "build": "node ../../scripts/build-css.mjs && tsdown",
+    "prepublishOnly": "pnpm build && publint && attw --pack . --profile node16"
+  },
+  "dependencies": {
+    "@krona/core": "workspace:*",
+    "@tanstack/react-virtual": "catalog:"
+  },
+  "peerDependencies": {
+    "react": ">=18.2.0",
+    "react-dom": ">=18.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "tsdown": "catalog:",
+    "typescript": "catalog:"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/critow/krona.git",
+    "directory": "packages/react"
+  },
+  "keywords": [
+    "react",
+    "json-viewer",
+    "yaml",
+    "toml",
+    "ini",
+    "diff",
+    "side-by-side",
+    "code-folding"
+  ],
+  "engines": {
+    "node": ">=20.19"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}
