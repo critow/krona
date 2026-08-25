@@ -1,6 +1,9 @@
 <div align="center">
 
-<img src="./docs/assets/logo.svg" width="88" height="88" alt="">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./docs/assets/logo-dark.svg">
+  <img src="./docs/assets/logo-light.svg" width="132" height="126" alt="">
+</picture>
 
 # Krona
 
@@ -530,7 +533,10 @@ const { rows, stats } = alignDiff(diffLines(before, after))
 **The name is the canopy of a tree, not a monarch's crown.** Krona shows a
 document as a tree you fold branch by branch; a canopy is the shape of the whole
 before you look at any one branch, which is what a folded configuration file
-gives you. The mark is a tree for that reason.
+gives you. The mark says both halves of that: a file folded into a tree of rows,
+with the two signs of a diff beside them, growing into a tree. It lives in
+`docs/assets` — `logo-light.svg` and `logo-dark.svg` are the mark, `logotype-*`
+add the wordmark, and `logo.svg` picks a palette from the reader's own theme.
 
 **The model is lines, not a value tree.** Diffing is line based and folding is
 range based, so `lines + folding ranges` serves both. Krona never builds a
