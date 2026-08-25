@@ -1,0 +1,74 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  # The GitHub Release, and the OIDC token npm needs to attest provenance.
+  contents: write
+  id-token: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  # A publish is not something to cancel halfway: npm would keep whatever
+  # already landed, and the version could never be reused.
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - run: pnpm install --frozen-lockfile
+
+      - name: Check the tag against the repository
+        run: node scripts/release-check.mjs "${GITHUB_REF_NAME#v}" --notes-out release-notes.md
+
+      # The tag names a commit that already passed CI, but this is the last
+      # gate before a version becomes permanent, so everything that guards the
+      # published artifact runs again. The screenshot suite does not: it judges
+      # pixels in the demo, which is deployed separately.
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm verify
+      - run: pnpm check-deps
+      - run: pnpm --filter @krona/core exec publint
+      - run: pnpm --filter krona exec publint
+      - run: pnpm --filter @krona/core exec attw --pack . --profile node16
+      - run: pnpm --filter krona exec attw --pack . --profile node16 --exclude-entrypoints styles.css
+
+      # Packed by pnpm and published by npm. pnpm resolves `workspace:*` and
+      # `catalog:` into real versions while packing, which npm alone cannot do;
+      # npm attaches the provenance attestation, which pnpm has no flag for.
+      - name: Pack
+        run: |
+          pnpm --filter @krona/core pack --pack-destination packs
+          pnpm --filter krona pack --pack-destination packs
+
+      - name: Publish to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          VERSION: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          version="${VERSION#v}"
+          # Core first: the React package's dependency on it is now a real
+          # version range, and a dependency that does not exist yet fails install.
+          npm publish "packs/krona-core-${version}.tgz" --provenance --access public
+          npm publish "packs/krona-${version}.tgz" --provenance --access public
+
+      - name: Create the GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --title "$GITHUB_REF_NAME" \
+            --notes-file release-notes.md \
+            --verify-tag \
+            packs/*.tgz

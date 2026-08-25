@@ -604,6 +604,14 @@ scrolling depend on layout and scrolling, which jsdom does not implement.
 Reference screenshots are updated only in a deliberate commit
 (`pnpm test:visual:update`).
 
+The published packages ask for Node 18.18 or newer — they hold no Node-only code
+and that floor is about the tooling that installs them. Working on Krona itself
+needs 20.19, which is what its own toolchain requires.
+
+Pushing a `v*` tag publishes both packages to npm with provenance and opens a
+GitHub Release. [RELEASING.md](./RELEASING.md) has the steps and the one secret
+the repository needs.
+
 ## License
 
 MIT

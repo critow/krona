@@ -95,7 +95,7 @@
     "folding"
   ],
   "engines": {
-    "node": ">=20.19"
+    "node": ">=18.18"
   },
   "publishConfig": {
     "access": "public",

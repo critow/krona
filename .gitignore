@@ -10,3 +10,6 @@ playwright-report/
 # Reference screenshots ARE committed; only the failure artefacts are not.
 **/*-actual.png
 **/*-diff.png
+# Written by the release workflow: tarballs to publish, notes for the release.
+packs/
+release-notes.md
