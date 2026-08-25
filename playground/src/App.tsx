@@ -150,8 +150,8 @@ export function App() {
           <img
             className="brand-mark"
             src={`${import.meta.env.BASE_URL}logo.svg`}
-            width={40}
-            height={40}
+            width={52}
+            height={52}
             alt=""
           />
           <div>

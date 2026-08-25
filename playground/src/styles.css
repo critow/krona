@@ -41,9 +41,11 @@ body {
 }
 
 .brand-mark {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  /* Larger than a text glyph would need: the mark holds a folded document
+     beside the tree, and below about 48px its rows stop resolving. */
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
   /* The mark carries its own rounded plate, so the frame it used to need as a
      text glyph would only double the border. */
   flex: none;

@@ -1,17 +1,53 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96" role="img" aria-label="Krona">
-  <rect x="1" y="1" width="94" height="94" rx="22" fill="#0b0e14" stroke="#2b3446" stroke-width="2"/>
-  <g stroke="#2f8ea3" stroke-width="8" stroke-linecap="round" fill="none">
-    <path d="M48 78V60"/>
-    <path d="M48 66 38 55"/>
-    <path d="M48 64 59 53"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="Krona">
+  <defs><path id="lf" d="M0 0C4-6 11-8 16-7 14-2 6 3 0 0Z"/></defs>
+  <rect x="1" y="1" width="126" height="126" rx="30" fill="#0b0e14" stroke="#2b3446" stroke-width="2"/>
+
+  <path d="M18 20h30l12 12v64a6 6 0 0 1-6 6H18a6 6 0 0 1-6-6V26a6 6 0 0 1 6-6Z" fill="none" stroke="#dce8f5" stroke-width="3.2" stroke-linejoin="round"/>
+  <path d="M48 20l12 12H50a2 2 0 0 1-2-2Z" fill="#dce8f5"/>
+
+  <g fill="none" stroke="#dce8f5" stroke-width="2" stroke-linecap="round">
+    <path d="M23 29c-3 .4-1.7 4.6-4 5.5 2.3.9 1 5.1 4 5.5"/>
+    <path d="M45 29c3 .4 1.7 4.6 4 5.5-2.3.9-1 5.1-4 5.5"/>
   </g>
-  <g fill="#5ccfe6">
-    <circle cx="48" cy="31" r="20"/>
-    <circle cx="30" cy="39" r="14"/>
-    <circle cx="66" cy="39" r="14"/>
-    <circle cx="36" cy="25" r="12"/>
-    <circle cx="60" cy="24" r="12"/>
-    <circle cx="48" cy="46" r="11"/>
+  <g fill="#5ccfe6"><circle cx="28.5" cy="34.5" r="1.6"/><circle cx="34" cy="34.5" r="1.6"/><circle cx="39.5" cy="34.5" r="1.6"/></g>
+
+  <g fill="none" stroke="#dce8f5" stroke-width="1.8" stroke-linecap="round">
+    <path d="M23 58v4q0 4 4 4h1"/>
+    <path d="M33 76v1q0 4 4 4h1"/>
+    <path d="M23 69v20q0 4 4 4h1" stroke-dasharray="0.1 4.5"/>
   </g>
-  <rect x="24" y="84" width="48" height="6" rx="3" fill="#1f5f70"/>
+
+  <rect x="18" y="47" width="10" height="10" rx="2.6" fill="#dce8f5"/>
+  <path d="M20.6 52h4.8" stroke="#0b0e14" stroke-width="2" stroke-linecap="round"/>
+  <g stroke="#dce8f5" stroke-width="2.8" stroke-linecap="round"><path d="M32 49.5h20"/><path d="M32 54.5h13"/></g>
+
+  <rect x="28" y="61" width="10" height="10" rx="2.6" fill="#5ccfe6"/>
+  <path d="M30.6 66h4.8" stroke="#0b0e14" stroke-width="2" stroke-linecap="round"/>
+  <path d="M42 66h11" stroke="#5ccfe6" stroke-width="2.8" stroke-linecap="round"/>
+
+  <rect x="36" y="76" width="10" height="10" rx="2.6" fill="#4aa3f0"/>
+  <g stroke="#0b0e14" stroke-width="2" stroke-linecap="round"><path d="M38.6 81h4.8"/><path d="M41 78.6v4.8"/></g>
+  <path d="M50 81h3.5" stroke="#4aa3f0" stroke-width="2.8" stroke-linecap="round"/>
+
+  <rect x="28" y="89" width="10" height="10" rx="2.6" fill="#4ed69a"/>
+  <g stroke="#0b0e14" stroke-width="2" stroke-linecap="round"><path d="M30.6 94h4.8"/><path d="M33 91.6v4.8"/></g>
+  <path d="M42 94h11" stroke="#4ed69a" stroke-width="2.8" stroke-linecap="round"/>
+
+  <path d="M57 102c12-1.5 17-6 19-13h2c2 7 7 11.5 19 13Z" fill="#dce8f5"/>
+  <g fill="none" stroke="#dce8f5" stroke-linecap="round">
+    <path d="M77 92V54" stroke-width="3.6"/>
+    <path d="M77 72c-4-5-6-9-7-15" stroke-width="2.8"/>
+    <path d="M77 64c7-6 14-9 21-11" stroke-width="2.8"/>
+    <path d="M77 80c7-2 12-5 16-9" stroke-width="2.8"/>
+    <path d="M73 72c-9-4-8-17 2-20-4-13 10-22 21-15 11-7 25 2 21 14 9 6 7 20-3 22-3 11-15 13-21 5-7 8-18 4-20-6Z" stroke-width="3" stroke-linejoin="round"/>
+  </g>
+  <g>
+    <use href="#lf" fill="#5ccfe6" transform="translate(74 56) rotate(205)"/>
+    <use href="#lf" fill="#4aa3f0" transform="translate(76 50) rotate(-45)"/>
+    <use href="#lf" fill="#4ed69a" transform="translate(90 34) rotate(-10)"/>
+    <use href="#lf" fill="#5ccfe6" transform="translate(100 48) rotate(20)"/>
+    <use href="#lf" fill="#4aa3f0" transform="translate(89 58) rotate(25)"/>
+    <use href="#lf" fill="#4ed69a" transform="translate(96 66) rotate(40)"/>
+    <use href="#lf" fill="#5ccfe6" transform="translate(83 70) rotate(160)"/>
+  </g>
 </svg>
