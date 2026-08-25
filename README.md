@@ -252,6 +252,20 @@ changing one of them, and a diff has no single document to write to.
 the value on its own, and the whole entry, which is the whole block when the
 line opens one. Turn them off with `<Krona.Lines showCopyActions={false} />`.
 
+A third copy action gives the **path** to what the line introduces —
+`server.tls.ciphers[0]` — and the tooltip shows it before you take it. Paths
+come from the provider, which records the one segment each line adds while it
+is already walking the file; the path itself is assembled from the folding
+ranges around the line, so a document keeps one short string per line rather
+than a copy of every ancestor on every descendant. All four formats report
+them: dotted keys and `[table]` headers in TOML, sections in INI, indentation
+and sequence indices in YAML.
+
+A path names a line. A line holding several entries answers with the first, and
+a line that introduces nothing of its own — a closing bracket — answers with the
+block it sits in.
+
+
 ## Custom layouts
 
 `Krona.Viewer` and `Krona.Diff` render a default layout when given no children.
@@ -331,6 +345,7 @@ app where they belong. Numbers in the defaults are formatted with
 | `duplicateEntry` | `string` | `Duplicate` | Row action repeating the entry below itself |
 | `copyEntry` | `string` | `Copy` | Row action copying the entry or block |
 | `copyValue` | `string` | `Copy value` | Row action copying just the value |
+| `copyPath` | `string` | `Copy path` | Row action copying the dotted path to the line |
 | `copied` | `string` | `Copied` | Shown briefly on a copy action that has run |
 
 Russian needs three plural forms, which is exactly why plurals live in your app

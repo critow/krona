@@ -1,3 +1,4 @@
+import { pathSegmentOf } from '../model/path'
 import { registerFormat } from '../model/registry'
 import type {
   AnalysisResult,
@@ -56,6 +57,7 @@ function analyze(
   options: ResolvedParseOptions,
 ): AnalysisResult {
   const ranges: FoldRange[] = []
+  const segments: (string | undefined)[] = new Array(lines.length)
   const open: OpenSection[] = []
   const { maxFoldRanges } = options.limits
 
@@ -86,18 +88,28 @@ function analyze(
     const header = parseHeader(text)
     if (!header) {
       const section = open[open.length - 1]
-      if (section && findSeparator(text, at) !== -1) section.childCount++
+      const separator = findSeparator(text, at)
+      if (separator !== -1) {
+        if (section) section.childCount++
+        segments[i] = pathSegmentOf([text.slice(at, separator).trimEnd()])
+      }
       continue
     }
     close(header.path, i - 1)
     const parent = open[open.length - 1]
     if (parent) parent.childCount++
+    // Only what this header adds; the sections it nests inside supply the rest.
+    segments[i] = pathSegmentOf(
+      parent && isPrefix(parent.path, header.path)
+        ? header.path.slice(parent.path.length)
+        : header.path,
+    )
     open.push({ path: header.path, startLine: i, level: open.length, childCount: 0 })
   }
   close(undefined, lines.length - 1)
 
   ranges.sort((a, b) => a.startLine - b.startLine || a.level - b.level)
-  return { foldingRanges: ranges }
+  return { foldingRanges: ranges, pathSegments: segments }
 }
 
 function tokenize(text: string): Token[] {

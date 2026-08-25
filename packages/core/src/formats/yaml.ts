@@ -1,4 +1,5 @@
 import { LineCounter, parseDocument as parseYamlDocument } from 'yaml'
+import { type PathPart, pathSegmentOf } from '../model/path'
 import { registerFormat } from '../model/registry'
 import type {
   AnalysisResult,
@@ -33,6 +34,7 @@ function analyze(
 ): AnalysisResult {
   const ranges: FoldRange[] = []
   const states: LineStates = new Uint8Array(lines.length)
+  const segments: (string | undefined)[] = new Array(lines.length)
   const stack: OpenBlock[] = []
   const { maxFoldRanges } = options.limits
 
@@ -114,6 +116,9 @@ function analyze(
     // After closeTo, the stack top is this line's parent block, so a line counts
     // itself as one of that block's items.
     const parent = stack[stack.length - 1]
+    // Read before the count moves: a sequence entry is numbered by how many
+    // came before it, not how many there are once it has been counted.
+    const index = parent && indent === parent.childIndent ? parent.childCount : 0
     if (parent) {
       if (parent.childIndent === -1) {
         parent.childIndent = indent
@@ -121,6 +126,18 @@ function analyze(
       }
       if (indent === parent.childIndent) parent.childCount++
     }
+
+    const dash = text.charCodeAt(indent) === 45 && isSpaceOrEnd(text, indent + 1)
+    const keyStart = dash ? skipSpace(text, indent + 1) : indent
+    const colon = findKeyColon(text, keyStart)
+    const parts: PathPart[] = []
+    // A sequence entry names the entry, not the key it may carry inline: the
+    // block this line opens *is* that entry, so anything nested under it hangs
+    // off the index. `- name: a` therefore reads as `[0]`, the same way a line
+    // holding several entries answers with the first.
+    if (parent?.isSequence && indent === parent.childIndent && dash) parts.push(index)
+    else if (colon !== -1) parts.push(unquote(text.slice(keyStart, colon).trim()))
+    if (parts.length > 0) segments[i] = pathSegmentOf(parts)
 
     if (opensBlockScalar(text)) {
       scalarIndent = indent
@@ -161,6 +178,7 @@ function analyze(
   return {
     foldingRanges: ranges,
     lineStates: states,
+    pathSegments: segments,
     diagnostics: validate(source, options.limits.maxValidatedLength),
   }
 }
@@ -319,6 +337,13 @@ function skipSpace(text: string, from: number): number {
   let i = from
   while (i < text.length && (text.charCodeAt(i) === 32 || text.charCodeAt(i) === 9)) i++
   return i
+}
+
+/** Strips the quotes a key may be written in; the path wants the key itself. */
+function unquote(key: string): string {
+  const first = key.charCodeAt(0)
+  if ((first !== 34 && first !== 39) || key.length < 2) return key
+  return key.charCodeAt(key.length - 1) === first ? key.slice(1, -1) : key
 }
 
 /** Index of the `:` that terminates a block mapping key, or -1. */

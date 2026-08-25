@@ -299,6 +299,11 @@ export const KRONA_CSS = `:where(.krona) {
   font-size: 0.85em;
   line-height: 1.5;
   white-space: nowrap;
+  /* A path in a deeply nested file can be longer than the panel; the bubble
+     tells you which one you are about to copy, not the whole of it. */
+  max-width: 48ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
   pointer-events: none;
   opacity: 0;
   /* Kept out of the tree until it is wanted, so it never widens a row. */

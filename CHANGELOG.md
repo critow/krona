@@ -43,6 +43,11 @@ The first release. Not on npm yet; install from git or run the
   provider — a formatter round-tripping through a parsed value would build the
   object Krona is careful never to build. An edit and its formatting are one
   undo step.
+- Copy the path to what a line introduces — `server.tls.ciphers[0]` — in every
+  format. Providers record the one segment each line adds during the pass they
+  already make; the path is assembled from the folding ranges around the line,
+  so a document keeps one short string per line rather than a copy of every
+  ancestor on every descendant. `DocumentModel.pathAt` exposes it.
 - Tooltips on the row actions, and a visible confirmation when a copy lands.
 - Copy actions on the hovered row in both modes: the value on its own, and the
   whole entry — the whole block when the line opens one.

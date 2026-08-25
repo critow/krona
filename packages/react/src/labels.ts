@@ -66,6 +66,8 @@ export interface KronaLabels {
   copyEntry: string
   /** Row action that copies just the value on the line. */
   copyValue: string
+  /** Row action that copies the dotted path to what the line introduces. */
+  copyPath: string
   /** Confirmation shown on a copy action that has just run. */
   copied: string
 }
@@ -107,6 +109,7 @@ export function createDefaultLabels(locale?: string): KronaLabels {
     duplicateEntry: 'Duplicate',
     copyEntry: 'Copy',
     copyValue: 'Copy value',
+    copyPath: 'Copy path',
     copied: 'Copied',
   }
 }

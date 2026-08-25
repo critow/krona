@@ -1,6 +1,7 @@
 import { textProvider } from '../formats/text'
 import { resolveOptions } from './limits'
 import { splitLines, toLines } from './lines'
+import { joinPath } from './path'
 import { defaultRegistry, detectFormat } from './registry'
 import type {
   Diagnostic,
@@ -25,6 +26,7 @@ interface BuildInput {
   readonly foldingRanges: readonly FoldRange[]
   readonly diagnostics: readonly Diagnostic[]
   readonly lineStates: LineStates | undefined
+  readonly pathSegments: readonly (string | undefined)[] | undefined
   readonly provider: FormatProvider
   readonly options: ResolvedParseOptions
 }
@@ -37,6 +39,8 @@ class Document implements DocumentModel {
   readonly diagnostics: readonly Diagnostic[]
 
   private readonly provider: FormatProvider
+  readonly pathSegments: readonly (string | undefined)[] | undefined
+
   private readonly lineStates: LineStates | undefined
   private readonly maxTokenizedLineLength: number
   private readonly tokenCache: Array<readonly Token[] | undefined>
@@ -50,6 +54,7 @@ class Document implements DocumentModel {
     this.diagnostics = input.diagnostics
     this.provider = input.provider
     this.lineStates = input.lineStates
+    this.pathSegments = input.pathSegments
     this.maxTokenizedLineLength = input.options.limits.maxTokenizedLineLength
     this.tokenCache = new Array(input.lines.length)
     this.foldByStart = new Map()
@@ -79,6 +84,25 @@ class Document implements DocumentModel {
 
   foldAt(lineIndex: number): FoldRange | undefined {
     return this.foldByStart.get(lineIndex)
+  }
+
+  pathAt(lineIndex: number): string | undefined {
+    const segments = this.pathSegments
+    if (!segments) return undefined
+    const parts: string[] = []
+    // Ranges are ordered by start line, and a container always starts before
+    // what it contains, so walking them in order yields outermost first.
+    for (const range of this.foldingRanges) {
+      if (range.startLine > lineIndex) break
+      // The line's own range contributes the same segment the line does; it is
+      // appended once, below.
+      if (range.endLine < lineIndex || range.startLine === lineIndex) continue
+      const segment = segments[range.startLine]
+      if (segment !== undefined) parts.push(segment)
+    }
+    const own = segments[lineIndex]
+    if (own !== undefined) parts.push(own)
+    return parts.length === 0 ? undefined : joinPath(parts)
   }
 }
 
@@ -159,6 +183,7 @@ export function parseDocument(
       foldingRanges: [],
       diagnostics,
       lineStates: undefined,
+      pathSegments: undefined,
       provider: textProvider,
       options: resolved,
     })
@@ -179,10 +204,12 @@ export function parseDocument(
 
   let foldingRanges: readonly FoldRange[] = []
   let lineStates: LineStates | undefined
+  let pathSegments: readonly (string | undefined)[] | undefined
   try {
     const analysis = provider.analyze(source, texts, resolved)
     foldingRanges = analysis.foldingRanges
     lineStates = analysis.lineStates
+    pathSegments = analysis.pathSegments
     if (analysis.diagnostics) diagnostics.push(...analysis.diagnostics)
   } catch (error) {
     // Rule: a provider must survive broken input. If one does not, the document
@@ -195,6 +222,7 @@ export function parseDocument(
     provider = textProvider
     foldingRanges = []
     lineStates = undefined
+    pathSegments = undefined
   }
 
   return new Document({
@@ -204,6 +232,7 @@ export function parseDocument(
     foldingRanges: clampRanges(foldingRanges, resolved, lines.length, diagnostics),
     diagnostics,
     lineStates,
+    pathSegments,
     provider,
     options: resolved,
   })
@@ -225,6 +254,7 @@ export function toSnapshot(model: DocumentModel, lineStates?: LineStates): Docum
     foldingRanges: model.foldingRanges,
     diagnostics: model.diagnostics,
     ...(lineStates ? { lineStates } : {}),
+    ...(model.pathSegments ? { pathSegments: model.pathSegments } : {}),
   }
 }
 
@@ -240,6 +270,7 @@ export function fromSnapshot(snapshot: DocumentSnapshot, options?: ParseOptions)
     foldingRanges: snapshot.foldingRanges,
     diagnostics: snapshot.diagnostics,
     lineStates: snapshot.lineStates,
+    pathSegments: snapshot.pathSegments,
     provider,
     options: resolved,
   })
