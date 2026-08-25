@@ -1,6 +1,7 @@
 import {
   blockSpanAt,
   type DocumentModel,
+  duplicateBlockEdit,
   type Format,
   lineSpanAt,
   offsetOfLine,
@@ -177,6 +178,21 @@ export function KronaViewer({
         if (!removal) return
         setTarget(null)
         edit.apply(removal)
+      },
+      duplicate: (lineIndex) => {
+        const copy = duplicateBlockEdit(model, lineIndex)
+        if (!copy) return
+        edit.apply(copy.edit)
+        // Straight into the editor on the copy: duplicating is how a new entry
+        // is made here, and nobody wants two identical keys.
+        open({
+          kind: 'line',
+          lineIndex: copy.line,
+          endLine: copy.line,
+          start: 0,
+          end: copy.text.length,
+          text: copy.text,
+        })
       },
     }
   }, [editable, target, model, edit, foldState])

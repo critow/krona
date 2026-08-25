@@ -187,7 +187,7 @@ export const KRONA_CSS = `:where(.krona) {
   white-space: nowrap;
 }
 
-.krona-row--editable:hover .krona-row-actions,
+.krona-row--actionable:hover .krona-row-actions,
 .krona-row-actions:focus-within {
   display: inline-flex;
   gap: 0.125rem;
@@ -195,7 +195,7 @@ export const KRONA_CSS = `:where(.krona) {
 
 /* Nothing hovers on a touch screen, so there the actions simply stay out. */
 @media (hover: none) {
-  .krona-row--editable .krona-row-actions {
+  .krona-row--actionable .krona-row-actions {
     display: inline-flex;
     gap: 0.125rem;
   }
@@ -240,7 +240,7 @@ export const KRONA_CSS = `:where(.krona) {
   cursor: text;
 }
 
-.krona-row--editable .krona-value:hover {
+.krona-row--actionable .krona-value:hover {
   background: var(--krona-bg-hover);
   outline: 1px solid var(--krona-border);
 }

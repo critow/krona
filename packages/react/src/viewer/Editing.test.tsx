@@ -55,13 +55,79 @@ async function openValue(container: HTMLElement, text: string) {
 }
 
 describe('editing in Krona.Viewer', () => {
-  it('offers no editing controls unless asked', async () => {
+  it('offers no editing controls unless asked, only the copy actions', async () => {
     const screen = await render(<Harness editable={false} />)
     await expect
       .poll(() => screen.container.querySelectorAll('.krona-row').length)
       .toBeGreaterThan(0)
     expect(valueButtons(screen.container)).toHaveLength(0)
-    expect(screen.container.querySelectorAll('.krona-row-actions')).toHaveLength(0)
+    for (const label of ['Edit line', 'Edit block', 'Delete', 'Duplicate']) {
+      expect(screen.container.querySelectorAll(`[aria-label="${label}"]`)).toHaveLength(0)
+    }
+    expect(screen.container.querySelectorAll('[aria-label="Copy"]').length).toBeGreaterThan(0)
+  })
+
+  it('copies an entry, and just the value, from a read-only document', async () => {
+    // Reading the clipboard back needs a permission the test browser withholds,
+    // so the assertion is on what the component hands it.
+    const written: string[] = []
+    const write = vi
+      .spyOn(navigator.clipboard, 'writeText')
+      .mockImplementation(async (text: string) => {
+        written.push(text)
+      })
+
+    try {
+      const screen = await render(<Harness editable={false} />)
+      await expect
+        .poll(() => screen.container.querySelectorAll('.krona-row').length)
+        .toBeGreaterThan(0)
+
+      const copyValue = await rowAction(screen.container, 1, 'Copy value')
+      expect(copyValue).toBeDefined()
+      if (!copyValue) return
+      await userEvent.click(copyValue)
+      await expect.poll(() => written).toEqual(['"krona"'])
+
+      const copyEntry = await rowAction(screen.container, 2, 'Copy')
+      expect(copyEntry).toBeDefined()
+      if (!copyEntry) return
+      await userEvent.click(copyEntry)
+      await expect
+        .poll(() => written[1])
+        .toBe(['  "server": {', '    "host": "0.0.0.0"', '  },'].join('\n'))
+    } finally {
+      write.mockRestore()
+    }
+  })
+
+  it('duplicates an entry and opens the copy for editing', async () => {
+    const screen = await render(<Harness />)
+    await expect.poll(() => valueButtons(screen.container).length).toBeGreaterThan(0)
+
+    const duplicate = await rowAction(screen.container, 1, 'Duplicate')
+    expect(duplicate).toBeDefined()
+    if (!duplicate) return
+    await userEvent.click(duplicate)
+
+    await expect
+      .poll(() => resultOf(screen.container))
+      .toBe(
+        [
+          '{',
+          '  "name": "krona",',
+          '  "name": "krona",',
+          '  "server": {',
+          '    "host": "0.0.0.0"',
+          '  },',
+          '  "tail": 1',
+          '}',
+        ].join('\n'),
+      )
+
+    const area = screen.container.querySelector<HTMLTextAreaElement>('.krona-editor-area')
+    expect(area).toBeDefined()
+    expect(area?.value).toBe('  "name": "krona",')
   })
 
   it('edits one value in place and leaves the rest of the line alone', async () => {

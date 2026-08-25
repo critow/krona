@@ -34,10 +34,12 @@ The first release. Not on npm yet; install from git or run the
 - Bidirectional and zero-width characters rendered as visible `U+XXXX` badges.
 
 - Editing in `<Krona.Viewer editable>`: values in place, lines and whole blocks
-  as raw text, entry removal, and undo/redo. Every change is a text edit against
+  as raw text, entry removal, duplication, and undo/redo. Every change is a text edit against
   the source, which is then parsed again, so the model stays an immutable list
   of lines. `onChange` reports the whole document; `useKronaViewer()` exposes it
   along with the history.
+- Copy actions on the hovered row in both modes: the value on its own, and the
+  whole entry — the whole block when the line opens one.
 - Diff panels scroll in lockstep on both axes, over a content width the whole
   document sets rather than the rows currently on screen.
 

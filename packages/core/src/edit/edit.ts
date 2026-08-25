@@ -146,6 +146,65 @@ export function removeBlockEdit(model: DocumentModel, lineIndex: number): Source
   return { start, end, text: '' }
 }
 
+/** Where a duplicated entry landed, so a caller can open it for editing. */
+export interface Duplication {
+  readonly edit: SourceEdit
+  /** First line of the copy in the document the edit produces. */
+  readonly line: number
+  /** Text of that line. */
+  readonly text: string
+}
+
+/**
+ * An edit that repeats the entry on this line — the whole block, when the line
+ * opens one — directly below it.
+ *
+ * A copy is the one new entry that is guaranteed to be valid where it lands: it
+ * is already an entry of this container, written in this format, at this
+ * indentation. Krona knows nothing about what a new key should look like in
+ * TOML versus YAML, and this way it does not have to; the reader edits the copy
+ * into what they meant.
+ *
+ * The one thing the copy cannot inherit is a separator the original did not
+ * need. Duplicating the last entry of a JSON object gives the original the comma
+ * it now requires, and leaves the copy without one.
+ */
+export function duplicateBlockEdit(
+  model: DocumentModel,
+  lineIndex: number,
+): Duplication | undefined {
+  const span = blockSpanAt(model, lineIndex)
+  if (!span) return undefined
+  const source = model.source
+  const entry = source.slice(span.start, span.end)
+  const range = model.foldAt(lineIndex)
+  const endLine = range ? range.endLine : lineIndex
+
+  let after = span.end
+  while (after < source.length && isBlank(source.charCodeAt(after))) after++
+  const hasComma = source.charCodeAt(after) === 44 /* , */
+
+  const eol = source.charCodeAt(span.end) === 13 ? '\r\n' : '\n'
+  const start = hasComma ? after + 1 : span.end
+  const text = hasComma
+    ? `${eol}${entry},`
+    : isLastEntry(source, span.end)
+      ? `,${eol}${entry}`
+      : `${eol}${entry}`
+
+  const break_ = entry.search(/\r|\n/)
+  return {
+    edit: { start, end: start, text },
+    line: endLine + 1,
+    text: break_ === -1 ? entry : entry.slice(0, break_),
+  }
+}
+
+/** Spaces and tabs, but not line breaks: a separator stays on its own line. */
+function isBlank(code: number): boolean {
+  return code === 32 || code === 9
+}
+
 function isSpace(code: number): boolean {
   return code === 32 || code === 9 || code === 10 || code === 13
 }
