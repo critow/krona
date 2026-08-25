@@ -2,6 +2,7 @@ import { type CSSProperties, type ReactNode, useContext } from 'react'
 import { useKronaConfig } from '../context/config'
 import { DiffContext } from '../diff/DiffContext'
 import { ViewerContext } from '../viewer/ViewerContext'
+import { SideSwitch } from './SideSwitch'
 
 /** Props of `<Krona.Toolbar>`. */
 export interface KronaToolbarProps {
@@ -58,6 +59,7 @@ function ToolbarBase({
           </button>
         </>
       ) : null}
+      <SideSwitch />
       {showStats && diff ? (
         <>
           <span className="krona-stat krona-stat--added">
@@ -74,8 +76,8 @@ function ToolbarBase({
 }
 
 /**
- * `Krona.Toolbar` — fold actions, undo and redo where editing is on, and the
- * change counts inside a diff.
+ * `Krona.Toolbar` — fold actions, undo and redo where editing is on, the change
+ * counts inside a diff, and the side switch a narrow diff needs.
  *
  * The same component works in both modes; it simply shows fewer controls where
  * the others do not apply.

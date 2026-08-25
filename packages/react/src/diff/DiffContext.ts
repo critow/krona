@@ -30,6 +30,15 @@ export interface KronaDiffState {
   expandAll(): void
   collapseAll(): void
   readonly labels: KronaLabels
+  /**
+   * True while the diff shows one panel at a time, because the root is narrower
+   * than its `narrowWidth`. Two panels on a phone are two unreadable panels.
+   */
+  readonly narrow: boolean
+  /** The side on screen while {@link KronaDiffState.narrow}. */
+  readonly side: 'left' | 'right'
+  /** Switches which side a narrow layout shows. */
+  showSide(side: 'left' | 'right'): void
 }
 
 export const DiffContext = createContext<KronaDiffState | null>(null)

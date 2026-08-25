@@ -1,6 +1,7 @@
 import type { Format, FormatRegistry, ParseLimits } from '@krona/core'
-import { type CSSProperties, type ReactNode, useInsertionEffect, useMemo } from 'react'
+import { type CSSProperties, type ReactNode, useInsertionEffect, useMemo, useRef } from 'react'
 import { KronaConfigContext, type KronaTheme } from './context/config'
+import { useNarrow } from './hooks/useNarrow'
 import { type KronaLabels, resolveLabels } from './labels'
 import { injectStyles } from './theme/injectStyles'
 
@@ -20,6 +21,14 @@ export interface KronaRootProps {
    * disagree. Fixed height is what makes virtualization exact. Default 20.
    */
   lineHeight?: number
+  /**
+   * Width in pixels below which the modes lay themselves out for a small
+   * screen: a diff shows one panel at a time, and the gutter narrows. Measured
+   * on the root itself rather than the window, so a component in a sidebar gets
+   * the same treatment as one on a phone. `0` keeps the wide layout always.
+   * Default 640.
+   */
+  narrowWidth?: number
   /** Overrides for the parser's safety limits. */
   limits?: Partial<ParseLimits>
   /** Provider lookup. Defaults to the module-level registry. */
@@ -53,6 +62,7 @@ export function KronaRoot({
   labels,
   locale,
   lineHeight = 20,
+  narrowWidth = 640,
   limits,
   providers,
   injectStyles: shouldInject = true,
@@ -66,6 +76,9 @@ export function KronaRoot({
 
   const resolvedLabels = useMemo(() => resolveLabels(labels, locale), [labels, locale])
 
+  const rootRef = useRef<HTMLDivElement | null>(null)
+  const narrow = useNarrow(rootRef, narrowWidth)
+
   const config = useMemo(
     () => ({
       format,
@@ -75,15 +88,18 @@ export function KronaRoot({
       lineHeight,
       limits,
       providers,
+      narrow,
     }),
-    [format, theme, resolvedLabels, locale, lineHeight, limits, providers],
+    [format, theme, resolvedLabels, locale, lineHeight, limits, providers, narrow],
   )
 
   return (
     <KronaConfigContext.Provider value={config}>
       <div
+        ref={rootRef}
         className={className ? `krona ${className}` : 'krona'}
         data-theme={theme}
+        data-narrow={narrow ? 'true' : undefined}
         // The virtualizer positions rows at `lineHeight`; CSS has to paint them
         // at the same pitch, or the two drift apart as the value moves.
         style={{ ['--krona-line-height' as string]: `${lineHeight}px`, ...style }}

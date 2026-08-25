@@ -15,6 +15,12 @@ export interface KronaConfig {
   readonly lineHeight: number
   readonly limits: Partial<ParseLimits> | undefined
   readonly providers: FormatRegistry | undefined
+  /**
+   * True while the root is narrower than `narrowWidth`. Modes use it to lay
+   * themselves out for the space they actually have — a diff shows one panel at
+   * a time rather than two unreadable ones.
+   */
+  readonly narrow: boolean
 }
 
 export const KronaConfigContext = createContext<KronaConfig | null>(null)
