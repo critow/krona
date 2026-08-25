@@ -612,6 +612,12 @@ Pushing a `v*` tag publishes both packages to npm with provenance and opens a
 GitHub Release. [RELEASING.md](./RELEASING.md) has the steps and the one secret
 the repository needs.
 
+`pnpm build:social` regenerates `playground/public/social-preview.png` — the card
+GitHub shows for the repository (upload it under Settings → Social preview) and
+the one the demo hands to a chat client. The diff on it is a screenshot of the
+real demo rather than a mock-up, so the card cannot promise a look the library
+does not have.
+
 ## License
 
 MIT
