@@ -1,7 +1,7 @@
 {
   "name": "krona",
   "version": "0.1.0",
-  "description": "Collapsible tree viewer and side-by-side diff for JSON, YAML, TOML and INI/.env config files.",
+  "description": "Collapsible viewer and side-by-side diff for JSON, YAML, TOML and INI/.env config files.",
   "license": "MIT",
   "type": "module",
   "sideEffects": [

@@ -7,7 +7,7 @@
 
 # Krona
 
-**Collapsible tree view and side-by-side diff for configuration files, as a React component.**
+**Collapsible viewer and side-by-side diff for configuration files, as a React component.**
 
 JSON/JSONC · YAML · TOML · INI/.env
 

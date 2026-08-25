@@ -99,6 +99,14 @@ export function App() {
     document.documentElement.dataset.uiTheme = uiTheme
   }, [uiTheme])
 
+  // The tab is part of the page: it names the same thing in the same language,
+  // and `lang` has to agree with what is actually on screen for a screen reader
+  // to read it in the right voice.
+  useEffect(() => {
+    document.title = `Krona — ${dict.tagline}`
+    document.documentElement.lang = lang
+  }, [dict.tagline, lang])
+
   const syncUrl = useCallback((next: Record<string, string>) => {
     const params = new URLSearchParams(globalThis.location.search)
     for (const [key, value] of Object.entries(next)) params.set(key, value)
