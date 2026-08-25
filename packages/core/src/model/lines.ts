@@ -54,6 +54,13 @@ export class OffsetIndex {
     this.starts = starts
   }
 
+  /** Offset where a line begins, clamped to the document's last line. */
+  startOf(lineIndex: number): number {
+    const starts = this.starts
+    const clamped = lineIndex < 0 ? 0 : Math.min(lineIndex, starts.length - 1)
+    return starts[clamped] ?? 0
+  }
+
   /** Zero-based line containing `offset`, clamped to the document. */
   lineAt(offset: number): number {
     const starts = this.starts

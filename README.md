@@ -25,6 +25,7 @@ JSON/JSONC · YAML · TOML · INI/.env
 - **Folds like an editor.** Objects, arrays, YAML blocks, TOML tables and INI sections collapse from the gutter, with a placeholder saying what is hidden: `{ 3 items }`.
 - **Diffs like git.** Line-based, side by side, with word-level highlighting inside changed lines and long unchanged runs folded behind an expandable bar.
 - **Composable.** Each mode renders a default layout, or takes apart into the same public parts when you want your own.
+- **Editable, as text.** The viewer edits values, lines and whole blocks, with undo and redo. Every change replaces a span of the source and re-parses, so it can never invent syntax the format does not have.
 - **Fast on real files.** A 60k-line lockfile parses in ~30 ms and diffs in ~62 ms; rendering is virtualized and tokenizing is lazy.
 - **Three runtime dependencies.** `jsonc-parser`, `yaml`, `diff`. Nothing else.
 - **Safe with untrusted content.** No `innerHTML` anywhere, no JavaScript objects built from your file, bidi and zero-width characters rendered as visible badges.
@@ -41,6 +42,7 @@ JSON/JSONC · YAML · TOML · INI/.env
   - [`<Krona.Viewer>`](#kronaviewer)
   - [`<Krona.Diff>`](#kronadiff)
   - [Parts](#parts)
+- [Editing](#editing)
 - [Custom layouts](#custom-layouts)
 - [Hooks](#hooks)
 - [Localization](#localization)
@@ -136,6 +138,8 @@ below it.
 | `defaultCollapsedDepth` | `number` | — | Collapse every range at this nesting depth or deeper, on mount and whenever the value changes; `0` collapses everything |
 | `overscan` | `number` | `8` | Extra rows rendered outside the viewport |
 | `showDiagnostics` | `boolean` | `true` | Show parse errors above the document (default layout only) |
+| `editable` | `boolean` | `false` | Let the reader edit the document — see [Editing](#editing) |
+| `onChange` | `(source: string) => void` | — | Called with the whole document after every edit, undo and redo |
 | `className` / `style` | — | — | Applied to the viewer region |
 | `children` | `ReactNode` | default layout | [Custom layout](#custom-layouts) from the same public parts |
 
@@ -182,6 +186,47 @@ learn which mode they are in.
 | `Krona.Minimap` | diff only | Change map between the panels; throws elsewhere |
 | `Krona.ExpandBar` | rendered for you | The hidden-rows bar; exported for restyling |
 
+## Editing
+
+`<Krona.Viewer editable>` turns the document into something the reader can
+change. Double-click a value to edit it in place, or use the row actions that
+appear on hover: edit the line as raw text, edit a whole block as raw text,
+delete the entry. `Enter` commits, `Escape` cancels, and in the block editor
+`Ctrl`/`Cmd` + `Enter` commits. Undo and redo are in the toolbar.
+
+```tsx
+const [text, setText] = useState(initial)
+
+<Krona format="json">
+  <Krona.Viewer source={text} editable onChange={setText} />
+</Krona>
+```
+
+Every edit is a **text** edit: it replaces a span of the source, and the result
+is parsed again. Nothing is written back through a JavaScript object, so an edit
+cannot invent syntax the format does not have — it only moves characters you
+typed. That is also why editing works the same in every format: a YAML value and
+a TOML value are both a span of text.
+
+Deleting an entry takes its line break with it, and the comma that would be left
+dangling before a closing brace, because an edit that reliably produces a syntax
+error is not an edit but a trap. Broken input stays visible either way: a
+document that no longer parses degrades to plain text with diagnostics, so a
+half-finished edit never blanks the view.
+
+The undo history holds inverse edits rather than snapshots, so a hundred steps
+on a megabyte file cost a hundred short strings.
+
+The viewer owns the text once `editable` is set, re-seeding whenever `source`
+changes. `useKronaViewer()` exposes the current document and the history:
+
+```tsx
+const { source, canUndo, canRedo, undo, redo } = useKronaViewer()
+```
+
+`<Krona.Diff>` stays read-only. Comparing two versions is a different job from
+changing one of them, and a diff has no single document to write to.
+
 ## Custom layouts
 
 `Krona.Viewer` and `Krona.Diff` render a default layout when given no children.
@@ -215,6 +260,7 @@ write yourself lands above the content by default.
 
 ```tsx
 const { model, collapsed, toggleFold, expandAll, collapseAll, visibleLines } = useKronaViewer()
+const { source, editable, canUndo, canRedo, undo, redo } = useKronaViewer() // editing
 const { alignedRows, visibleRows, stats, expandContext, toggleRowFold } = useKronaDiff()
 const { format, theme, labels, lineHeight } = useKronaConfig()
 ```
@@ -249,6 +295,14 @@ app where they belong. Numbers in the defaults are formatted with
 | `changeMap` | `string` | `Change map` | Minimap accessible name |
 | `unsafeCharacter` | `(code: string) => string` | `Hidden character U+202E` | Tooltip on a dangerous-character badge |
 | `document` | `string` | `Configuration file` | Region accessible name |
+| `editValue` | `string` | `Edit value` | Tooltip on an editable value |
+| `editLine` | `string` | `Edit line` | Row action opening the line as raw text |
+| `editBlock` | `string` | `Edit block` | Row action opening the block as raw text |
+| `deleteEntry` | `string` | `Delete` | Row action removing the entry |
+| `saveEdit` | `string` | `Save` | Applies the open editor |
+| `cancelEdit` | `string` | `Cancel` | Discards the open editor |
+| `undo` | `string` | `Undo` | Toolbar action reversing the last edit |
+| `redo` | `string` | `Redo` | Toolbar action replaying the last undone edit |
 
 Russian needs three plural forms, which is exactly why plurals live in your app
 and not in the library:
@@ -426,15 +480,15 @@ its own size.
 
 ## Roadmap
 
-Krona 0.1 shows one configuration file, or two of them side by side. Everything
-below is deliberately absent rather than forgotten.
+Krona 0.1 shows one configuration file, or two of them side by side, and lets
+you [edit](#editing) the one. Everything below is deliberately absent rather
+than forgotten.
 
 | Not in 0.1 | Reasoning | Likely |
 | --- | --- | --- |
 | Inline (unified) diff | Side by side answers the question the library exists for. A unified view is a second layout over the same aligned rows, so it is cheap to add once the row model settles. | Next |
 | Search inside the document | Needs a match index that survives folding and virtualization; worth doing properly rather than early. | Next |
 | More formats (XML, `.properties`, HCL) | Each is a provider — an `analyze` and a `tokenize` — behind the same interface. Waiting for someone to actually need one. | Maybe |
-| Editing | Read-only keeps the model an immutable list of lines, which is what makes folding and diffing share a substrate. Editing would change that trade, not extend it. | Not planned |
 | Semantic diff | Reordering keys *is* a difference in a configuration file. Krona compares text, exactly like git. | Not planned |
 
 Issues and pull requests are welcome. See [Development](#development) for the

@@ -31,6 +31,8 @@ export interface Dict {
   minimap: string
   ignoreTrailingWhitespace: string
   showDiagnostics: string
+  editable: string
+  editableNote: string
   showMarkers: string
   optionsNote: string
   install: string
@@ -66,6 +68,9 @@ const en: Dict = {
   minimap: 'Minimap',
   ignoreTrailingWhitespace: 'Ignore trailing space',
   showDiagnostics: 'Show diagnostics',
+  editable: 'Editable',
+  editableNote:
+    'Double-click a value to edit it; hover a line for its actions. Undo and redo are in the toolbar.',
   showMarkers: 'Gutter markers',
   optionsNote:
     'Every control here is a real prop. The code below updates with them, so whatever you end up with is copy-pasteable.',
@@ -114,6 +119,9 @@ const ru: Dict = {
   minimap: 'Миникарта',
   ignoreTrailingWhitespace: 'Без хвостовых пробелов',
   showDiagnostics: 'Показывать диагностику',
+  editable: 'Редактируемый',
+  editableNote:
+    'Двойной клик по значению правит его; наведите на строку, чтобы увидеть её действия. Отмена и повтор — в тулбаре.',
   showMarkers: 'Маркеры в гаттере',
   optionsNote:
     'Каждый контрол здесь — настоящий проп. Код ниже меняется вместе с ними, так что получившееся можно скопировать как есть.',

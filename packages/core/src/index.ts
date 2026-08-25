@@ -6,6 +6,15 @@
  * bundle that only shows JSON.
  */
 
+export type { EditResult, SourceEdit } from './edit/edit'
+export {
+  applyEdit,
+  blockSpanAt,
+  lineSpanAt,
+  offsetOfLine,
+  removeBlockEdit,
+  valueSpansAt,
+} from './edit/edit'
 export { iniProvider } from './formats/ini'
 export { jsonProvider } from './formats/json'
 export { textProvider } from './formats/text'

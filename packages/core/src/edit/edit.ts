@@ -1,0 +1,161 @@
+import type { Span } from '../diff/intraline'
+import { OffsetIndex } from '../model/lines'
+import type { DocumentModel, TokenType } from '../model/types'
+
+/**
+ * A replacement of one span of the source text.
+ *
+ * Editing in Krona is editing text. An edit produces a new source string, which
+ * is parsed into a new model; nothing mutates in place, and no JavaScript object
+ * is ever built out of the document to be written back. That keeps the model an
+ * immutable list of lines — the substrate folding and diffing share — and means
+ * an edit can never invent syntax the format does not have, because it only ever
+ * moves characters the user typed.
+ */
+export interface SourceEdit {
+  /** Inclusive start offset in the source. */
+  readonly start: number
+  /** Exclusive end offset in the source. */
+  readonly end: number
+  /** Replacement text. Empty for a deletion. */
+  readonly text: string
+}
+
+/** The result of applying an edit: the new source and the edit that undoes it. */
+export interface EditResult {
+  readonly source: string
+  /** Applying this to {@link EditResult.source} restores the previous text. */
+  readonly inverse: SourceEdit
+}
+
+/**
+ * Applies one edit.
+ *
+ * The inverse comes back with it, so an undo stack can hold edits rather than
+ * whole document snapshots — a hundred undo steps on a megabyte file cost a
+ * hundred short strings instead of a hundred megabytes.
+ *
+ * @throws if the span lies outside the source or is inverted.
+ */
+export function applyEdit(source: string, edit: SourceEdit): EditResult {
+  const { start, end, text } = edit
+  if (start < 0 || end > source.length || start > end) {
+    throw new RangeError(`Krona: edit span ${start}..${end} is outside the document.`)
+  }
+  return {
+    source: source.slice(0, start) + text + source.slice(end),
+    inverse: { start, end: start + text.length, text: source.slice(start, end) },
+  }
+}
+
+const indexes = new WeakMap<DocumentModel, OffsetIndex>()
+
+/** Line-start offsets for a model, computed once and cached against it. */
+function indexOf(model: DocumentModel): OffsetIndex {
+  let index = indexes.get(model)
+  if (!index) {
+    index = new OffsetIndex(model.source)
+    indexes.set(model, index)
+  }
+  return index
+}
+
+/** Source offset where a line begins. */
+export function offsetOfLine(model: DocumentModel, lineIndex: number): number {
+  return indexOf(model).startOf(lineIndex)
+}
+
+/**
+ * The line's text as a span of the source, without its terminator.
+ *
+ * Returns `undefined` for a line the document does not have.
+ */
+export function lineSpanAt(model: DocumentModel, lineIndex: number): Span | undefined {
+  const line = model.lines[lineIndex]
+  if (!line) return undefined
+  const start = offsetOfLine(model, lineIndex)
+  return { start, end: start + line.text.length }
+}
+
+/**
+ * The whole folding block that opens on this line, as a span of the source —
+ * or just the line, when it opens no block.
+ */
+export function blockSpanAt(model: DocumentModel, lineIndex: number): Span | undefined {
+  const range = model.foldAt(lineIndex)
+  if (!range) return lineSpanAt(model, lineIndex)
+  const start = lineSpanAt(model, range.startLine)
+  const end = lineSpanAt(model, range.endLine)
+  if (!start || !end) return undefined
+  return { start: start.start, end: end.end }
+}
+
+/** Token types that stand for a value a reader would edit. */
+const VALUE_TOKENS: ReadonlySet<TokenType> = new Set<TokenType>([
+  'string',
+  'number',
+  'boolean',
+  'null',
+])
+
+/**
+ * Every value on a line, as spans of the source, left to right.
+ *
+ * A line can hold more than one — `"timeouts": { "read": 30, "write": 30 }` has
+ * two — so which one an edit means is the reader's choice to make by pointing at
+ * it, not something to guess from the line.
+ */
+export function valueSpansAt(model: DocumentModel, lineIndex: number): readonly Span[] {
+  const line = model.lines[lineIndex]
+  if (!line) return []
+  const start = offsetOfLine(model, lineIndex)
+  const spans: Span[] = []
+  for (const token of model.tokensAt(lineIndex)) {
+    if (!VALUE_TOKENS.has(token.type)) continue
+    spans.push({ start: start + token.start, end: start + token.end })
+  }
+  return spans
+}
+
+/**
+ * An edit that removes the block opening on this line, or the line itself.
+ *
+ * The line terminator goes with it, so removing an entry does not leave a blank
+ * line behind. A separator left dangling on the previous line — a JSON comma
+ * before what is now the closing brace — is removed too, because the result has
+ * to stay parseable: an edit that reliably produces a syntax error is not an
+ * edit, it is a trap.
+ */
+export function removeBlockEdit(model: DocumentModel, lineIndex: number): SourceEdit | undefined {
+  const span = blockSpanAt(model, lineIndex)
+  if (!span) return undefined
+  const source = model.source
+
+  let end = span.end
+  if (source.charCodeAt(end) === 13 /* \r */) end++
+  if (source.charCodeAt(end) === 10 /* \n */) end++
+
+  // Only when nothing but a closer follows: in the middle of a list the removed
+  // entry took its own separator with it and the neighbours still line up.
+  let start = span.start
+  if (isLastEntry(source, end)) {
+    let back = span.start - 1
+    while (back >= 0 && isSpace(source.charCodeAt(back))) back--
+    if (source.charCodeAt(back) === 44 /* , */) start = back
+  }
+  return { start, end, text: '' }
+}
+
+function isSpace(code: number): boolean {
+  return code === 32 || code === 9 || code === 10 || code === 13
+}
+
+/** True when only whitespace and a closing bracket follow `offset`. */
+function isLastEntry(source: string, offset: number): boolean {
+  for (let i = offset; i < source.length; i++) {
+    const code = source.charCodeAt(i)
+    if (isSpace(code)) continue
+    return code === 125 /* } */ || code === 93 /* ] */
+  }
+  return true
+}
