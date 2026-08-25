@@ -1,5 +1,6 @@
 import { Krona } from 'krona'
 import { describe, expect, it } from 'vitest'
+import { userEvent } from 'vitest/browser'
 import { render } from 'vitest-browser-react'
 
 const BEFORE = [
@@ -40,9 +41,12 @@ function toneOf(container: HTMLElement, side: 'left' | 'right'): string[] {
   )
 }
 
+// Two panels on purpose: the harness frame is narrower than the default
+// `narrowWidth`, and these tests are about the side-by-side layout. The narrow
+// one has its own tests below.
 async function renderDiff(props: Record<string, unknown> = {}) {
   return render(
-    <Krona format="json">
+    <Krona format="json" narrowWidth={0}>
       <Krona.Diff left={BEFORE} right={AFTER} {...props} />
     </Krona>,
   )
@@ -95,7 +99,7 @@ describe('Krona.Diff', () => {
     const long = (marker: string) =>
       `{\n${Array.from({ length: 2000 }, (_, i) => `  "k${i}": "${marker}${i}",`).join('\n')}\n  "z": 1\n}`
     const screen = await render(
-      <Krona format="json">
+      <Krona format="json" narrowWidth={0}>
         <Krona.Diff left={long('a')} right={long('b')} />
       </Krona>,
     )
@@ -125,7 +129,7 @@ describe('Krona.Diff', () => {
         '}',
       ].join('\n')
     const screen = await render(
-      <Krona format="json">
+      <Krona format="json" narrowWidth={0}>
         <Krona.Diff left={wide('a')} right={wide('b')} />
       </Krona>,
     )
@@ -146,6 +150,91 @@ describe('Krona.Diff', () => {
     await expect.poll(() => leftScroll.scrollLeft).toBe(40)
   })
 
+  it('shows one panel and a side switch when the root is narrow', async () => {
+    const screen = await render(
+      <div style={{ width: 360 }}>
+        <Krona format="json" narrowWidth={640}>
+          <Krona.Diff left={BEFORE} right={AFTER} />
+        </Krona>
+      </div>,
+    )
+    // The width is measured, not guessed, so the single panel arrives a frame in.
+    await expect.poll(() => screen.container.querySelectorAll('.krona-panel').length).toBe(1)
+    expect(screen.container.querySelector('.krona-panel--right')).not.toBe(null)
+
+    const [toLeft] = screen.container.querySelectorAll<HTMLElement>('.krona-side-switch button')
+    expect(toLeft).toBeDefined()
+    if (!toLeft) return
+    await userEvent.click(toLeft)
+
+    await expect.poll(() => screen.container.querySelector('.krona-panel--left')).not.toBe(null)
+    expect(screen.container.querySelectorAll('.krona-panel').length).toBe(1)
+  })
+
+  it('reserves the minimap its own track, wherever the layout puts it', async () => {
+    function Panels() {
+      return (
+        <>
+          <Krona.Panel side="left" />
+          <Krona.Minimap />
+          <Krona.Panel side="right" />
+        </>
+      )
+    }
+    const Slotted = Object.assign(Panels, { kronaSlot: 'panels' as const })
+    const screen = await render(
+      <Krona format="json" narrowWidth={0}>
+        <Krona.Diff left={BEFORE} right={AFTER} showMinimap>
+          <Slotted />
+        </Krona.Diff>
+      </Krona>,
+    )
+    await expect.poll(() => screen.container.querySelectorAll('.krona-panel').length).toBe(2)
+
+    // Three items in a two-track grid wrap the third onto its own row, which
+    // stacks the panels instead of pairing them. The track comes from the DOM,
+    // so a layout that hides the minimap inside a component of its own still
+    // gets it.
+    const wrap = screen.container.querySelector('.krona-panels')
+    expect(wrap).not.toBe(null)
+    if (!wrap) return
+    expect(getComputedStyle(wrap).gridTemplateColumns.split(' ')).toHaveLength(3)
+  })
+
+  it('leaves a custom layout alone, however narrow the root is', async () => {
+    const screen = await render(
+      <div style={{ width: 360 }}>
+        <Krona format="json" narrowWidth={640}>
+          <Krona.Diff left={BEFORE} right={AFTER}>
+            <Krona.Panel side="left" />
+            <Krona.Panel side="right" />
+          </Krona.Diff>
+        </Krona>
+      </div>,
+    )
+    await expect.poll(() => screen.container.querySelectorAll('.krona-panel').length).toBe(2)
+  })
+
+  it('keeps both panels when the root has room, and when asked to', async () => {
+    const wide = await render(
+      <div style={{ width: 900 }}>
+        <Krona format="json" narrowWidth={640}>
+          <Krona.Diff left={BEFORE} right={AFTER} />
+        </Krona>
+      </div>,
+    )
+    await expect.poll(() => wide.container.querySelectorAll('.krona-panel').length).toBe(2)
+
+    const off = await render(
+      <div style={{ width: 360 }}>
+        <Krona format="json" narrowWidth={0}>
+          <Krona.Diff left={BEFORE} right={AFTER} />
+        </Krona>
+      </div>,
+    )
+    await expect.poll(() => off.container.querySelectorAll('.krona-panel').length).toBe(2)
+  })
+
   it('folds the matching range in both panels at once', async () => {
     const screen = await renderDiff()
     await expect.poll(() => rowsOf(screen.container, 'left').length).toBe(10)
@@ -162,7 +251,7 @@ describe('Krona.Diff', () => {
     const left = `{\n  "head": 1,\n${filler}\n  "tail": 1\n}`
     const right = `{\n  "head": 2,\n${filler}\n  "tail": 1\n}`
     const screen = await render(
-      <Krona format="json">
+      <Krona format="json" narrowWidth={0}>
         <Krona.Diff left={left} right={right} collapseUnchanged />
       </Krona>,
     )
@@ -181,7 +270,7 @@ describe('Krona.Diff', () => {
   it('reveals a hidden run step by step from either end', async () => {
     const filler = Array.from({ length: 80 }, (_, i) => `  "same${i}": ${i},`).join('\n')
     const screen = await render(
-      <Krona format="json">
+      <Krona format="json" narrowWidth={0}>
         <Krona.Diff
           left={`{\n  "head": 1,\n${filler}\n  "tail": 1\n}`}
           right={`{\n  "head": 2,\n${filler}\n  "tail": 1\n}`}
@@ -202,7 +291,7 @@ describe('Krona.Diff', () => {
   it('exposes the expand controls once, not once per panel', async () => {
     const filler = Array.from({ length: 40 }, (_, i) => `  "same${i}": ${i},`).join('\n')
     const screen = await render(
-      <Krona format="json">
+      <Krona format="json" narrowWidth={0}>
         <Krona.Diff
           left={`{\n  "head": 1,\n${filler}\n  "tail": 1\n}`}
           right={`{\n  "head": 2,\n${filler}\n  "tail": 1\n}`}
@@ -220,7 +309,7 @@ describe('Krona.Diff', () => {
 
   it('marks the changes on the minimap', async () => {
     const screen = await render(
-      <Krona format="json">
+      <Krona format="json" narrowWidth={0}>
         <Krona.Diff left={BEFORE} right={AFTER} showMinimap />
       </Krona>,
     )
@@ -231,7 +320,7 @@ describe('Krona.Diff', () => {
 
   it('treats reordered keys as a real difference', async () => {
     const screen = await render(
-      <Krona format="json">
+      <Krona format="json" narrowWidth={0}>
         <Krona.Diff left={'{\n  "a": 1,\n  "b": 2\n}'} right={'{\n  "b": 2,\n  "a": 1\n}'} />
       </Krona>,
     )
@@ -247,7 +336,7 @@ describe('Krona.Diff', () => {
 
   it('reports the counts in the toolbar', async () => {
     const screen = await render(
-      <Krona format="json">
+      <Krona format="json" narrowWidth={0}>
         <Krona.Diff left={BEFORE} right={AFTER}>
           <Krona.Toolbar />
           <Krona.Panel side="left" />

@@ -43,6 +43,11 @@ The first release. Not on npm yet; install from git or run the
   provider — a formatter round-tripping through a parsed value would build the
   object Krona is careful never to build. An edit and its formatting are one
   undo step.
+- A narrow layout. Below `narrowWidth` (640px, measured on the root rather than
+  the window) a diff shows one panel at a time with a side switch — the new
+  `Krona.SideSwitch` part — and the gutter narrows without dropping below the
+  44px the fold control needs. `useKronaDiff()` exposes `narrow`, `side` and
+  `showSide` for layouts of your own.
 - Copy the path to what a line introduces — `server.tls.ciphers[0]` — in every
   format. Providers record the one segment each line adds during the pass they
   already make; the path is assembled from the folding ranges around the line,

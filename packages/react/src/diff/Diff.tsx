@@ -16,6 +16,7 @@ import { useDocument } from '../hooks/useDocument'
 import { useScrollSync } from '../hooks/useScrollSync'
 import { type KronaLabels, resolveLabels } from '../labels'
 import { Minimap } from '../parts/Minimap'
+import { SideSwitch } from '../parts/SideSwitch'
 import { DiffContext } from './DiffContext'
 import { Panel } from './Panel'
 import { PanelLayoutContext } from './PanelLayoutContext'
@@ -169,6 +170,9 @@ export function KronaDiff({
   }, [defaultCollapsedDepth, leftModel, rightModel, rowIndex])
 
   const [collapsedRows, setCollapsedRows] = useState(initialCollapsedRows)
+  // Which version a narrow layout shows. The current one by default: a diff is
+  // usually read to find out what a change did.
+  const [side, setSide] = useState<'left' | 'right'>('right')
   const lastCollapsedSeed = useRef(initialCollapsedRows)
   if (lastCollapsedSeed.current !== initialCollapsedRows) {
     lastCollapsedSeed.current = initialCollapsedRows
@@ -310,6 +314,9 @@ export function KronaDiff({
       expandAll,
       collapseAll,
       labels: resolvedLabels,
+      narrow: config.narrow,
+      side,
+      showSide: setSide,
     }),
     [
       leftModel,
@@ -323,17 +330,25 @@ export function KronaDiff({
       expandAll,
       collapseAll,
       resolvedLabels,
+      config.narrow,
+      side,
     ],
   )
 
   const slots = useMemo(() => (children ? splitSlots(children, 'chrome') : null), [children])
+  // One panel when there is no room for two. Splitting the width of a phone
+  // between two panels gives about ten characters each, which shows neither
+  // version; the reader switches sides instead, over the same aligned rows, so
+  // the line numbers still line up with what the other side had.
   const panels = slots
     ? slots.panels
-    : [
-        <Panel key="left" side="left" />,
-        ...(showMinimap ? [<Minimap key="minimap" />] : []),
-        <Panel key="right" side="right" />,
-      ]
+    : config.narrow
+      ? [<Panel key={side} side={side} />]
+      : [
+          <Panel key="left" side="left" />,
+          ...(showMinimap ? [<Minimap key="minimap" />] : []),
+          <Panel key="right" side="right" />,
+        ]
 
   return (
     <DiffContext.Provider value={diffState}>
@@ -343,7 +358,7 @@ export function KronaDiff({
           style={style}
           aria-label={resolvedLabels.document}
         >
-          {slots ? slots.chrome : null}
+          {slots ? slots.chrome : config.narrow ? <SideSwitch /> : null}
           <div
             className={
               panels.length > 2 ? 'krona-panels krona-panels--with-minimap' : 'krona-panels'

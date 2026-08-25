@@ -1,4 +1,4 @@
-import { Krona } from 'krona'
+import { Krona, useKronaDiff } from 'krona'
 import 'krona/yaml'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { DICTS, type Lang } from './i18n'
@@ -27,6 +27,43 @@ function readParams() {
     minimap: params.get('minimap') !== 'off',
   }
 }
+
+/**
+ * The diff's panels, laid out for the width there is.
+ *
+ * A custom layout is the consumer's to arrange, so Krona leaves it alone however
+ * narrow the root gets; `useKronaDiff().narrow` is how a layout of your own asks
+ * whether it has room for two panels.
+ */
+function DiffPanelsBase({
+  showMarkers,
+  showMinimap,
+}: {
+  showMarkers: boolean
+  showMinimap: boolean
+}) {
+  const { narrow, side } = useKronaDiff()
+  const panel = (which: 'left' | 'right') => (
+    <Krona.Panel side={which}>
+      <Krona.Gutter showMarkers={showMarkers} />
+      <Krona.Lines />
+    </Krona.Panel>
+  )
+  if (narrow) return panel(side)
+  return (
+    <>
+      {panel('left')}
+      {showMinimap ? <Krona.Minimap /> : null}
+      {panel('right')}
+    </>
+  )
+}
+
+// Krona places a custom layout by the `kronaSlot` each component declares. A
+// component of your own that stands in for panels has to say so, or it is taken
+// for chrome and lands above the panel row rather than inside it — with no
+// height, since that region is sized by its content.
+const DiffPanels = Object.assign(DiffPanelsBase, { kronaSlot: 'panels' as const })
 
 export function App() {
   const initial = useMemo(readParams, [])
@@ -197,15 +234,7 @@ export function App() {
                     : { defaultCollapsedDepth: collapsedDepth })}
                 >
                   <Krona.Toolbar />
-                  <Krona.Panel side="left">
-                    <Krona.Gutter showMarkers={showMarkers} />
-                    <Krona.Lines />
-                  </Krona.Panel>
-                  {showMinimap ? <Krona.Minimap /> : null}
-                  <Krona.Panel side="right">
-                    <Krona.Gutter showMarkers={showMarkers} />
-                    <Krona.Lines />
-                  </Krona.Panel>
+                  <DiffPanels showMarkers={showMarkers} showMinimap={showMinimap} />
                 </Krona.Diff>
               ) : (
                 <Krona.Viewer

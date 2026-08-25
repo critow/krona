@@ -536,8 +536,66 @@ export const KRONA_CSS = `:where(.krona) {
   min-height: 0;
 }
 
-.krona-panels--with-minimap {
-  grid-template-columns: 1fr 12px 1fr;
+.krona-panels--with-minimap,
+/* Asked of the DOM rather than counted in the layout code: a custom layout can
+   put the minimap inside a component of its own, and then no count of the
+   diff's children knows the track is needed. Without the track the minimap
+   takes a panel's column and the second panel wraps onto its own row. */
+.krona-panels:has(.krona-minimap) {
+  grid-template-columns: minmax(0, 1fr) 12px minmax(0, 1fr);
+}
+
+/* Narrow layout
+   -------------------------------------------------------------------------
+   Driven by the root's own measured width rather than a media query, so a
+   component in a sidebar is treated like one on a phone. */
+
+.krona[data-narrow="true"] {
+  /* Narrower, but not below the 44px a finger needs: the whole gutter cell is
+     the fold control, and shrinking it to save width would take the target with
+     it — on the very devices that have no pointer to aim with. */
+  --krona-gutter-width: 2.75rem;
+  --krona-padding-inline: 0.5rem;
+}
+
+/* One panel, one column: the second track would otherwise hold the width of a
+   panel that is not being rendered. */
+.krona[data-narrow="true"] .krona-panels {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.krona-side-switch {
+  display: inline-flex;
+  gap: 0.125rem;
+  /* A fieldset carries a border and padding of its own; only its semantics are
+     wanted here. */
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-inline-size: auto;
+}
+
+.krona-side-switch button {
+  all: unset;
+  cursor: pointer;
+  white-space: nowrap;
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+  border: 1px solid var(--krona-border);
+  color: var(--krona-fg-muted);
+}
+
+.krona-side-switch button:focus-visible {
+  outline: 2px solid var(--krona-token-key);
+  outline-offset: 1px;
+}
+
+.krona-side-switch button[aria-pressed="true"] {
+  /* Which version is on screen is the one thing this control has to say, so it
+     says it with colour rather than a shade of border. */
+  background: var(--krona-bg-hover);
+  color: var(--krona-chevron-hover);
+  border-color: currentcolor;
 }
 
 .krona-panel {
@@ -635,7 +693,10 @@ export const KRONA_CSS = `:where(.krona) {
 .krona-toolbar {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  /* Wraps rather than overflowing: a control pushed off the edge of a phone is
+     a control that is not there. Its buttons keep their own words together. */
+  flex-wrap: wrap;
+  gap: 0.375rem 0.75rem;
   padding: 0.375rem var(--krona-padding-inline);
   background: var(--krona-bg-gutter);
   border-bottom: 1px solid var(--krona-border);
@@ -646,6 +707,9 @@ export const KRONA_CSS = `:where(.krona) {
 .krona-toolbar button {
   all: unset;
   cursor: pointer;
+  /* A two-word action reads as one control; wrapping turns a toolbar into a
+     stack of half-words on a narrow screen. */
+  white-space: nowrap;
   padding: 0.125rem 0.375rem;
   border-radius: 4px;
   border: 1px solid var(--krona-border);

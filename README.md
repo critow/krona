@@ -46,6 +46,7 @@ JSON/JSONC · YAML · TOML · INI/.env
 - [Custom layouts](#custom-layouts)
 - [Hooks](#hooks)
 - [Localization](#localization)
+- [Small screens](#small-screens)
 - [Theming](#theming)
 - [Safety limits](#safety-limits)
 - [Large files and Web Workers](#large-files-and-web-workers)
@@ -122,6 +123,7 @@ below it.
 | `labels` | `Partial<KronaLabels>` | English defaults | Every visible string — see [Localization](#localization) |
 | `locale` | `string` | runtime default | BCP 47 locale used by `Intl.NumberFormat` in the default labels |
 | `lineHeight` | `number` | `20` | Row height in pixels; also sets `--krona-line-height`. Fixed height is what makes virtualization exact |
+| `narrowWidth` | `number` | `640` | Below this width the modes lay out for a small screen — see [Small screens](#small-screens). Measured on the root, not the window; `0` disables |
 | `limits` | `Partial<ParseLimits>` | see [Safety limits](#safety-limits) | Overrides for the parser's bounds |
 | `providers` | `FormatRegistry` | module registry | Custom provider lookup |
 | `injectStyles` | `boolean` | `true` | Adds the stylesheet to `document.head` on mount |
@@ -184,6 +186,7 @@ learn which mode they are in.
 | `Krona.Diagnostics` | above the content | Parse problems. `includeWarnings?: boolean` |
 | `Krona.Panel` | diff only | One side. `side: 'left' \| 'right'` |
 | `Krona.Minimap` | diff only | Change map between the panels; throws elsewhere |
+| `Krona.SideSwitch` | diff only | Chooses the version a [narrow](#small-screens) diff shows. `always?: boolean`; renders nothing where both panels fit |
 | `Krona.ExpandBar` | rendered for you | The hidden-rows bar; exported for restyling |
 
 ## Editing
@@ -372,6 +375,33 @@ function plural(n: number, one: string, few: string, many: string): string {
 </Krona>
 ```
 
+## Small screens
+
+Below `narrowWidth` (640px by default) a diff shows **one panel at a time**,
+with a side switch in the toolbar. Splitting the width of a phone between two
+panels gives about ten characters each, which shows neither version; the reader
+switches sides instead, over the same aligned rows, so the line numbers still
+line up with what the other side had. The gutter narrows too.
+
+The width measured is the **root's**, not the window's. A diff in a sidebar on a
+wide screen is just as cramped as one on a phone, and a media query cannot tell
+the difference. Pass `narrowWidth={0}` to keep the wide layout at every size.
+
+```tsx
+<Krona format="json" narrowWidth={480}>
+  <Krona.Diff left={before} right={after} />
+</Krona>
+```
+
+`useKronaDiff()` exposes the same state, for a switch of your own:
+
+```tsx
+const { narrow, side, showSide } = useKronaDiff()
+```
+
+Row actions stay visible without hovering where there is no pointer to hover
+with, so they can be reached by tap.
+
 ## Theming
 
 Everything is driven by `--krona-*` custom properties. Override them on any
@@ -533,6 +563,7 @@ than forgotten.
 | --- | --- | --- |
 | Inline (unified) diff | Side by side answers the question the library exists for. A unified view is a second layout over the same aligned rows, so it is cheap to add once the row model settles. | Next |
 | Search inside the document | Needs a match index that survives folding and virtualization; worth doing properly rather than early. | Next |
+| Unified diff on a phone | A narrow diff shows one side at a time today, which reads well but makes you switch to compare. A unified view is the better answer, and the same second layout listed above. | Next |
 | More formats (XML, `.properties`, HCL) | Each is a provider — an `analyze` and a `tokenize` — behind the same interface. Waiting for someone to actually need one. | Maybe |
 | Semantic diff | Reordering keys *is* a difference in a configuration file. Krona compares text, exactly like git. | Not planned |
 
