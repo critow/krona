@@ -201,11 +201,13 @@ export const KRONA_CSS = `:where(.krona) {
 
 /* Rows contain their layout, which makes each one its own stacking context, so
    a tooltip's z-index only ever ranks it against the rest of its own row —
-   later rows still paint over it. The row itself has to rise instead. */
+   later rows still paint over it. The row itself has to rise instead, but only
+   just: the gutter is sticky at 2, and a row that outranked it would slide over
+   the line numbers the moment the panel scrolled sideways. */
 .krona-row--actionable:hover,
 .krona-row--actionable:focus-within,
 .krona-row--actionable:has(.krona-action--confirmed) {
-  z-index: 5;
+  z-index: 1;
 }
 
 /* Nothing hovers on a touch screen, so there the actions simply stay out. */
@@ -348,10 +350,9 @@ export const KRONA_CSS = `:where(.krona) {
   position: absolute;
   top: 0;
   left: 0;
-  /* Above the rows it covers — they come later in the DOM and would paint over
-     an editor that relied on source order alone — and above a hovered row,
-     which lifts itself so its tooltip clears its neighbours. */
-  z-index: 6;
+  /* Above the rows it covers: they come later in the DOM and would paint over
+     an editor that only relied on source order. */
+  z-index: 3;
   display: flex;
   align-items: flex-start;
   padding-inline: var(--krona-padding-inline);
