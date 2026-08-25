@@ -1,0 +1,11 @@
+FONTLOG for Krona Sans
+
+Version 0.1 — 2026-08-25
+- Derived from Comfortaa Bold (SIL Open Font License 1.1).
+- Renamed to “Krona Sans”; the Reserved Font Name “Comfortaa” is not used as the primary font name.
+- Rebuilt lowercase k, r, o, n and a from the selected Krona logo wordmark so the font reproduces the logo character.
+- Latin, Cyrillic, numerals, punctuation and extended coverage currently inherit the Comfortaa Bold design as the v0.1 foundation.
+- This is an alpha/design-development build. Kerning, interpolation, and Cyrillic stylistic harmonization are planned for later revisions.
+
+Original font authorship:
+- Johan Aakerlund / Comfortaa contributors.

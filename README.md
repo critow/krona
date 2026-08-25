@@ -17,7 +17,7 @@ JSON/JSONC · YAML · TOML · INI/.env
 
 [![CI](https://github.com/critow/krona/actions/workflows/ci.yml/badge.svg)](https://github.com/critow/krona/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-5ccfe6?style=flat-square)](./LICENSE)
-[![Runtime dependencies: 3](https://img.shields.io/badge/runtime%20deps-3-5ccfe6?style=flat-square)](#design-notes)
+[![Runtime dependencies: 5](https://img.shields.io/badge/runtime%20deps-5-5ccfe6?style=flat-square)](#design-notes)
 [![Types: included](https://img.shields.io/badge/types-included-5ccfe6?style=flat-square)](#props-reference)
 [![React 18 | 19](https://img.shields.io/badge/react-18%20%7C%2019-5ccfe6?style=flat-square)](#installation)
 
@@ -30,7 +30,9 @@ JSON/JSONC · YAML · TOML · INI/.env
 - **Composable.** Each mode renders a default layout, or takes apart into the same public parts when you want your own.
 - **Editable, as text.** The viewer edits values, lines and whole blocks, with undo and redo. Every change replaces a span of the source and re-parses, so it can never invent syntax the format does not have.
 - **Fast on real files.** A 60k-line lockfile parses in ~30 ms and diffs in ~62 ms; rendering is virtualized and tokenizing is lazy.
-- **Three runtime dependencies.** `jsonc-parser`, `yaml`, `diff`. Nothing else.
+- **Five packages in the install tree.** `jsonc-parser`, `yaml` and `diff` parse and diff;
+  `@tanstack/react-virtual` and its `@tanstack/virtual-core` virtualize. A CI check fails
+  the build if a sixth appears. `@krona/core` is ours; React is a peer.
 - **Safe with untrusted content.** No `innerHTML` anywhere, no JavaScript objects built from your file, bidi and zero-width characters rendered as visible badges.
 
 ![Side-by-side diff of two JSON files](./docs/assets/diff-dark.png)
@@ -536,7 +538,11 @@ before you look at any one branch, which is what a folded configuration file
 gives you. The mark says both halves of that: a file folded into a tree of rows,
 with the two signs of a diff beside them, growing into a tree. It lives in
 `docs/assets` — `logo-light.svg` and `logo-dark.svg` are the mark, `logotype-*`
-add the wordmark, and `logo.svg` picks a palette from the reader's own theme.
+add the wordmark, and `logo.svg` picks a palette from the reader's own theme. The
+demo sets its own name in Krona Sans, a one-weight face carrying the wordmark's
+letters (OFL, derived from Comfortaa; the licence ships beside the font). It
+names the product and stops there — every other word on the page is monospace,
+because the page is about reading configuration files.
 
 **The model is lines, not a value tree.** Diffing is line based and folding is
 range based, so `lines + folding ranges` serves both. Krona never builds a

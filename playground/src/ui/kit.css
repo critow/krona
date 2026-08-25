@@ -1,8 +1,22 @@
+/* Krona Sans carries the five letters of the wordmark, redrawn from the logo.
+   It ships in one weight and is a rounded display face, so it names the product
+   and stops there — the page's own text keeps the monospace stack below. */
+@font-face {
+  font-family: "Krona Sans";
+  src: url("/fonts/KronaSans-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  /* The wordmark is one short word beside a mark that already says the name:
+     showing it in the fallback until the file lands costs nothing. */
+  font-display: swap;
+}
+
 :root {
   /* One monospace stack for the whole page: this is a tool for people who read
      config files, and the demo should look like the place they read them. */
   --ui-font:
     "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --ui-font-brand: "Krona Sans", var(--ui-font);
 
   --ui-bg: #0b0e14;
   --ui-bg-raised: #11151f;

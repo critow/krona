@@ -51,9 +51,11 @@ body {
 
 .brand-name {
   margin: 0;
-  font-size: 1.05rem;
+  font-family: var(--ui-font-brand);
+  /* Krona Sans runs small and wide next to the monospace around it. */
+  font-size: 1.2rem;
   font-weight: 700;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.01em;
 }
 
 .brand-tagline {
