@@ -1,12 +1,15 @@
-import { visit } from 'jsonc-parser'
+import { format as formatJson, visit } from 'jsonc-parser'
 import { registerFormat } from '../model/registry'
 import type {
   AnalysisResult,
   Diagnostic,
   FoldRange,
   FormatProvider,
+  FormatRequest,
+  FormatSpan,
   LineStates,
   ResolvedParseOptions,
+  TextReplacement,
   Token,
 } from '../model/types'
 
@@ -244,6 +247,50 @@ function detect(source: string): number {
 }
 
 /**
+ * The indentation the document already uses.
+ *
+ * Read from the file rather than configured, because reformatting one edited
+ * block in a style the rest of the file does not use is worse than not
+ * formatting it at all.
+ */
+function detectIndent(source: string): { tabSize: number; insertSpaces: boolean } {
+  const lines = source.split('\n')
+  for (const line of lines) {
+    if (line.charCodeAt(0) === 9 /* tab */) return { tabSize: 1, insertSpaces: false }
+    let spaces = 0
+    while (line.charCodeAt(spaces) === 32) spaces++
+    // Something has to follow, or a blank line would answer the question.
+    if (spaces > 0 && spaces < line.length) {
+      return { tabSize: Math.min(spaces, 8), insertSpaces: true }
+    }
+  }
+  return { tabSize: 2, insertSpaces: true }
+}
+
+function format(
+  source: string,
+  span: FormatSpan,
+  request: FormatRequest,
+): readonly TextReplacement[] {
+  const { tabSize, insertSpaces } = detectIndent(source)
+  const edits = formatJson(
+    source,
+    { offset: span.start, length: span.end - span.start },
+    {
+      tabSize,
+      insertSpaces,
+      eol: source.includes('\r\n') ? '\r\n' : '\n',
+      keepLines: !request.expand,
+    },
+  )
+  return edits.map((edit) => ({
+    start: edit.offset,
+    end: edit.offset + edit.length,
+    text: edit.content,
+  }))
+}
+
+/**
  * JSON and JSONC (comments and trailing commas allowed).
  *
  * Folding ranges come from `jsonc-parser`'s streaming visitor, so no JavaScript
@@ -257,6 +304,7 @@ export const jsonProvider: FormatProvider = {
   detect,
   analyze,
   tokenize,
+  format,
 }
 
 registerFormat(jsonProvider)

@@ -1,6 +1,7 @@
 import type { Span } from '../diff/intraline'
 import { OffsetIndex } from '../model/lines'
-import type { DocumentModel, TokenType } from '../model/types'
+import { defaultRegistry } from '../model/registry'
+import type { DocumentModel, FormatRegistry, TokenType } from '../model/types'
 
 /**
  * A replacement of one span of the source text.
@@ -217,4 +218,85 @@ function isLastEntry(source: string, offset: number): boolean {
     return code === 125 /* } */ || code === 93 /* ] */
   }
   return true
+}
+
+/**
+ * Moves an offset back over a line's indentation and the break before it.
+ *
+ * A formatter asked to shape a range takes the range's own column as the base
+ * indentation. Text pasted flush against the left margin would then be laid out
+ * relative to column zero and land a level short of where it belongs. Starting
+ * the range one line break earlier shows the formatter which container the text
+ * actually sits in. An edit that starts mid-line is left alone: there is no
+ * indentation there to mislead anyone.
+ */
+function widenToLineBreak(source: string, offset: number): number {
+  let start = offset
+  while (start > 0) {
+    const code = source.charCodeAt(start - 1)
+    if (code !== 32 && code !== 9) break
+    start--
+  }
+  if (source.charCodeAt(start - 1) === 10) start--
+  if (source.charCodeAt(start - 1) === 13) start--
+  return start
+}
+
+/**
+ * The smallest single edit that turns `before` into `after`.
+ *
+ * Used to fold an edit and the formatting it triggered into one entry, so undo
+ * reverses what the reader did rather than half of it.
+ */
+export function minimalEdit(before: string, after: string): SourceEdit {
+  let prefix = 0
+  const shortest = Math.min(before.length, after.length)
+  while (prefix < shortest && before.charCodeAt(prefix) === after.charCodeAt(prefix)) prefix++
+
+  let suffix = 0
+  while (
+    suffix < shortest - prefix &&
+    before.charCodeAt(before.length - 1 - suffix) === after.charCodeAt(after.length - 1 - suffix)
+  ) {
+    suffix++
+  }
+
+  return {
+    start: prefix,
+    end: before.length - suffix,
+    text: after.slice(prefix, after.length - suffix),
+  }
+}
+
+/**
+ * An edit with the format's own formatting already applied to what it inserted.
+ *
+ * Typing `{"a":1,"b":2}` into a block editor should leave a block written the
+ * way the rest of the file is written, not one long line — but only the edited
+ * span is touched, so the document around it keeps whatever shape it had, tidy
+ * or not. Providers without a formatter give the edit back unchanged.
+ *
+ * `expand` decides whether line breaks may be added: false for a value edited
+ * in place, where re-flowing the line would move text the reader was not
+ * looking at.
+ */
+export function formattedEdit(
+  model: DocumentModel,
+  edit: SourceEdit,
+  expand: boolean,
+  registry: FormatRegistry = defaultRegistry,
+): SourceEdit {
+  const provider = registry.get(model.format)
+  if (!provider?.format) return edit
+
+  const applied = applyEdit(model.source, edit).source
+  const span = { start: widenToLineBreak(applied, edit.start), end: edit.start + edit.text.length }
+  let next = applied
+  const replacements = [...provider.format(applied, span, { expand })]
+  // Back to front, so an earlier replacement cannot move a later one.
+  replacements.sort((a, b) => b.start - a.start)
+  for (const replacement of replacements) {
+    next = next.slice(0, replacement.start) + replacement.text + next.slice(replacement.end)
+  }
+  return next === applied ? edit : minimalEdit(model.source, next)
 }

@@ -72,6 +72,11 @@ function renderSegments(
           key={key}
           type="button"
           className={classes.join(' ')}
+          // A native title, not the styled tooltip: a bubble popping over every
+          // value under the pointer is noise, and generated content joins the
+          // accessible name, which here is the value itself. With text content
+          // present a title becomes the description instead, so it stays clear
+          // of the name.
           title={labels.editValue}
           onDoubleClick={() => onEditValue(segment.start, segment.end)}
           onKeyDown={(event) => {
@@ -200,7 +205,7 @@ function RowActions({
     void copyText(text).then((ok) => {
       if (!ok) return
       setCopied(what)
-      setTimeout(() => setCopied(null), 1200)
+      setTimeout(() => setCopied(null), 1400)
     })
   }
 
@@ -210,11 +215,17 @@ function RowActions({
 
   return (
     <span className="krona-row-actions">
+      {/* The tooltip is a pseudo-element, which a screen reader never sees, and
+          the button's own name must not change under the pointer. */}
+      <span role="status" className="krona-sr-only">
+        {copied ? labels.copied : ''}
+      </span>
       {only ? (
         <button
           type="button"
-          title={copied === 'value' ? labels.copied : labels.copyValue}
-          aria-label={copied === 'value' ? labels.copied : labels.copyValue}
+          className={copied === 'value' ? 'krona-action--confirmed' : undefined}
+          data-tip={copied === 'value' ? labels.copied : labels.copyValue}
+          aria-label={labels.copyValue}
           onClick={() => copy('value', model.source.slice(only.start, only.end))}
         >
           <Icon path={copied === 'value' ? TICK : COPY} />
@@ -223,8 +234,9 @@ function RowActions({
       {block ? (
         <button
           type="button"
-          title={copied === 'entry' ? labels.copied : labels.copyEntry}
-          aria-label={copied === 'entry' ? labels.copied : labels.copyEntry}
+          className={copied === 'entry' ? 'krona-action--confirmed' : undefined}
+          data-tip={copied === 'entry' ? labels.copied : labels.copyEntry}
+          aria-label={labels.copyEntry}
           onClick={() => copy('entry', model.source.slice(block.start, block.end))}
         >
           <Icon path={copied === 'entry' ? TICK : COPY} filled={copied !== 'entry'} />
@@ -234,7 +246,7 @@ function RowActions({
         <>
           <button
             type="button"
-            title={labels.editLine}
+            data-tip={labels.editLine}
             aria-label={labels.editLine}
             onClick={() => editing.editLine(lineIndex)}
           >
@@ -243,7 +255,7 @@ function RowActions({
           {range ? (
             <button
               type="button"
-              title={labels.editBlock}
+              data-tip={labels.editBlock}
               aria-label={labels.editBlock}
               onClick={() => editing.editBlock(lineIndex)}
             >
@@ -252,7 +264,7 @@ function RowActions({
           ) : null}
           <button
             type="button"
-            title={labels.duplicateEntry}
+            data-tip={labels.duplicateEntry}
             aria-label={labels.duplicateEntry}
             onClick={() => editing.duplicate(lineIndex)}
           >
@@ -261,7 +273,7 @@ function RowActions({
           <button
             type="button"
             className="krona-action--danger"
-            title={labels.deleteEntry}
+            data-tip={labels.deleteEntry}
             aria-label={labels.deleteEntry}
             onClick={() => editing.remove(lineIndex)}
           >

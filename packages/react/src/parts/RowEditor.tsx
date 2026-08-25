@@ -53,7 +53,7 @@ export function RowEditor({
       <button
         type="button"
         className="krona-editor-save"
-        title={labels.saveEdit}
+        data-tip={labels.saveEdit}
         aria-label={labels.saveEdit}
         onClick={() => editing.commit(text)}
       >
@@ -62,7 +62,7 @@ export function RowEditor({
       <button
         type="button"
         className="krona-editor-cancel"
-        title={labels.cancelEdit}
+        data-tip={labels.cancelEdit}
         aria-label={labels.cancelEdit}
         onClick={editing.cancel}
       >

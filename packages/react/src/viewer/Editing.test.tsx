@@ -213,6 +213,66 @@ describe('editing in Krona.Viewer', () => {
       .toBe(['{', '  "name": "krona",', '  "server": null,', '  "tail": 1', '}'].join('\n'))
   })
 
+  it('reshapes an edited block into the layout the file already uses', async () => {
+    const screen = await render(<Harness />)
+    await expect.poll(() => screen.container.querySelectorAll('.krona-row-actions').length).toBe(7)
+
+    const editBlock = await rowAction(screen.container, 2, 'Edit block')
+    expect(editBlock).toBeDefined()
+    if (!editBlock) return
+    await userEvent.click(editBlock)
+
+    const area = screen.container.querySelector<HTMLTextAreaElement>('.krona-editor-area')
+    expect(area).toBeDefined()
+    if (!area) return
+    await userEvent.fill(area, '  "server": {"host":"127.0.0.1","port":8080},')
+    await userEvent.click(screen.container.querySelector('.krona-editor-save') as HTMLElement)
+
+    await expect
+      .poll(() => resultOf(screen.container))
+      .toBe(
+        [
+          '{',
+          '  "name": "krona",',
+          '  "server": {',
+          '    "host": "127.0.0.1",',
+          '    "port": 8080',
+          '  },',
+          '  "tail": 1',
+          '}',
+        ].join('\n'),
+      )
+  })
+
+  it('undoes an edit and its formatting in one step', async () => {
+    const screen = await render(<Harness />)
+    await expect.poll(() => screen.container.querySelectorAll('.krona-row-actions').length).toBe(7)
+
+    const editBlock = await rowAction(screen.container, 2, 'Edit block')
+    if (!editBlock) return
+    await userEvent.click(editBlock)
+    const area = screen.container.querySelector<HTMLTextAreaElement>('.krona-editor-area')
+    if (!area) return
+    await userEvent.fill(area, '  "server": {"host":"x"},')
+    await userEvent.click(screen.container.querySelector('.krona-editor-save') as HTMLElement)
+    await expect.poll(() => resultOf(screen.container)).toContain('"host": "x"')
+
+    await screen.getByRole('button', { name: 'Undo' }).click()
+    await expect.poll(() => resultOf(screen.container)).toBe(SOURCE)
+  })
+
+  it('keeps the tooltip text out of a control\u2019s accessible name', async () => {
+    const screen = await render(<Harness />)
+    await expect.poll(() => screen.container.querySelectorAll('.krona-row-actions').length).toBe(7)
+
+    // Generated content joins the accessible name unless an explicit label wins.
+    // A tooltip that leaks into it renames every control it decorates.
+    const remove = await rowAction(screen.container, 1, 'Delete')
+    expect(remove).toBeDefined()
+    expect(remove?.getAttribute('data-tip')).toBe('Delete')
+    await expect.element(screen.getByRole('button', { name: 'Delete', exact: true })).toBeVisible()
+  })
+
   it('reports every change through onChange', async () => {
     const onChange = vi.fn()
     const screen = await render(

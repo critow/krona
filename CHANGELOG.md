@@ -38,6 +38,12 @@ The first release. Not on npm yet; install from git or run the
   the source, which is then parsed again, so the model stays an immutable list
   of lines. `onChange` reports the whole document; `useKronaViewer()` exposes it
   along with the history.
+- Editing an object or array reshapes it into the layout the file already uses,
+  with the indent width read from the document. Text in, text out, through the
+  provider — a formatter round-tripping through a parsed value would build the
+  object Krona is careful never to build. An edit and its formatting are one
+  undo step.
+- Tooltips on the row actions, and a visible confirmation when a copy lands.
 - Copy actions on the hovered row in both modes: the value on its own, and the
   whole entry — the whole block when the line opens one.
 - Diff panels scroll in lockstep on both axes, over a content width the whole

@@ -207,6 +207,22 @@ const [text, setText] = useState(initial)
 </Krona>
 ```
 
+Editing an object or an array reshapes it into the layout the file already
+uses. Type or paste `{"host":"10.0.0.1","port":9090}` into a block editor and
+what lands is a block indented like its neighbours — the indent width comes from
+the document, not from a setting, because reformatting one block in a style the
+rest of the file does not use is worse than not formatting it at all. Only the
+edited span is touched; the document around it keeps whatever shape it had. A
+value edited in place keeps its line, since re-flowing it would move text you
+were not looking at.
+
+Formatting is text in, text out, and it is a provider's job: JSON and JSONC
+have it, and a format whose provider offers none leaves edited text exactly as
+typed. A formatter that round-tripped through a parsed value would build the
+JavaScript object the rest of Krona is careful never to build, and would drop
+whatever the format's value model has no room for — comments, in JSON's case.
+An edit and the formatting it triggers are one undo step.
+
 Every edit is a **text** edit: it replaces a span of the source, and the result
 is parsed again. Nothing is written back through a JavaScript object, so an edit
 cannot invent syntax the format does not have — it only moves characters you
@@ -363,6 +379,7 @@ ancestor — no selector needs to be touched.
 | Tokens | `--krona-token-key`, `-string`, `-number`, `-boolean`, `-null`, `-comment`, `-punctuation`, `-section` |
 | Diff | `--krona-added-bg`, `--krona-added-strong-bg`, `--krona-removed-bg`, `--krona-removed-strong-bg`, `--krona-spacer-bg`, `--krona-added-marker`, `--krona-removed-marker` |
 | Warnings | `--krona-unsafe-bg`, `--krona-unsafe-fg` |
+| Tooltips | `--krona-tooltip-bg`, `--krona-tooltip-fg` |
 
 `theme="light" \| "dark" \| "auto"`; `auto` follows `prefers-color-scheme`.
 

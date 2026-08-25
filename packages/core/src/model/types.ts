@@ -152,6 +152,40 @@ export interface FormatProvider {
   analyze(source: string, lines: readonly string[], options: ResolvedParseOptions): AnalysisResult
   /** Tokenizes one line. Must be linear in the line length. */
   tokenize(text: string, lineIndex: number, states: LineStates | undefined): readonly Token[]
+  /**
+   * Rewrites a span into the shape the format is normally written in, as a list
+   * of further text replacements. Optional: a provider without it leaves edited
+   * text exactly as it was typed.
+   *
+   * Text in, text out. A formatter that round-tripped through a parsed value
+   * would build the JavaScript object the rest of Krona is careful never to
+   * build, and would quietly drop whatever the format's value model has no room
+   * for — comments, in JSON's case.
+   */
+  format?(source: string, span: FormatSpan, options: FormatRequest): readonly TextReplacement[]
+}
+
+/** A span of source offsets handed to {@link FormatProvider.format}. */
+export interface FormatSpan {
+  readonly start: number
+  readonly end: number
+}
+
+/** What the caller wants from {@link FormatProvider.format}. */
+export interface FormatRequest {
+  /**
+   * Allow line breaks to be added or removed. False for an edit made in place
+   * inside a line, where re-flowing the line would move text the reader was not
+   * looking at.
+   */
+  readonly expand: boolean
+}
+
+/** One replacement produced by {@link FormatProvider.format}. */
+export interface TextReplacement {
+  readonly start: number
+  readonly end: number
+  readonly text: string
 }
 
 /** A lookup of {@link FormatProvider}s by id. */
