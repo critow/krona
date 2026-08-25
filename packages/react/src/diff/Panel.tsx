@@ -40,18 +40,21 @@ function PanelBase({ side, className, style, children }: KronaPanelProps) {
         const aligned = layout.alignedRows[item.rowIndex] as AlignedRow
         const lineIndex = isLeft ? aligned.left : aligned.right
         if (lineIndex === null) return { lineIndex: null, tone: 'spacer' as const }
+        // The side travels with the row so that a part asking about the line —
+        // a search for what to highlight, say — reaches the right document.
         if (aligned.kind !== 'changed') {
-          return { lineIndex, tone: TONE[aligned.kind] }
+          return { lineIndex, tone: TONE[aligned.kind], side }
         }
         const intraline = layout.getIntraline(item.rowIndex)
         return {
           lineIndex,
           tone: 'changed' as const,
+          side,
           intraline: isLeft ? intraline.left : intraline.right,
           wholeLine: intraline.wholeLine,
         }
       }),
-    [layout, isLeft],
+    [layout, isLeft, side],
   )
 
   const scrollRef = useRef<HTMLDivElement | null>(null)
@@ -66,6 +69,16 @@ function PanelBase({ side, className, style, children }: KronaPanelProps) {
 
   const virtualItems = virtualizer.getVirtualItems()
   const totalSize = virtualizer.getTotalSize()
+
+  // The row a search jumped to, once whatever hid it has been opened. Both
+  // panels do this; the second one finds itself already there.
+  useEffect(() => {
+    const row = layout.pendingRow
+    if (row === null) return
+    const index = layout.displayItems.findIndex((item) => item.rowIndex === row)
+    if (index >= 0) virtualizer.scrollToIndex(index, { align: 'center' })
+    layout.clearPendingRow()
+  }, [layout, virtualizer])
 
   // Both sides, not just this panel's: the panels must reserve the same width
   // for their horizontal scrolling to stay in step.
@@ -96,6 +109,7 @@ function PanelBase({ side, className, style, children }: KronaPanelProps) {
       expandContext: layout.expandContext,
       regions: layout.regions,
       step: layout.step,
+      search: layout.search,
     }),
     [side, model, rows, virtualizer, virtualItems, totalSize, contentColumns, layout, rowOf],
   )

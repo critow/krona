@@ -11,16 +11,19 @@ import {
 } from '@krona/core'
 import { type CSSProperties, type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
 import { useKronaConfig } from '../context/config'
+import { SearchContext } from '../context/search'
 import { splitSlots } from '../context/slots'
 import { useDocument } from '../hooks/useDocument'
 import { useScrollSync } from '../hooks/useScrollSync'
+import { type SearchHit, useSearch } from '../hooks/useSearch'
 import { type KronaLabels, resolveLabels } from '../labels'
 import { Minimap } from '../parts/Minimap'
+import { Search } from '../parts/Search'
 import { SideSwitch } from '../parts/SideSwitch'
 import { DiffContext } from './DiffContext'
 import { Panel } from './Panel'
 import { PanelLayoutContext } from './PanelLayoutContext'
-import { buildRowIndex, hasFoldAt, useDisplayItems } from './rows'
+import { buildRowIndex, foldEndRow, hasFoldAt, useDisplayItems } from './rows'
 import { Unified } from './Unified'
 
 /** How much of an unchanged run stays visible around a change. */
@@ -62,6 +65,8 @@ export interface KronaDiffProps {
   view?: 'split' | 'unified' | 'auto'
   /** Show the change minimap between the panels. Split view only. Default false. */
   showMinimap?: boolean
+  /** Show the search field above the panels. Default false. */
+  showSearch?: boolean
   /** Extra rows rendered outside the viewport. Default 8. */
   overscan?: number
   className?: string
@@ -97,6 +102,7 @@ export function KronaDiff({
   ignoreTrailingWhitespace = false,
   view = 'auto',
   showMinimap = false,
+  showSearch = false,
   overscan = 8,
   className,
   style,
@@ -263,6 +269,41 @@ export function KronaDiff({
     setCollapsedRows(collapsed)
   }, [leftModel, rightModel, rowIndex])
 
+  // Jumping to a match has more to open in a diff than in a viewer: the row can
+  // be inside a folded block *and* inside a collapsed run of unchanged lines,
+  // and either one hides it. The panels scroll in lockstep, so revealing it in
+  // one reveals it in both.
+  const [pendingRow, setPendingRow] = useState<number | null>(null)
+  const reveal = useCallback(
+    (hit: SearchHit) => {
+      const row = hit.row ?? -1
+      if (row < 0) return
+      setRegions((current) =>
+        current.map((region) =>
+          region && region.startRow <= row && region.endRow >= row ? null : region,
+        ),
+      )
+      setCollapsedRows((current) => {
+        const next = new Set(current)
+        for (const collapsedRow of current) {
+          if (collapsedRow >= row) continue
+          if (foldEndRow(collapsedRow, aligned.rows, leftModel, rightModel, rowIndex) >= row) {
+            next.delete(collapsedRow)
+          }
+        }
+        return next.size === current.size ? current : next
+      })
+      setPendingRow(row)
+    },
+    [aligned.rows, leftModel, rightModel, rowIndex],
+  )
+
+  const search = useSearch(
+    { kind: 'diff', left: leftModel, right: rightModel, rows: aligned.rows },
+    reveal,
+    resolvedLabels,
+  )
+
   const unified = view === 'unified' || (view === 'auto' && config.narrow)
 
   const scrollSync = useScrollSync()
@@ -284,6 +325,13 @@ export function KronaDiff({
       overscan,
       scrollSync,
       step: collapseOptions?.step ?? 20,
+      search: {
+        query: search.state.query,
+        matchesAt: search.matchesAt,
+        current: search.current,
+      },
+      pendingRow,
+      clearPendingRow: () => setPendingRow(null),
     }),
     [
       displayItems,
@@ -301,6 +349,8 @@ export function KronaDiff({
       overscan,
       scrollSync,
       collapseOptions,
+      search,
+      pendingRow,
     ],
   )
 
@@ -366,24 +416,33 @@ export function KronaDiff({
 
   return (
     <DiffContext.Provider value={diffState}>
-      <PanelLayoutContext.Provider value={panelLayout}>
-        <section
-          className={className ? `krona-diff ${className}` : 'krona-diff'}
-          style={style}
-          aria-label={resolvedLabels.document}
-        >
-          {/* Nothing to switch between in a unified diff: both versions are
-              already on screen, one line above the other. */}
-          {slots ? slots.chrome : config.narrow && !unified ? <SideSwitch /> : null}
-          <div
-            className={
-              panels.length > 2 ? 'krona-panels krona-panels--with-minimap' : 'krona-panels'
-            }
+      <SearchContext.Provider value={search.state}>
+        <PanelLayoutContext.Provider value={panelLayout}>
+          <section
+            className={className ? `krona-diff ${className}` : 'krona-diff'}
+            style={style}
+            aria-label={resolvedLabels.document}
           >
-            {panels}
-          </div>
-        </section>
-      </PanelLayoutContext.Provider>
+            {/* Nothing to switch between in a unified diff: both versions are
+              already on screen, one line above the other. */}
+            {slots ? (
+              slots.chrome
+            ) : (
+              <>
+                {showSearch ? <Search /> : null}
+                {config.narrow && !unified ? <SideSwitch /> : null}
+              </>
+            )}
+            <div
+              className={
+                panels.length > 2 ? 'krona-panels krona-panels--with-minimap' : 'krona-panels'
+              }
+            >
+              {panels}
+            </div>
+          </section>
+        </PanelLayoutContext.Provider>
+      </SearchContext.Provider>
     </DiffContext.Provider>
   )
 }

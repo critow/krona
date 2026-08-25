@@ -79,6 +79,16 @@ function UnifiedBase({ className, style, children }: KronaUnifiedProps) {
   const virtualItems = virtualizer.getVirtualItems()
   const totalSize = virtualizer.getTotalSize()
 
+  // The row a search jumped to, once whatever hid it has been opened. Both
+  // panels do this; the second one finds itself already there.
+  useEffect(() => {
+    const row = layout.pendingRow
+    if (row === null) return
+    const index = entries.findIndex((entry) => entry.rowIndex === row)
+    if (index >= 0) virtualizer.scrollToIndex(index, { align: 'center' })
+    layout.clearPendingRow()
+  }, [layout, virtualizer, entries])
+
   // Both documents, as in a panel: the column is as wide as the wider version,
   // so a line does not change width when the view switches.
   const contentColumns = useMemo(
@@ -120,6 +130,7 @@ function UnifiedBase({ className, style, children }: KronaUnifiedProps) {
       expandContext: layout.expandContext,
       regions: layout.regions,
       step: layout.step,
+      search: layout.search,
     }),
     [
       rows,

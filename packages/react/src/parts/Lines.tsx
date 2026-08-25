@@ -8,7 +8,7 @@ import {
   valueSpansAt,
 } from '@krona/core'
 import { type CSSProperties, Fragment, memo, type ReactNode, useState } from 'react'
-import { type LineEditing, useLineSource } from '../context/lineSource'
+import { type LineEditing, type LineSearch, useLineSource } from '../context/lineSource'
 import type { KronaLabels } from '../labels'
 import { buildSegments } from '../render/segments'
 import { ExpandBar } from './ExpandBar'
@@ -40,8 +40,10 @@ function renderSegments(
   wholeLine: boolean,
   labels: KronaLabels,
   onEditValue: ((start: number, end: number) => void) | undefined,
+  matches?: readonly { start: number; end: number }[],
+  current?: { start: number; end: number },
 ): ReactNode {
-  const segments = buildSegments(text, tokens, intraline, wholeLine)
+  const segments = buildSegments(text, tokens, intraline, wholeLine, matches, current)
   if (segments.length === 0) return text
   return segments.map((segment) => {
     const key = `${segment.start}-${segment.end}`
@@ -61,6 +63,8 @@ function renderSegments(
     const classes: string[] = []
     if (segment.token) classes.push(`krona-token--${segment.token}`)
     if (segment.changed) classes.push('krona-intraline')
+    if (segment.match) classes.push('krona-match')
+    if (segment.match === 'current') classes.push('krona-match--current')
     const value = text.slice(segment.start, segment.end)
     if (onEditValue && segment.token !== undefined && VALUE_TOKENS.has(segment.token)) {
       classes.push('krona-value')
@@ -299,13 +303,30 @@ function RowActions({
   )
 }
 
+/**
+ * The current match, but only where it actually is.
+ *
+ * A line can carry several matches and the same line number exists in both
+ * versions of a diff, so the row has to agree on the side as well.
+ */
+function currentOn(
+  search: LineSearch | undefined,
+  lineIndex: number,
+  side: 'left' | 'right' | undefined,
+): { start: number; end: number } | undefined {
+  const current = search?.current
+  if (!current || current.lineIndex !== lineIndex) return undefined
+  if (side && current.side !== side) return undefined
+  return current
+}
+
 const LinesBase = memo(function Lines({
   showCopyActions = true,
   className,
   style,
 }: KronaLinesProps) {
   const source = useLineSource()
-  const { editing, labels, lineHeight, model, rows, totalSize, virtualItems } = source
+  const { editing, labels, lineHeight, model, rows, search, totalSize, virtualItems } = source
   const target = editing?.target ?? null
 
   // A textarea is taller than the row it starts on, and `.krona-row` contains
@@ -393,6 +414,8 @@ const LinesBase = memo(function Lines({
                 row.wholeLine ?? false,
                 labels,
                 editing ? (start, end) => editing.editValue(lineIndex, start, end) : undefined,
+                search?.matchesAt(lineIndex, row.side),
+                currentOn(search, lineIndex, row.side),
               )
             )}
             {folded && range ? (

@@ -56,6 +56,21 @@ export interface KronaLabels {
   saveEdit: string
   /** Button that discards the open editor. */
   cancelEdit: string
+  /** Placeholder and accessible name of the search field. */
+  search: string
+  /** Button that moves to the next match. */
+  nextMatch: string
+  /** Button that moves to the previous match. */
+  previousMatch: string
+  /** Toggle that makes the search respect the query's case. */
+  matchCase: string
+  /**
+   * How many matches there are and which one is current, e.g. `3 / 17`. Given
+   * `more` when the count is a floor because matching stopped at the limit.
+   */
+  matchCount: (position: number, total: number, more: boolean) => string
+  /** Announced and shown when a query finds nothing. */
+  noMatches: string
   /** Toolbar action that reverses the last edit. */
   undo: string
   /** Toolbar action that replays the last undone edit. */
@@ -104,6 +119,13 @@ export function createDefaultLabels(locale?: string): KronaLabels {
     deleteEntry: 'Delete',
     saveEdit: 'Save',
     cancelEdit: 'Cancel',
+    search: 'Search',
+    nextMatch: 'Next match',
+    previousMatch: 'Previous match',
+    matchCase: 'Match case',
+    matchCount: (position, total, more) =>
+      `${format.format(position)} / ${format.format(total)}${more ? '+' : ''}`,
+    noMatches: 'No matches',
     undo: 'Undo',
     redo: 'Redo',
     duplicateEntry: 'Duplicate',

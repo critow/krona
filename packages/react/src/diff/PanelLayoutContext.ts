@@ -6,6 +6,7 @@ import type {
   IntralineResult,
 } from '@krona/core'
 import { createContext, useContext } from 'react'
+import type { LineSearch } from '../context/lineSource'
 import type { ScrollSync } from '../hooks/useScrollSync'
 import type { KronaLabels } from '../labels'
 import type { DisplayItem, RowIndex } from './rows'
@@ -31,6 +32,11 @@ export interface PanelLayout {
   readonly overscan: number
   readonly scrollSync: ScrollSync
   readonly step: number
+  /** What a search wants painted on the lines, if one is open. */
+  readonly search: LineSearch
+  /** Row a jump asked for, once the fold and the collapsed run hiding it are open. */
+  readonly pendingRow: number | null
+  clearPendingRow(): void
 }
 
 export const PanelLayoutContext = createContext<PanelLayout | null>(null)

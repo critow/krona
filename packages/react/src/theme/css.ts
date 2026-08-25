@@ -27,6 +27,8 @@ export const KRONA_CSS = `:where(.krona) {
   --krona-chevron: #57606a;
   --krona-chevron-hover: #0550ae;
   --krona-scrollbar: #c2c9d1;
+  --krona-match-bg: #fff3c4;
+  --krona-match-current-bg: #ffc86b;
 
   /* Tokens */
   --krona-token-key: #0550ae;
@@ -64,6 +66,8 @@ export const KRONA_CSS = `:where(.krona) {
   --krona-chevron: #a8b3bf;
   --krona-chevron-hover: #79c0ff;
   --krona-scrollbar: #3d444d;
+  --krona-match-bg: #4a3a12;
+  --krona-match-current-bg: #9e6a12;
 
   --krona-token-key: #79c0ff;
   --krona-token-string: #7ee787;
@@ -99,6 +103,8 @@ export const KRONA_CSS = `:where(.krona) {
     --krona-chevron: #a8b3bf;
     --krona-chevron-hover: #79c0ff;
     --krona-scrollbar: #3d444d;
+    --krona-match-bg: #4a3a12;
+    --krona-match-current-bg: #9e6a12;
 
     --krona-token-key: #79c0ff;
     --krona-token-string: #7ee787;
@@ -666,6 +672,97 @@ export const KRONA_CSS = `:where(.krona) {
 
 .krona-intraline {
   border-radius: 2px;
+}
+
+/* Search
+   -------------------------------------------------------------------------
+   A match keeps the line's syntax colours and only takes a background: the
+   reader is looking for a string, not losing the shape of the line it is in. */
+
+.krona-match {
+  background: var(--krona-match-bg);
+  border-radius: 2px;
+}
+
+.krona-match--current {
+  background: var(--krona-match-current-bg);
+  /* The one the reader is standing on, told apart from its neighbours by more
+     than a shade — several matches can share a line. */
+  outline: 1px solid var(--krona-chevron-hover);
+}
+
+.krona-search {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem var(--krona-padding-inline);
+  border-bottom: 1px solid var(--krona-border);
+  background: var(--krona-bg-gutter);
+}
+
+.krona-search-input {
+  font: inherit;
+  color: var(--krona-fg);
+  background: var(--krona-bg);
+  border: 1px solid var(--krona-border);
+  border-radius: 4px;
+  padding: 0.125rem 0.375rem;
+  min-width: 0;
+  /* Grows to a point and then stops: a field the width of a lockfile viewer is
+     a field that looks like the document. */
+  flex: 1 1 12rem;
+  max-width: 24rem;
+}
+
+.krona-search-input:focus-visible {
+  outline: 2px solid var(--krona-chevron-hover);
+  outline-offset: -1px;
+}
+
+.krona-search-count {
+  color: var(--krona-fg-muted);
+  font-size: 0.9em;
+  white-space: nowrap;
+  /* Reserved so the controls do not shuffle sideways as the count changes. */
+  min-width: 6ch;
+  text-align: right;
+}
+
+.krona-search-step,
+.krona-search-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  font: inherit;
+  border: 1px solid var(--krona-border);
+  border-radius: 4px;
+  background: var(--krona-bg);
+  color: var(--krona-fg-muted);
+  cursor: pointer;
+}
+
+.krona-search-step:hover:not(:disabled),
+.krona-search-toggle:hover {
+  background: var(--krona-bg-hover);
+  color: var(--krona-fg);
+}
+
+.krona-search-step:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.krona-search-toggle--on {
+  color: var(--krona-chevron-hover);
+  border-color: currentcolor;
+}
+
+.krona-search-arrow {
+  width: 12px;
+  height: 12px;
 }
 
 /* Which shade a word-level highlight takes is a question about the line, and in

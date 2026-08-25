@@ -17,6 +17,9 @@ export type {
   FormatProvider,
   Line,
   ParseLimits,
+  SearchMatch,
+  SearchOptions,
+  SearchResult,
   Token,
   TokenType,
 } from '@krona/core'
@@ -27,6 +30,7 @@ export {
   DEFAULT_LIMITS,
   detectFormat,
   diffLines,
+  findMatches,
   intralineDiff,
   parseDocument,
   registerFormat,
@@ -34,8 +38,10 @@ export {
 } from '@krona/core'
 export type { KronaConfig, KronaTheme } from './context/config'
 export { useKronaConfig } from './context/config'
-export type { LineSide, LineSource, RenderRow, RowTone } from './context/lineSource'
+export type { LineSearch, LineSide, LineSource, RenderRow, RowTone } from './context/lineSource'
 export { useLineSource } from './context/lineSource'
+export type { KronaSearchState } from './context/search'
+export { useKronaSearch } from './context/search'
 export type { KronaSlot } from './context/slots'
 export type { KronaDiffState } from './diff/DiffContext'
 export { useKronaDiff } from './diff/DiffContext'
@@ -52,6 +58,8 @@ export type { KronaGutterProps } from './parts/Gutter'
 export { Gutter } from './parts/Gutter'
 export type { KronaLinesProps } from './parts/Lines'
 export { Lines } from './parts/Lines'
+export type { KronaSearchProps } from './parts/Search'
+export { Search } from './parts/Search'
 export type { KronaSideSwitchProps } from './parts/SideSwitch'
 export { SideSwitch } from './parts/SideSwitch'
 export type { KronaToolbarProps } from './parts/Toolbar'

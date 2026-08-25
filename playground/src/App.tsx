@@ -25,6 +25,7 @@ function readParams() {
     lang: params.get('lang') === 'ru' ? ('ru' as Lang) : ('en' as Lang),
     collapse: params.get('collapse') !== 'off',
     minimap: params.get('minimap') !== 'off',
+    search: params.get('search') === 'on',
     view: (['auto', 'split', 'unified'] as const).includes(
       params.get('view') as 'auto' | 'split' | 'unified',
     )
@@ -90,6 +91,7 @@ export function App() {
   const [collapseUnchanged, setCollapseUnchanged] = useState(initial.collapse)
   const [showMinimap, setShowMinimap] = useState(initial.minimap)
   const [view, setView] = useState(initial.view)
+  const [showSearch, setShowSearch] = useState(initial.search)
   const [showDiagnostics, setShowDiagnostics] = useState(true)
   const [editable, setEditable] = useState(false)
   const [showMarkers, setShowMarkers] = useState(true)
@@ -258,12 +260,14 @@ export function App() {
                   collapseUnchanged={collapseUnchanged && collapseOptions}
                   view={view}
                   showMinimap={showMinimap}
+                  showSearch={showSearch}
                   ignoreTrailingWhitespace={ignoreTrailingWhitespace}
                   overscan={overscan}
                   {...(collapsedDepth === undefined
                     ? {}
                     : { defaultCollapsedDepth: collapsedDepth })}
                 >
+                  {showSearch ? <Krona.Search /> : null}
                   <Krona.Toolbar />
                   <DiffPanels showMarkers={showMarkers} showMinimap={showMinimap} />
                 </Krona.Diff>
@@ -278,6 +282,7 @@ export function App() {
                     ? {}
                     : { defaultCollapsedDepth: collapsedDepth })}
                 >
+                  {showSearch ? <Krona.Search /> : null}
                   <Krona.Toolbar />
                   {showDiagnostics ? <Krona.Diagnostics /> : null}
                   <Krona.Gutter showMarkers={showMarkers} />
@@ -399,6 +404,15 @@ export function App() {
                     }}
                   >
                     {dict.collapseUnchanged}
+                  </Checkbox>
+                  <Checkbox
+                    checked={showSearch}
+                    onChange={(v) => {
+                      setShowSearch(v)
+                      syncUrl({ search: v ? 'on' : 'off' })
+                    }}
+                  >
+                    {dict.search}
                   </Checkbox>
                   <Checkbox
                     checked={showMinimap}

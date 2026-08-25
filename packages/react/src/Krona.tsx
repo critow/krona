@@ -7,6 +7,7 @@ import { ExpandBar } from './parts/ExpandBar'
 import { Gutter } from './parts/Gutter'
 import { Lines } from './parts/Lines'
 import { Minimap } from './parts/Minimap'
+import { Search } from './parts/Search'
 import { SideSwitch } from './parts/SideSwitch'
 import { Toolbar } from './parts/Toolbar'
 import { KronaViewer } from './viewer/Viewer'
@@ -64,6 +65,7 @@ export const Krona = Object.assign(KronaRoot, {
   Toolbar,
   Diagnostics,
   Minimap,
+  Search,
   ExpandBar,
   SideSwitch,
 })
