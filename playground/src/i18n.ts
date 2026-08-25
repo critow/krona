@@ -8,28 +8,39 @@ import type { KronaLabels } from 'krona'
 export type Lang = 'en' | 'ru'
 
 export interface Dict {
-  title: string
+  tagline: string
   mode: string
   viewer: string
   diff: string
-  sample: string
+  samples: string
   theme: string
   light: string
   dark: string
   language: string
+  collapseUnchanged: string
+  minimap: string
+  thisView: string
+  footer: string
+  /** Per-sample notes, keyed by sample id; falls back to the sample's own note. */
+  notes: Record<string, string>
   kronaLabels: Partial<KronaLabels>
 }
 
 const en: Dict = {
-  title: 'Krona playground',
+  tagline: 'Collapsible viewer and side-by-side diff for config files',
   mode: 'Mode',
   viewer: 'Viewer',
   diff: 'Diff',
-  sample: 'Sample',
+  samples: 'Samples',
   theme: 'Theme',
   light: 'Light',
   dark: 'Dark',
   language: 'Language',
+  collapseUnchanged: 'Fold unchanged',
+  minimap: 'Minimap',
+  thisView: 'This view, in code',
+  footer: 'JSON · YAML · TOML · INI/.env — three runtime dependencies, no innerHTML.',
+  notes: {},
   // English is already Krona's default, so nothing needs overriding here.
   kronaLabels: {},
 }
@@ -46,15 +57,30 @@ function ruPlural(count: number, one: string, few: string, many: string): string
 }
 
 const ru: Dict = {
-  title: 'Песочница Krona',
+  tagline: 'Сворачиваемый просмотр и построчное сравнение конфигов',
   mode: 'Режим',
   viewer: 'Просмотр',
   diff: 'Сравнение',
-  sample: 'Пример',
+  samples: 'Примеры',
   theme: 'Тема',
   light: 'Светлая',
   dark: 'Тёмная',
   language: 'Язык',
+  collapseUnchanged: 'Сворачивать неизменённое',
+  minimap: 'Миникарта',
+  thisView: 'Этот экран в коде',
+  footer: 'JSON · YAML · TOML · INI/.env — три зависимости, никакого innerHTML.',
+  notes: {
+    json: 'Комментарии и висящие запятые переживают разбор; объекты и массивы сворачиваются.',
+    yaml: 'Блочные скаляры и якоря, свёртка по отступам.',
+    toml: 'Таблицы вкладываются по составному имени, массивы таблиц остаются соседями.',
+    ini: 'Секции сворачиваются, составные имена вкладываются.',
+    env: 'Плоский по устройству — сворачивать нечего, только подсветка.',
+    reordered: 'Перестановка ключа — настоящее изменение, ровно как в git.',
+    unrelated: 'Два файла без общего.',
+    big: '28 тысяч строк, виртуализация; точечное обновление зависимостей.',
+    collapsed: 'Одно изменение в длинном файле, неизменённое свёрнуто.',
+  },
   kronaLabels: {
     expandAll: 'Развернуть всё',
     collapseAll: 'Свернуть всё',

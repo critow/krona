@@ -1,0 +1,316 @@
+:root {
+  /* One monospace stack for the whole page: this is a tool for people who read
+     config files, and the demo should look like the place they read them. */
+  --ui-font:
+    "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+
+  --ui-bg: #0b0e14;
+  --ui-bg-raised: #11151f;
+  --ui-bg-sunken: #070910;
+  --ui-bg-hover: #1a2030;
+  --ui-border: #222a3a;
+  --ui-border-strong: #33405a;
+
+  --ui-fg: #d7dde8;
+  --ui-fg-muted: #7d8799;
+  --ui-fg-dim: #5a6478;
+
+  --ui-accent: #5ccfe6;
+  --ui-accent-fg: #06121a;
+  --ui-added: #7ee787;
+  --ui-removed: #ff7b72;
+
+  --ui-radius: 8px;
+  --ui-radius-sm: 5px;
+  --ui-gap: 0.75rem;
+
+  --ui-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -12px rgb(0 0 0 / 0.6);
+}
+
+:root[data-ui-theme="light"] {
+  --ui-bg: #f6f7f9;
+  --ui-bg-raised: #ffffff;
+  --ui-bg-sunken: #eceef2;
+  --ui-bg-hover: #e6e9ef;
+  --ui-border: #d8dee9;
+  --ui-border-strong: #b8c1d1;
+
+  --ui-fg: #1f2430;
+  --ui-fg-muted: #5b6478;
+  --ui-fg-dim: #838da1;
+
+  --ui-accent: #1f7f95;
+  --ui-accent-fg: #ffffff;
+  --ui-added: #1a7f37;
+  --ui-removed: #cf222e;
+
+  --ui-shadow: 0 1px 2px rgb(16 24 40 / 0.06), 0 8px 24px -12px rgb(16 24 40 / 0.2);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Buttons ------------------------------------------------------------------ */
+
+.ui-button {
+  all: unset;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-sm);
+  background: var(--ui-bg-raised);
+  color: var(--ui-fg);
+  font: inherit;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background 100ms linear,
+    border-color 100ms linear;
+}
+
+.ui-button:hover {
+  background: var(--ui-bg-hover);
+  border-color: var(--ui-border-strong);
+}
+
+.ui-button:focus-visible,
+.ui-segment button:focus-visible,
+.ui-sample:focus-visible,
+.ui-switch:focus-visible {
+  outline: 2px solid var(--ui-accent);
+  outline-offset: 2px;
+}
+
+/* Segmented control -------------------------------------------------------- */
+
+.ui-segment {
+  margin: 0;
+  min-width: 0;
+  display: inline-flex;
+  gap: 2px;
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-sm);
+  background: var(--ui-bg-sunken);
+  padding: 2px;
+}
+
+.ui-segment legend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.ui-segment button {
+  all: unset;
+  box-sizing: border-box;
+  padding: 0.3rem 0.75rem;
+  border-radius: 3px;
+  font: inherit;
+  font-size: 0.8125rem;
+  color: var(--ui-fg-muted);
+  cursor: pointer;
+  transition:
+    background 100ms linear,
+    color 100ms linear;
+}
+
+.ui-segment button:hover {
+  color: var(--ui-fg);
+}
+
+.ui-segment button[aria-pressed="true"] {
+  background: var(--ui-accent);
+  color: var(--ui-accent-fg);
+  font-weight: 500;
+}
+
+/* Switch ------------------------------------------------------------------- */
+
+.ui-switch {
+  all: unset;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.8125rem;
+  color: var(--ui-fg-muted);
+}
+
+.ui-switch:hover {
+  color: var(--ui-fg);
+}
+
+.ui-switch-track {
+  width: 30px;
+  height: 17px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--ui-bg-sunken);
+  border: 1px solid var(--ui-border-strong);
+  position: relative;
+  transition:
+    background 120ms linear,
+    border-color 120ms linear;
+}
+
+.ui-switch-track::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--ui-fg-dim);
+  transition:
+    transform 120ms ease,
+    background 120ms linear;
+}
+
+.ui-switch[aria-checked="true"] {
+  color: var(--ui-fg);
+}
+
+.ui-switch[aria-checked="true"] .ui-switch-track {
+  background: color-mix(in srgb, var(--ui-accent) 30%, transparent);
+  border-color: var(--ui-accent);
+}
+
+.ui-switch[aria-checked="true"] .ui-switch-track::after {
+  transform: translateX(13px);
+  background: var(--ui-accent);
+}
+
+/* Panel -------------------------------------------------------------------- */
+
+.ui-panel {
+  background: var(--ui-bg-raised);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius);
+  box-shadow: var(--ui-shadow);
+  overflow: hidden;
+}
+
+.ui-panel-head {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-gap);
+  flex-wrap: wrap;
+  padding: 0.6rem 0.85rem;
+  border-bottom: 1px solid var(--ui-border);
+  background: var(--ui-bg-sunken);
+}
+
+.ui-panel-title {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--ui-fg);
+  margin: 0;
+}
+
+.ui-spacer {
+  margin-left: auto;
+}
+
+/* Badge -------------------------------------------------------------------- */
+
+.ui-badge {
+  display: inline-block;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  border: 1px solid var(--ui-border-strong);
+  background: var(--ui-bg-sunken);
+  color: var(--ui-fg-muted);
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Sample list -------------------------------------------------------------- */
+
+.ui-samples {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  margin: 0;
+  list-style: none;
+}
+
+.ui-sample {
+  all: unset;
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.6rem;
+  border-radius: var(--ui-radius-sm);
+  cursor: pointer;
+  border-left: 2px solid transparent;
+}
+
+.ui-sample:hover {
+  background: var(--ui-bg-hover);
+}
+
+.ui-sample[aria-current="true"] {
+  background: var(--ui-bg-hover);
+  border-left-color: var(--ui-accent);
+}
+
+.ui-sample-name {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8125rem;
+  color: var(--ui-fg);
+}
+
+.ui-sample-note {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  color: var(--ui-fg-dim);
+}
+
+/* Code block --------------------------------------------------------------- */
+
+.ui-code {
+  margin: 0;
+  padding: 0.85rem;
+  background: var(--ui-bg-sunken);
+  color: var(--ui-fg);
+  font-size: 0.75rem;
+  line-height: 1.6;
+  overflow-x: auto;
+  white-space: pre;
+  tab-size: 2;
+}
+
+.ui-code .tag {
+  color: var(--ui-accent);
+}
+.ui-code .attr {
+  color: var(--ui-added);
+}
+.ui-code .str {
+  color: #ffd479;
+}
+
+:root[data-ui-theme="light"] .ui-code .str {
+  color: #a04a00;
+}
+.ui-code .punct {
+  color: var(--ui-fg-dim);
+}

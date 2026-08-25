@@ -35,4 +35,3 @@
 35:normal          | 35:normal
 36:normal          | 36:normal
 37:normal          | 37:normal
-38:normal          | 38:normal
