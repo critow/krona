@@ -11,7 +11,9 @@ export interface KronaSideSwitchProps {
 
 function SideSwitchBase({ always = false, className, style }: KronaSideSwitchProps) {
   const diff = useContext(DiffContext)
-  if (!diff || (!diff.narrow && !always)) return null
+  // Nothing to switch between in a unified diff: both versions are on screen,
+  // one line above the other. `always` cannot bring back a choice that is gone.
+  if (!diff || diff.unified || (!diff.narrow && !always)) return null
 
   const { labels, side, showSide } = diff
   return (

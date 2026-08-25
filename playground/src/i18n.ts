@@ -29,6 +29,9 @@ export interface Dict {
   step: string
   collapseUnchanged: string
   minimap: string
+  layout: string
+  split: string
+  unified: string
   ignoreTrailingWhitespace: string
   showDiagnostics: string
   editable: string
@@ -66,6 +69,9 @@ const en: Dict = {
   step: 'Expand step',
   collapseUnchanged: 'Fold unchanged',
   minimap: 'Minimap',
+  layout: 'Layout',
+  split: 'Split',
+  unified: 'Unified',
   ignoreTrailingWhitespace: 'Ignore trailing space',
   showDiagnostics: 'Show diagnostics',
   editable: 'Editable',
@@ -117,6 +123,9 @@ const ru: Dict = {
   step: 'Шаг разворота',
   collapseUnchanged: 'Сворачивать неизменённое',
   minimap: 'Миникарта',
+  layout: 'Раскладка',
+  split: 'Рядом',
+  unified: 'Одной колонкой',
   ignoreTrailingWhitespace: 'Без хвостовых пробелов',
   showDiagnostics: 'Показывать диагностику',
   editable: 'Редактируемый',

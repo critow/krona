@@ -57,6 +57,14 @@ The first release. Try it in the [demo](https://critow.github.io/krona/).
   whole entry — the whole block when the line opens one.
 - Diff panels scroll in lockstep on both axes, over a content width the whole
   document sets rather than the rows currently on screen.
+- A unified diff: `<Krona.Diff view="unified">` puts both versions in one
+  column, old line above new, and `Krona.Unified` is the part it renders. It is
+  the same alignment the two panels share, read as one column — a changed row
+  becomes two rows, a row only one version has stays one, and the spacers that
+  keep two panels level disappear along with the second column. Folding,
+  expanding, word-level highlights and the row actions behave as they do side by
+  side. `view="auto"`, the default, turns unified below `narrowWidth`, which is
+  a better answer on a phone than showing one version at a time.
 
 ### Fixed
 

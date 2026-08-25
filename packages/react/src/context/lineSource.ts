@@ -3,8 +3,11 @@ import type { VirtualItem, Virtualizer } from '@tanstack/react-virtual'
 import { createContext, type RefObject, useContext } from 'react'
 import type { KronaLabels } from '../labels'
 
-/** Which side of a diff a line source represents. `'single'` in the viewer. */
-export type LineSide = 'single' | 'left' | 'right'
+/**
+ * Which side of a diff a line source represents. `'single'` in the viewer, and
+ * `'unified'` where one column carries rows from both versions.
+ */
+export type LineSide = 'single' | 'left' | 'right' | 'unified'
 
 /** How a row should be painted. */
 export type RowTone = 'normal' | 'added' | 'removed' | 'changed' | 'spacer'
@@ -23,6 +26,18 @@ export interface RenderRow {
    * parts render an expand bar instead of a line.
    */
   readonly expandRegion?: number
+  /**
+   * The document this row's line comes from, when it is not the source's own.
+   * Only a unified diff sets it: there, consecutive rows come from the two
+   * versions, and a row has to say which one it read.
+   */
+  readonly model?: DocumentModel
+  /**
+   * The version this row was taken from, in a unified diff. Folding is keyed by
+   * side as well as line: line 12 of the old file and line 12 of the new one
+   * are different lines, and can open different ranges.
+   */
+  readonly side?: 'left' | 'right'
 }
 
 /**
@@ -54,9 +69,13 @@ export interface LineSource {
    * the same number, so the two sides scroll horizontally to the same column.
    */
   readonly contentColumns: number
-  isFolded(startLine: number): boolean
-  toggleFold(startLine: number): void
-  foldAt(lineIndex: number): FoldRange | undefined
+  /**
+   * `side` is only meaningful in a unified diff, where a line index alone does
+   * not name a line. Elsewhere the source has one document and ignores it.
+   */
+  isFolded(startLine: number, side?: 'left' | 'right'): boolean
+  toggleFold(startLine: number, side?: 'left' | 'right'): void
+  foldAt(lineIndex: number, side?: 'left' | 'right'): FoldRange | undefined
   /** Diff only: the hidden unchanged runs, indexed by region. */
   readonly regions?: readonly (CollapsedRegion | null)[]
   /** Diff only: reveals part of a hidden unchanged run. */

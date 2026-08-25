@@ -13,6 +13,7 @@ const VIEWS = [
   { name: 'diff-reordered-keys', query: 'mode=diff&sample=reordered&theme=light' },
   { name: 'diff-unrelated-files', query: 'mode=diff&sample=unrelated&theme=light' },
   { name: 'diff-dark-theme', query: 'mode=diff&sample=json&theme=dark' },
+  { name: 'diff-unified', query: 'mode=diff&sample=json&theme=light&view=unified' },
 ] as const
 
 async function settle(page: Page): Promise<void> {

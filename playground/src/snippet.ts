@@ -16,6 +16,7 @@ export interface SnippetInput {
   step: number
   showMinimap: boolean
   ignoreTrailingWhitespace: boolean
+  view: 'auto' | 'split' | 'unified'
 }
 
 const tag = (text: string): CodeToken => ({ text, kind: 'tag' })
@@ -115,6 +116,9 @@ export function buildSnippet(input: SnippetInput): CodeToken[] {
         )
       }
     }
+    // `auto` is the default, so writing it would be noise in a snippet meant
+    // to be the shortest code that produces this view.
+    if (input.view !== 'auto') line(plain('    '), ...stringProp('view', input.view).slice(1))
     if (input.showMinimap) line(plain('    '), attr('showMinimap'))
     if (input.ignoreTrailingWhitespace) line(plain('    '), attr('ignoreTrailingWhitespace'))
     if (input.overscan !== DEFAULTS.overscan) {

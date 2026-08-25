@@ -529,6 +529,12 @@
   min-height: 0;
 }
 
+/* One column carries both versions, so it takes the whole width — including on
+   a screen wide enough for two, where the reader asked for the unified view. */
+.krona-panels:has(.krona-panel--unified) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .krona-panels--with-minimap,
 /* Asked of the DOM rather than counted in the layout code: a custom layout can
    put the minimap inside a component of its own, and then no count of the
@@ -555,6 +561,13 @@
    panel that is not being rendered. */
 .krona[data-narrow="true"] .krona-panels {
   grid-template-columns: minmax(0, 1fr);
+}
+
+/* A unified column needs the marker as well as the number, which is exactly
+   what the narrowed gutter has no room for. Narrow diffs are unified by
+   default, so this is the common case rather than the exception. */
+.krona[data-narrow="true"] .krona-panel--unified .krona-gutter {
+  --krona-gutter-width: 3.5rem;
 }
 
 .krona-side-switch {
@@ -602,6 +615,10 @@
   border-right: none;
 }
 
+.krona-panel--unified {
+  border-right: none;
+}
+
 /* A wheel over one panel scrolls both, and the browser then flashes a scrollbar
    on the panel nobody is pointing at — two bars moving for one gesture. Paint
    the bar only on the pane the reader is over, or has focus in. Only the colour
@@ -641,12 +658,23 @@
   border-radius: 2px;
 }
 
-.krona-panel--left .krona-intraline {
+/* Which shade a word-level highlight takes is a question about the line, and in
+   a split diff the panel answers it: everything on the left is the old version.
+   A unified column holds both, so there the row answers instead. */
+.krona-panel--left .krona-intraline,
+.krona-row--removed .krona-intraline {
   background: var(--krona-removed-strong-bg);
 }
 
-.krona-panel--right .krona-intraline {
+.krona-panel--right .krona-intraline,
+.krona-row--added .krona-intraline {
   background: var(--krona-added-strong-bg);
+}
+
+/* Never squeezed out by a narrow gutter: in a unified diff this sign is the
+   only thing that says which version a line belongs to. */
+.krona-gutter-marker {
+  flex: none;
 }
 
 .krona-gutter .krona-row--added .krona-gutter-marker {
