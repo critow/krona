@@ -4,7 +4,10 @@
   "description": "Framework-agnostic core for Krona: config file document model, format providers and line diff.",
   "license": "MIT",
   "type": "module",
-  "sideEffects": false,
+  "sideEffects": [
+    "**/formats/*",
+    "**/index.*"
+  ],
   "files": [
     "dist"
   ],

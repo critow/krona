@@ -33,6 +33,18 @@ The first release. Not on npm yet; install from git or run the
   of a hung tab.
 - Bidirectional and zero-width characters rendered as visible `U+XXXX` badges.
 
+### Fixed
+
+- Format providers survive a production build. Both packages declared
+  themselves side-effect-free while the providers registered themselves from
+  module scope, so bundlers dropped every registration: shipped builds rendered
+  documents as unhighlighted plain text with nothing to fold, while the dev
+  server, the unit tests and the screenshot suite all stayed green. The entry
+  point now registers the built-in formats through bindings it holds, the
+  `sideEffects` fields name the modules that really do have side effects (so
+  `import 'krona/yaml'` survives too), and the screenshot suite runs against a
+  built and previewed bundle rather than the dev server.
+
 ### Performance
 
 - Anchored diff: the input is split at lines unique to both sides and Myers

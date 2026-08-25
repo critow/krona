@@ -5,7 +5,9 @@
   "license": "MIT",
   "type": "module",
   "sideEffects": [
-    "**/*.css"
+    "**/*.css",
+    "**/formats/*",
+    "**/index.*"
   ],
   "files": [
     "dist"

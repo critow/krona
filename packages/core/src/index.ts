@@ -46,10 +46,23 @@ export { hasUnsafeCharacters, scanUnsafeCharacters } from './model/unicode'
 
 // yamlProvider is intentionally NOT re-exported here: see '@krona/core/yaml'.
 
+import { iniProvider } from './formats/ini'
+import { jsonProvider } from './formats/json'
 import { textProvider } from './formats/text'
+import { tomlProvider } from './formats/toml'
 import { registerFormat } from './model/registry'
 
+// Each provider module also registers itself, which is what makes
+// `import 'krona/yaml'` work. That alone is not enough here: a bundler told the
+// package is side-effect-free drops a re-export whose binding nobody reads, and
+// the registration goes with it — the document then renders as plain text, with
+// no highlighting and nothing to fold. Registering through bindings this module
+// actually holds keeps the built-in formats independent of that metadata.
+// `text` is listed for symmetry only — `detectFormat` skips it.
+registerFormat(iniProvider)
+registerFormat(jsonProvider)
 registerFormat(textProvider)
+registerFormat(tomlProvider)
 
 export type { AlignedDiff, AlignedRow, AlignOptions, DiffStats, RowKind } from './diff/align'
 export { alignDiff, nextChangedRow, previousChangedRow, similarityOf } from './diff/align'
