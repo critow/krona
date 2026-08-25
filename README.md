@@ -527,6 +527,11 @@ const { rows, stats } = alignDiff(diffLines(before, after))
 
 ## Design notes
 
+**The name is the canopy of a tree, not a monarch's crown.** Krona shows a
+document as a tree you fold branch by branch; a canopy is the shape of the whole
+before you look at any one branch, which is what a folded configuration file
+gives you. The mark is a tree for that reason.
+
 **The model is lines, not a value tree.** Diffing is line based and folding is
 range based, so `lines + folding ranges` serves both. Krona never builds a
 JavaScript object out of your file, which is why prototype pollution through a
