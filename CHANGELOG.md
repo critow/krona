@@ -6,8 +6,7 @@ Notable changes to Krona. The format follows
 
 ## Unreleased — `0.1.0`
 
-The first release. Not on npm yet; install from git or run the
-[demo](https://critow.github.io/krona/).
+The first release. Try it in the [demo](https://critow.github.io/krona/).
 
 ### Added
 

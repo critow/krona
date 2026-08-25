@@ -1,7 +1,7 @@
 {
   "name": "@krona/core",
   "version": "0.1.0",
-  "description": "Framework-agnostic core for Krona: config file document model, format providers and line diff.",
+  "description": "Framework-agnostic core for Krona: a line-based document model for config files, format providers and line diff.",
   "license": "MIT",
   "type": "module",
   "sideEffects": [
@@ -80,6 +80,10 @@
     "tsdown": "catalog:",
     "typescript": "catalog:"
   },
+  "homepage": "https://critow.github.io/krona/",
+  "bugs": {
+    "url": "https://github.com/critow/krona/issues"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/critow/krona.git",
@@ -92,7 +96,13 @@
     "ini",
     "diff",
     "viewer",
-    "folding"
+    "folding",
+    "config",
+    "configuration",
+    "jsonc",
+    "dotenv",
+    "code-folding",
+    "typescript"
   ],
   "engines": {
     "node": ">=18.18"

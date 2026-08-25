@@ -45,7 +45,7 @@ export interface Dict {
 }
 
 const en: Dict = {
-  tagline: 'Collapsible viewer and side-by-side diff for config files',
+  tagline: 'Fold, diff and edit config files',
   docs: 'Docs',
   mode: 'Mode',
   viewer: 'Viewer',
@@ -96,7 +96,7 @@ function ruPlural(count: number, one: string, few: string, many: string): string
 }
 
 const ru: Dict = {
-  tagline: 'Сворачиваемый просмотр и построчное сравнение конфигов',
+  tagline: 'Свернуть, сравнить и отредактировать конфиг',
   docs: 'Документация',
   mode: 'Режим',
   viewer: 'Просмотр',

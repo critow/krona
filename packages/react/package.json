@@ -1,7 +1,7 @@
 {
   "name": "krona",
   "version": "0.1.0",
-  "description": "Collapsible viewer and side-by-side diff for JSON, YAML, TOML and INI/.env config files.",
+  "description": "Fold, diff and edit config files in React \u2014 JSON/JSONC, YAML, TOML and INI/.env.",
   "license": "MIT",
   "type": "module",
   "sideEffects": [
@@ -89,6 +89,10 @@
     "tsdown": "catalog:",
     "typescript": "catalog:"
   },
+  "homepage": "https://critow.github.io/krona/",
+  "bugs": {
+    "url": "https://github.com/critow/krona/issues"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/critow/krona.git",
@@ -102,7 +106,14 @@
     "ini",
     "diff",
     "side-by-side",
-    "code-folding"
+    "code-folding",
+    "config",
+    "configuration",
+    "jsonc",
+    "dotenv",
+    "tree-view",
+    "editor",
+    "typescript"
   ],
   "engines": {
     "node": ">=18.18"
