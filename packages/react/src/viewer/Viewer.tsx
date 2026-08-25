@@ -1,10 +1,23 @@
-import type { DocumentModel, Format } from '@krona/core'
+import {
+  blockSpanAt,
+  type DocumentModel,
+  type Format,
+  lineSpanAt,
+  offsetOfLine,
+  removeBlockEdit,
+} from '@krona/core'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { type CSSProperties, type ReactNode, useMemo, useRef } from 'react'
+import { type CSSProperties, type ReactNode, useMemo, useRef, useState } from 'react'
 import { useKronaConfig } from '../context/config'
-import { LineSourceContext, type RenderRow } from '../context/lineSource'
+import {
+  type EditTarget,
+  type LineEditing,
+  LineSourceContext,
+  type RenderRow,
+} from '../context/lineSource'
 import { splitSlots } from '../context/slots'
 import { useDocument } from '../hooks/useDocument'
+import { useEditState } from '../hooks/useEditState'
 import { computeVisibleLines, useFoldState } from '../hooks/useFoldState'
 import { type KronaLabels, resolveLabels } from '../labels'
 import { Diagnostics } from '../parts/Diagnostics'
@@ -35,6 +48,19 @@ export interface KronaViewerProps {
   overscan?: number
   /** Show parse errors above the document. Default true. */
   showDiagnostics?: boolean
+  /**
+   * Let the reader edit the document. Off by default.
+   *
+   * Editing is text editing: each change replaces a span of the source and the
+   * result is parsed again, so the model stays an immutable list of lines and no
+   * JavaScript object is ever built out of the file to be written back.
+   *
+   * The viewer owns the edited text from then on, re-seeding whenever `source`
+   * (or `model`) changes — pass a new `source` to reset it.
+   */
+  editable?: boolean
+  /** Called with the whole document after every edit, undo and redo. */
+  onChange?: (source: string) => void
   className?: string
   style?: CSSProperties
   /**
@@ -71,14 +97,19 @@ export function KronaViewer({
   defaultCollapsedDepth,
   overscan = 8,
   showDiagnostics = true,
+  editable = false,
+  onChange,
   className,
   style,
   children,
 }: KronaViewerProps) {
   const config = useKronaConfig()
+  // An editable viewer owns the text, so it has to own the parsing too: the
+  // point of an edit is the model that comes out of re-parsing the result.
+  const edit = useEditState(providedModel ? providedModel.source : (source ?? ''), onChange)
   const model = useDocument(
-    source,
-    providedModel,
+    editable ? edit.source : source,
+    editable ? undefined : providedModel,
     format ?? config.format,
     config.limits,
     config.providers,
@@ -89,6 +120,66 @@ export function KronaViewer({
     () => (labels ? resolveLabels({ ...config.labels, ...labels }, config.locale) : config.labels),
     [labels, config.labels, config.locale],
   )
+
+  const [target, setTarget] = useState<EditTarget | null>(null)
+
+  const editing = useMemo<LineEditing | undefined>(() => {
+    if (!editable) return undefined
+    const open = (next: EditTarget | null) => setTarget(next)
+    const spanText = (start: number, end: number) => model.source.slice(start, end)
+    return {
+      target,
+      editValue: (lineIndex, start, end) => {
+        const text = model.lines[lineIndex]?.text ?? ''
+        open({
+          kind: 'value',
+          lineIndex,
+          endLine: lineIndex,
+          start,
+          end,
+          text: text.slice(start, end),
+        })
+      },
+      editLine: (lineIndex) => {
+        const span = lineSpanAt(model, lineIndex)
+        if (!span) return
+        const text = model.lines[lineIndex]?.text ?? ''
+        open({ kind: 'line', lineIndex, endLine: lineIndex, start: 0, end: text.length, text })
+      },
+      editBlock: (lineIndex) => {
+        const range = model.foldAt(lineIndex)
+        const span = blockSpanAt(model, lineIndex)
+        if (!span) return
+        const endLine = range?.endLine ?? lineIndex
+        const endText = model.lines[endLine]?.text ?? ''
+        // A folded block would hide the very lines the editor is about to show.
+        if (range && foldState.isFolded(range.startLine)) foldState.toggleFold(range.startLine)
+        open({
+          kind: 'block',
+          lineIndex,
+          endLine,
+          start: 0,
+          end: endText.length,
+          text: spanText(span.start, span.end),
+        })
+      },
+      commit: (text) => {
+        setTarget(null)
+        if (!target) return
+        const start = offsetOfLine(model, target.lineIndex) + target.start
+        const end = offsetOfLine(model, target.endLine) + target.end
+        if (text === spanText(start, end)) return
+        edit.apply({ start, end, text })
+      },
+      cancel: () => setTarget(null),
+      remove: (lineIndex) => {
+        const removal = removeBlockEdit(model, lineIndex)
+        if (!removal) return
+        setTarget(null)
+        edit.apply(removal)
+      },
+    }
+  }, [editable, target, model, edit, foldState])
 
   const visibleLines = useMemo(
     () => computeVisibleLines(model, foldState.collapsed),
@@ -129,6 +220,9 @@ export function KronaViewer({
       isFolded: foldState.isFolded,
       toggleFold: foldState.toggleFold,
       foldAt: (lineIndex: number) => model.foldAt(lineIndex),
+      // Spread rather than assigned: with `exactOptionalPropertyTypes` an
+      // optional field is absent or set, never explicitly `undefined`.
+      ...(editing ? { editing } : {}),
     }),
     [
       model,
@@ -139,13 +233,25 @@ export function KronaViewer({
       resolvedLabels,
       config.lineHeight,
       contentColumns,
+      editing,
       foldState,
     ],
   )
 
   const viewerState = useMemo(
-    () => ({ ...foldState, model, visibleLines, labels: resolvedLabels }),
-    [foldState, model, visibleLines, resolvedLabels],
+    () => ({
+      ...foldState,
+      model,
+      visibleLines,
+      labels: resolvedLabels,
+      source: model.source,
+      editable,
+      canUndo: editable && edit.canUndo,
+      canRedo: editable && edit.canRedo,
+      undo: edit.undo,
+      redo: edit.redo,
+    }),
+    [foldState, model, visibleLines, resolvedLabels, editable, edit],
   )
 
   const slots = useMemo(() => (children ? splitSlots(children, 'chrome') : null), [children])

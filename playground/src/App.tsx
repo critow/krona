@@ -38,6 +38,7 @@ export function App() {
   const [collapseUnchanged, setCollapseUnchanged] = useState(initial.collapse)
   const [showMinimap, setShowMinimap] = useState(initial.minimap)
   const [showDiagnostics, setShowDiagnostics] = useState(true)
+  const [editable, setEditable] = useState(false)
   const [showMarkers, setShowMarkers] = useState(true)
   const [ignoreTrailingWhitespace, setIgnoreTrailingWhitespace] = useState(false)
   // The demo lands partially collapsed on purpose: with everything expanded
@@ -212,6 +213,7 @@ export function App() {
                   source={sample.left}
                   overscan={overscan}
                   showDiagnostics={showDiagnostics}
+                  editable={editable}
                   {...(collapsedDepth === undefined
                     ? {}
                     : { defaultCollapsedDepth: collapsedDepth })}
@@ -341,16 +343,23 @@ export function App() {
                   </Checkbox>
                 </>
               ) : (
-                <Checkbox checked={showDiagnostics} onChange={setShowDiagnostics}>
-                  {dict.showDiagnostics}
-                </Checkbox>
+                <>
+                  <Checkbox checked={showDiagnostics} onChange={setShowDiagnostics}>
+                    {dict.showDiagnostics}
+                  </Checkbox>
+                  <Checkbox checked={editable} onChange={setEditable}>
+                    {dict.editable}
+                  </Checkbox>
+                </>
               )}
               <Checkbox checked={showMarkers} onChange={setShowMarkers}>
                 {dict.showMarkers}
               </Checkbox>
             </div>
 
-            <p className="ui-note">{dict.optionsNote}</p>
+            <p className="ui-note">
+              {editable && mode === 'viewer' ? dict.editableNote : dict.optionsNote}
+            </p>
           </Panel>
 
           <Panel title={dict.install}>

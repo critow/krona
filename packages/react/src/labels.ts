@@ -44,6 +44,22 @@ export interface KronaLabels {
   unsafeCharacter: (code: string) => string
   /** Accessible name of the viewer or diff region. */
   document: string
+  /** Row action that opens the value for editing. */
+  editValue: string
+  /** Row action that opens the whole line as raw text. */
+  editLine: string
+  /** Row action that opens the whole block as raw text. */
+  editBlock: string
+  /** Row action that removes the entry or block. */
+  deleteEntry: string
+  /** Button that applies the open editor. */
+  saveEdit: string
+  /** Button that discards the open editor. */
+  cancelEdit: string
+  /** Toolbar action that reverses the last edit. */
+  undo: string
+  /** Toolbar action that replays the last undone edit. */
+  redo: string
 }
 
 /**
@@ -72,6 +88,14 @@ export function createDefaultLabels(locale?: string): KronaLabels {
     changeMap: 'Change map',
     unsafeCharacter: (code) => `Hidden character ${code}`,
     document: 'Configuration file',
+    editValue: 'Edit value',
+    editLine: 'Edit line',
+    editBlock: 'Edit block',
+    deleteEntry: 'Delete',
+    saveEdit: 'Save',
+    cancelEdit: 'Cancel',
+    undo: 'Undo',
+    redo: 'Redo',
   }
 }
 

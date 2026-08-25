@@ -33,6 +33,14 @@ The first release. Not on npm yet; install from git or run the
   of a hung tab.
 - Bidirectional and zero-width characters rendered as visible `U+XXXX` badges.
 
+- Editing in `<Krona.Viewer editable>`: values in place, lines and whole blocks
+  as raw text, entry removal, and undo/redo. Every change is a text edit against
+  the source, which is then parsed again, so the model stays an immutable list
+  of lines. `onChange` reports the whole document; `useKronaViewer()` exposes it
+  along with the history.
+- Diff panels scroll in lockstep on both axes, over a content width the whole
+  document sets rather than the rows currently on screen.
+
 ### Fixed
 
 - Format providers survive a production build. Both packages declared

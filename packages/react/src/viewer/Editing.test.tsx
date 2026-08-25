@@ -1,0 +1,187 @@
+import { Krona, useKronaViewer } from 'krona'
+import { useState } from 'react'
+import { describe, expect, it, vi } from 'vitest'
+import { userEvent } from 'vitest/browser'
+import { render } from 'vitest-browser-react'
+
+const SOURCE = [
+  '{',
+  '  "name": "krona",',
+  '  "server": {',
+  '    "host": "0.0.0.0"',
+  '  },',
+  '  "tail": 1',
+  '}',
+].join('\n')
+
+/** Reports the document after every edit, so a test can assert on the text. */
+function Harness({ editable = true }: { editable?: boolean }) {
+  const [source, setSource] = useState(SOURCE)
+  return (
+    <Krona format="json">
+      <Krona.Viewer source={SOURCE} editable={editable} onChange={setSource}>
+        <Krona.Toolbar />
+        <Krona.Gutter />
+        <Krona.Lines />
+      </Krona.Viewer>
+      <pre data-testid="result">{source}</pre>
+    </Krona>
+  )
+}
+
+function resultOf(container: HTMLElement): string {
+  return container.querySelector('[data-testid="result"]')?.textContent ?? ''
+}
+
+function valueButtons(container: HTMLElement): HTMLElement[] {
+  return [...container.querySelectorAll<HTMLElement>('.krona-value')]
+}
+
+/** Row actions appear on hover, so a test has to hover the row like a reader. */
+async function rowAction(container: HTMLElement, rowIndex: number, label: string) {
+  const rows = container.querySelectorAll<HTMLElement>('.krona-lines .krona-row')
+  const row = rows[rowIndex]
+  expect(row, `no row ${rowIndex}`).toBeDefined()
+  if (!row) return undefined
+  await userEvent.hover(row)
+  return row.querySelector<HTMLElement>(`[aria-label="${label}"]`) ?? undefined
+}
+
+async function openValue(container: HTMLElement, text: string) {
+  const button = valueButtons(container).find((element) => element.textContent === text)
+  expect(button, `no value button for ${text}`).toBeDefined()
+  if (!button) return
+  await userEvent.dblClick(button)
+}
+
+describe('editing in Krona.Viewer', () => {
+  it('offers no editing controls unless asked', async () => {
+    const screen = await render(<Harness editable={false} />)
+    await expect
+      .poll(() => screen.container.querySelectorAll('.krona-row').length)
+      .toBeGreaterThan(0)
+    expect(valueButtons(screen.container)).toHaveLength(0)
+    expect(screen.container.querySelectorAll('.krona-row-actions')).toHaveLength(0)
+  })
+
+  it('edits one value in place and leaves the rest of the line alone', async () => {
+    const screen = await render(<Harness />)
+    await expect.poll(() => valueButtons(screen.container).length).toBeGreaterThan(0)
+
+    await openValue(screen.container, '"0.0.0.0"')
+    const input = screen.container.querySelector<HTMLInputElement>('.krona-editor-input')
+    expect(input).toBeDefined()
+    if (!input) return
+
+    await userEvent.fill(input, '"127.0.0.1"')
+    await userEvent.keyboard('{Enter}')
+
+    await expect
+      .poll(() => resultOf(screen.container))
+      .toBe(SOURCE.replace('"0.0.0.0"', '"127.0.0.1"'))
+  })
+
+  it('leaves the document untouched when the editor is cancelled', async () => {
+    const screen = await render(<Harness />)
+    await expect.poll(() => valueButtons(screen.container).length).toBeGreaterThan(0)
+
+    await openValue(screen.container, '1')
+    await userEvent.keyboard('999{Escape}')
+
+    await expect.poll(() => screen.container.querySelector('.krona-editor-input')).toBe(null)
+    expect(resultOf(screen.container)).toBe(SOURCE)
+  })
+
+  it('removes a whole block, and the comma that would be left dangling', async () => {
+    const screen = await render(<Harness />)
+    await expect.poll(() => screen.container.querySelectorAll('.krona-row-actions').length).toBe(7)
+
+    // The third row is `"server": {`, whose delete takes the block with it.
+    const remove = await rowAction(screen.container, 2, 'Delete')
+    expect(remove).toBeDefined()
+    if (!remove) return
+    await userEvent.click(remove)
+
+    await expect
+      .poll(() => resultOf(screen.container))
+      .toBe(['{', '  "name": "krona",', '  "tail": 1', '}'].join('\n'))
+  })
+
+  it('undoes and redoes an edit from the toolbar', async () => {
+    const screen = await render(<Harness />)
+    await expect.poll(() => valueButtons(screen.container).length).toBeGreaterThan(0)
+
+    await openValue(screen.container, '"krona"')
+    const input = screen.container.querySelector<HTMLInputElement>('.krona-editor-input')
+    if (!input) return
+    await userEvent.fill(input, '"renamed"')
+    await userEvent.keyboard('{Enter}')
+    await expect.poll(() => resultOf(screen.container)).toContain('"renamed"')
+
+    await screen.getByRole('button', { name: 'Undo' }).click()
+    await expect.poll(() => resultOf(screen.container)).toBe(SOURCE)
+
+    await screen.getByRole('button', { name: 'Redo' }).click()
+    await expect.poll(() => resultOf(screen.container)).toContain('"renamed"')
+  })
+
+  it('edits a whole block as text', async () => {
+    const screen = await render(<Harness />)
+    await expect.poll(() => screen.container.querySelectorAll('.krona-row-actions').length).toBe(7)
+
+    const editBlock = await rowAction(screen.container, 2, 'Edit block')
+    expect(editBlock).toBeDefined()
+    if (!editBlock) return
+    await userEvent.click(editBlock)
+
+    const area = screen.container.querySelector<HTMLTextAreaElement>('.krona-editor-area')
+    expect(area).toBeDefined()
+    if (!area) return
+    expect(area.value).toBe(['  "server": {', '    "host": "0.0.0.0"', '  },'].join('\n'))
+
+    await userEvent.fill(area, '  "server": null,')
+    await userEvent.click(screen.container.querySelector('.krona-editor-save') as HTMLElement)
+
+    await expect
+      .poll(() => resultOf(screen.container))
+      .toBe(['{', '  "name": "krona",', '  "server": null,', '  "tail": 1', '}'].join('\n'))
+  })
+
+  it('reports every change through onChange', async () => {
+    const onChange = vi.fn()
+    const screen = await render(
+      <Krona format="json">
+        <Krona.Viewer source={SOURCE} editable onChange={onChange} />
+      </Krona>,
+    )
+    await expect.poll(() => valueButtons(screen.container).length).toBeGreaterThan(0)
+
+    await openValue(screen.container, '1')
+    const input = screen.container.querySelector<HTMLInputElement>('.krona-editor-input')
+    if (!input) return
+    await userEvent.fill(input, '2')
+    await userEvent.keyboard('{Enter}')
+
+    await expect.poll(() => onChange.mock.calls.length).toBe(1)
+    expect(onChange.mock.calls[0]?.[0]).toBe(SOURCE.replace('"tail": 1', '"tail": 2'))
+  })
+
+  it('exposes the edited document through useKronaViewer', async () => {
+    function Probe() {
+      const { source, canUndo } = useKronaViewer()
+      return <span data-testid="probe">{`${canUndo}:${source.length}`}</span>
+    }
+    const screen = await render(
+      <Krona format="json">
+        <Krona.Viewer source={SOURCE} editable>
+          <Probe />
+          <Krona.Gutter />
+          <Krona.Lines />
+        </Krona.Viewer>
+      </Krona>,
+    )
+    await expect
+      .poll(() => screen.container.querySelector('[data-testid="probe"]')?.textContent)
+      .toBe(`false:${SOURCE.length}`)
+  })
+})

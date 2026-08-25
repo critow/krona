@@ -9,6 +9,16 @@ export interface KronaViewerState extends FoldState {
   /** Line indices currently visible, after folding. */
   readonly visibleLines: readonly number[]
   readonly labels: KronaLabels
+  /** The document as it stands, including every edit made so far. */
+  readonly source: string
+  /** True when the viewer was given `editable`. */
+  readonly editable: boolean
+  readonly canUndo: boolean
+  readonly canRedo: boolean
+  /** Reverses the last edit. A no-op when there is nothing to undo. */
+  undo(): void
+  /** Replays the last undone edit. A no-op when there is nothing to redo. */
+  redo(): void
 }
 
 export const ViewerContext = createContext<KronaViewerState | null>(null)

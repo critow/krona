@@ -165,6 +165,120 @@
   pointer-events: none;
 }
 
+/* Editing
+   ------------------------------------------------------------------------- */
+
+.krona-row-actions {
+  /* Hidden rather than transparent: an invisible control that still takes a
+     click is worse than no control, and a row is a small target. */
+  display: none;
+  margin-inline-start: 0.75rem;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.krona-row--editable:hover .krona-row-actions,
+.krona-row-actions:focus-within {
+  display: inline-flex;
+  gap: 0.125rem;
+}
+
+/* Nothing hovers on a touch screen, so there the actions simply stay out. */
+@media (hover: none) {
+  .krona-row--editable .krona-row-actions {
+    display: inline-flex;
+    gap: 0.125rem;
+  }
+}
+
+.krona-row-actions button,
+.krona-editor-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  padding: 0;
+  border: 1px solid var(--krona-border);
+  border-radius: 4px;
+  background: var(--krona-bg);
+  color: var(--krona-fg-muted);
+  cursor: pointer;
+}
+
+.krona-row-actions button:hover,
+.krona-editor-actions button:hover {
+  background: var(--krona-bg-hover);
+  color: var(--krona-fg);
+}
+
+.krona-row-actions .krona-action--danger:hover {
+  color: var(--krona-removed-marker);
+  border-color: currentColor;
+}
+
+.krona-value {
+  /* Stripped back to the text it wraps: the element is a button so a value can
+     be reached and opened from the keyboard, not so it can look like one. */
+  display: inline;
+  font: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  border-radius: 3px;
+  cursor: text;
+}
+
+.krona-row--editable .krona-value:hover {
+  background: var(--krona-bg-hover);
+  outline: 1px solid var(--krona-border);
+}
+
+.krona-editor-input,
+.krona-editor-area {
+  font: inherit;
+  color: var(--krona-fg);
+  background: var(--krona-bg);
+  border: 1px solid var(--krona-chevron-hover);
+  border-radius: 3px;
+  padding: 0 0.125rem;
+  vertical-align: baseline;
+}
+
+.krona-editor-actions {
+  display: inline-flex;
+  gap: 0.125rem;
+  margin-inline-start: 0.375rem;
+  vertical-align: middle;
+}
+
+.krona-row-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* Above the rows it covers: they come later in the DOM and would paint over
+     an editor that only relied on source order. */
+  z-index: 3;
+  display: flex;
+  align-items: flex-start;
+  padding-inline: var(--krona-padding-inline);
+}
+
+.krona-editor-block {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.krona-editor-area {
+  min-width: 32ch;
+  height: 100%;
+  resize: none;
+  white-space: pre;
+  overflow: auto;
+}
+
 .krona-row {
   position: absolute;
   top: 0;

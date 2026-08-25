@@ -9,6 +9,8 @@ export interface KronaToolbarProps {
   showFoldActions?: boolean
   /** Show added / removed / changed counts. Default true inside a diff. */
   showStats?: boolean
+  /** Show undo / redo. Default true, and they appear only where editing is on. */
+  showEditActions?: boolean
   className?: string
   style?: CSSProperties
   /** Extra content appended after the built-in controls. */
@@ -18,6 +20,7 @@ export interface KronaToolbarProps {
 function ToolbarBase({
   showFoldActions = true,
   showStats = true,
+  showEditActions = true,
   className,
   style,
   children,
@@ -45,6 +48,16 @@ function ToolbarBase({
           </button>
         </>
       ) : null}
+      {showEditActions && viewer?.editable ? (
+        <>
+          <button type="button" onClick={viewer.undo} disabled={!viewer.canUndo}>
+            {labels.undo}
+          </button>
+          <button type="button" onClick={viewer.redo} disabled={!viewer.canRedo}>
+            {labels.redo}
+          </button>
+        </>
+      ) : null}
       {showStats && diff ? (
         <>
           <span className="krona-stat krona-stat--added">
@@ -61,7 +74,8 @@ function ToolbarBase({
 }
 
 /**
- * `Krona.Toolbar` — fold actions plus, inside a diff, the change counts.
+ * `Krona.Toolbar` — fold actions, undo and redo where editing is on, and the
+ * change counts inside a diff.
  *
  * The same component works in both modes; it simply shows fewer controls where
  * the others do not apply.
