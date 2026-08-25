@@ -23,6 +23,7 @@
     "verify": "pnpm lint && pnpm check-css && pnpm check-docs && pnpm typecheck && pnpm test:all && pnpm build",
     "test:all": "vitest run",
     "build:css": "node scripts/build-css.mjs",
+    "build:social": "pnpm --filter krona-playground build && node scripts/social-preview.mjs",
     "check-css": "node scripts/build-css.mjs --check",
     "check-docs": "node scripts/check-docs.mjs"
   },
