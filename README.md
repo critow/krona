@@ -110,7 +110,7 @@ below it.
 | `theme` | `'light' \| 'dark' \| 'auto'` | `'auto'` | `'auto'` follows `prefers-color-scheme` |
 | `labels` | `Partial<KronaLabels>` | English defaults | Every visible string — see [Localization](#localization) |
 | `locale` | `string` | runtime default | BCP 47 locale used by `Intl.NumberFormat` in the default labels |
-| `lineHeight` | `number` | `20` | Row height in pixels. Fixed height is what makes virtualization exact |
+| `lineHeight` | `number` | `20` | Row height in pixels; also sets `--krona-line-height`. Fixed height is what makes virtualization exact |
 | `limits` | `Partial<ParseLimits>` | see [Safety limits](#safety-limits) | Overrides for the parser's bounds |
 | `providers` | `FormatRegistry` | module registry | Custom provider lookup |
 | `injectStyles` | `boolean` | `true` | Adds the stylesheet to `document.head` on mount |
@@ -124,7 +124,7 @@ below it.
 | `model` | `DocumentModel` | — | A model parsed elsewhere, e.g. [in a Worker](#large-files-and-web-workers). Wins over `source` |
 | `format` | `Format` | from `<Krona>` | Overrides the enclosing format |
 | `labels` | `Partial<KronaLabels>` | from `<Krona>` | Overrides the enclosing labels |
-| `defaultCollapsedDepth` | `number` | — | Collapse every range at this nesting depth or deeper on load; `0` collapses everything |
+| `defaultCollapsedDepth` | `number` | — | Collapse every range at this nesting depth or deeper, on mount and whenever the value changes; `0` collapses everything |
 | `overscan` | `number` | `8` | Extra rows rendered outside the viewport |
 | `showDiagnostics` | `boolean` | `true` | Show parse errors above the document (default layout only) |
 | `className` / `style` | — | — | Applied to the viewer region |

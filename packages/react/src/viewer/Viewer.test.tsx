@@ -105,6 +105,46 @@ describe('Krona.Viewer', () => {
     await expect.poll(lineNumbers).toEqual(SERVER_COLLAPSED)
   })
 
+  it('re-applies defaultCollapsedDepth when the value changes', async () => {
+    const screen = await render(
+      <Krona format="json">
+        <Krona.Viewer source={SOURCE} />
+      </Krona>,
+    )
+    const lineNumbers = () =>
+      [...screen.container.querySelectorAll('.krona-lines .krona-row')].map((row) =>
+        Number(row.getAttribute('data-line')),
+      )
+    await expect.poll(() => lineNumbers().length).toBe(10)
+
+    // The diff has always re-seeded on this prop; the viewer used to apply it
+    // only at mount, so the two modes read the same prop differently.
+    await screen.rerender(
+      <Krona format="json">
+        <Krona.Viewer source={SOURCE} defaultCollapsedDepth={1} />
+      </Krona>,
+    )
+    await expect.poll(lineNumbers).toEqual(SERVER_COLLAPSED)
+  })
+
+  it('paints rows at the pitch the virtualizer positions them at', async () => {
+    const screen = await render(
+      <Krona format="json" lineHeight={30}>
+        <Krona.Viewer source={SOURCE} />
+      </Krona>,
+    )
+    await expect
+      .poll(() => screen.container.querySelectorAll('.krona-lines .krona-row').length)
+      .toBeGreaterThan(1)
+    const rows = [...screen.container.querySelectorAll('.krona-lines .krona-row')]
+    const [first, second] = rows
+    expect(first?.getBoundingClientRect().height).toBe(30)
+    // Row height and row spacing have to agree, or long documents drift.
+    const gap =
+      (second?.getBoundingClientRect().top ?? 0) - (first?.getBoundingClientRect().top ?? 0)
+    expect(gap).toBe(30)
+  })
+
   it('collapses and expands everything from the toolbar', async () => {
     const screen = await render(
       <Krona format="json">

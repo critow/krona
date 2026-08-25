@@ -4,23 +4,24 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { DICTS, type Lang } from './i18n'
 import { SAMPLES } from './samples'
 import { buildSnippet } from './snippet'
-import { Badge, CodeBlock, Panel, Segmented, Switch } from './ui/kit'
+import { Badge, Checkbox, CodeBlock, Field, NumberField, Panel, Segmented, Select } from './ui/kit'
 
 type Mode = 'viewer' | 'diff'
-type Theme = 'light' | 'dark'
+type Theme = 'light' | 'dark' | 'auto'
 
 /**
- * The page state lives in the query string so the visual-regression suite can
- * navigate straight to a reference view, and so a link to the demo carries what
- * the sender was looking at.
+ * Page state lives in the query string, so the visual-regression suite can
+ * navigate straight to a reference view and a link carries what the sender was
+ * looking at.
  */
 function readParams() {
   const params = new URLSearchParams(globalThis.location?.search ?? '')
   const sample = params.get('sample')
+  const theme = params.get('theme')
   return {
     mode: params.get('mode') === 'viewer' ? ('viewer' as Mode) : ('diff' as Mode),
     sampleId: SAMPLES.some((s) => s.id === sample) ? (sample as string) : (SAMPLES[0]?.id ?? ''),
-    theme: params.get('theme') === 'light' ? ('light' as Theme) : ('dark' as Theme),
+    theme: theme === 'light' || theme === 'auto' ? (theme as Theme) : ('dark' as Theme),
     lang: params.get('lang') === 'ru' ? ('ru' as Lang) : ('en' as Lang),
     collapse: params.get('collapse') !== 'off',
     minimap: params.get('minimap') !== 'off',
@@ -33,14 +34,25 @@ export function App() {
   const [mode, setMode] = useState<Mode>(initial.mode)
   const [sampleId, setSampleId] = useState(initial.sampleId)
   const [theme, setTheme] = useState<Theme>(initial.theme)
+
   const [collapseUnchanged, setCollapseUnchanged] = useState(initial.collapse)
   const [showMinimap, setShowMinimap] = useState(initial.minimap)
+  const [showDiagnostics, setShowDiagnostics] = useState(true)
+  const [showMarkers, setShowMarkers] = useState(true)
+  const [ignoreTrailingWhitespace, setIgnoreTrailingWhitespace] = useState(false)
+  const [collapsedDepth, setCollapsedDepth] = useState<number | undefined>(undefined)
+  const [lineHeight, setLineHeight] = useState(20)
+  const [overscan, setOverscan] = useState(8)
+  const [context, setContext] = useState(3)
+  const [minimumHidden, setMinimumHidden] = useState(10)
+  const [step, setStep] = useState(20)
 
   const dict = DICTS[lang]
   const sample = useMemo(() => SAMPLES.find((s) => s.id === sampleId) ?? SAMPLES[0]!, [sampleId])
+  const note = dict.notes[sample.id] ?? sample.note
 
   useEffect(() => {
-    document.documentElement.dataset.uiTheme = theme
+    document.documentElement.dataset.uiTheme = theme === 'auto' ? 'dark' : theme
   }, [theme])
 
   const syncUrl = useCallback((next: Record<string, string>) => {
@@ -49,18 +61,46 @@ export function App() {
     history.replaceState(null, '', `?${params.toString()}`)
   }, [])
 
+  const collapseOptions = useMemo(
+    () => ({ context, minimumHidden, step }),
+    [context, minimumHidden, step],
+  )
+
   const snippet = useMemo(
     () =>
       buildSnippet({
         format: sample.format,
         theme,
+        locale: lang,
         mode,
-        collapseUnchanged,
-        showMinimap,
-        collapsedDepth: undefined,
         yaml: sample.format === 'yaml',
+        lineHeight,
+        collapsedDepth,
+        overscan,
+        showDiagnostics,
+        collapseUnchanged,
+        context,
+        minimumHidden,
+        step,
+        showMinimap,
+        ignoreTrailingWhitespace,
       }),
-    [sample.format, theme, mode, collapseUnchanged, showMinimap],
+    [
+      sample.format,
+      theme,
+      lang,
+      mode,
+      lineHeight,
+      collapsedDepth,
+      overscan,
+      showDiagnostics,
+      collapseUnchanged,
+      context,
+      minimumHidden,
+      step,
+      showMinimap,
+      ignoreTrailingWhitespace,
+    ],
   )
 
   return (
@@ -72,7 +112,12 @@ export function App() {
           </span>
           <div>
             <h1 className="brand-name">Krona</h1>
-            <p className="brand-tagline">{dict.tagline}</p>
+            <p className="brand-tagline">
+              {dict.tagline} ·{' '}
+              <a className="ui-link" href="https://github.com/critow/krona#readme">
+                {dict.docs}
+              </a>
+            </p>
           </div>
         </div>
 
@@ -89,94 +134,38 @@ export function App() {
               syncUrl({ lang: value })
             }}
           />
-          <Segmented
-            label={dict.theme}
-            value={theme}
-            options={[
-              { value: 'dark', label: dict.dark },
-              { value: 'light', label: dict.light },
-            ]}
-            onChange={(value) => {
-              setTheme(value)
-              syncUrl({ theme: value })
-            }}
-          />
           <a className="ui-button" href="https://github.com/critow/krona">
             GitHub
+          </a>
+          <a className="ui-button" href="https://www.npmjs.com/package/krona">
+            npm
           </a>
         </div>
       </header>
 
       <div className="app-body">
-        <Panel className="sidebar" title={dict.samples}>
-          <ul className="ui-samples">
-            {SAMPLES.map((item) => (
-              <li key={item.id}>
-                <button
-                  type="button"
-                  className="ui-sample"
-                  aria-current={item.id === sample.id}
-                  onClick={() => {
-                    setSampleId(item.id)
-                    syncUrl({ sample: item.id })
-                  }}
-                >
-                  <span className="ui-sample-name">
-                    {item.label}
-                    <Badge>{item.format}</Badge>
-                  </span>
-                  <span className="ui-sample-note">{dict.notes[item.id] ?? item.note}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </Panel>
-
         <div className="stage">
           <Panel
             title={
               <>
                 {sample.label}
-                <span className="stage-note">{dict.notes[sample.id] ?? sample.note}</span>
+                <Badge>{sample.format}</Badge>
+                <span className="stage-note">{note}</span>
               </>
             }
             actions={
-              <div className="stage-controls">
-                <Segmented
-                  label={dict.mode}
-                  value={mode}
-                  options={[
-                    { value: 'viewer', label: dict.viewer },
-                    { value: 'diff', label: dict.diff },
-                  ]}
-                  onChange={(value) => {
-                    setMode(value)
-                    syncUrl({ mode: value })
-                  }}
-                />
-                {mode === 'diff' ? (
-                  <>
-                    <Switch
-                      checked={collapseUnchanged}
-                      onChange={(value) => {
-                        setCollapseUnchanged(value)
-                        syncUrl({ collapse: value ? 'on' : 'off' })
-                      }}
-                    >
-                      {dict.collapseUnchanged}
-                    </Switch>
-                    <Switch
-                      checked={showMinimap}
-                      onChange={(value) => {
-                        setShowMinimap(value)
-                        syncUrl({ minimap: value ? 'on' : 'off' })
-                      }}
-                    >
-                      {dict.minimap}
-                    </Switch>
-                  </>
-                ) : null}
-              </div>
+              <Segmented
+                label={dict.mode}
+                value={mode}
+                options={[
+                  { value: 'viewer', label: dict.viewer },
+                  { value: 'diff', label: dict.diff },
+                ]}
+                onChange={(value) => {
+                  setMode(value)
+                  syncUrl({ mode: value })
+                }}
+              />
             }
           >
             <Krona
@@ -184,6 +173,7 @@ export function App() {
               theme={theme}
               locale={lang}
               labels={dict.kronaLabels}
+              lineHeight={lineHeight}
               className="stage-krona"
             >
               {mode === 'diff' ? (
@@ -191,25 +181,38 @@ export function App() {
                   key={`${sample.id}-diff`}
                   left={sample.left}
                   right={sample.right}
-                  collapseUnchanged={collapseUnchanged}
+                  collapseUnchanged={collapseUnchanged && collapseOptions}
                   showMinimap={showMinimap}
+                  ignoreTrailingWhitespace={ignoreTrailingWhitespace}
+                  overscan={overscan}
+                  {...(collapsedDepth === undefined
+                    ? {}
+                    : { defaultCollapsedDepth: collapsedDepth })}
                 >
                   <Krona.Toolbar />
                   <Krona.Panel side="left">
-                    <Krona.Gutter />
+                    <Krona.Gutter showMarkers={showMarkers} />
                     <Krona.Lines />
                   </Krona.Panel>
                   {showMinimap ? <Krona.Minimap /> : null}
                   <Krona.Panel side="right">
-                    <Krona.Gutter />
+                    <Krona.Gutter showMarkers={showMarkers} />
                     <Krona.Lines />
                   </Krona.Panel>
                 </Krona.Diff>
               ) : (
-                <Krona.Viewer key={`${sample.id}-viewer`} source={sample.left}>
+                <Krona.Viewer
+                  key={`${sample.id}-viewer`}
+                  source={sample.left}
+                  overscan={overscan}
+                  showDiagnostics={showDiagnostics}
+                  {...(collapsedDepth === undefined
+                    ? {}
+                    : { defaultCollapsedDepth: collapsedDepth })}
+                >
                   <Krona.Toolbar />
-                  <Krona.Diagnostics />
-                  <Krona.Gutter />
+                  {showDiagnostics ? <Krona.Diagnostics /> : null}
+                  <Krona.Gutter showMarkers={showMarkers} />
                   <Krona.Lines />
                 </Krona.Viewer>
               )}
@@ -220,9 +223,143 @@ export function App() {
             <CodeBlock tokens={snippet} />
           </Panel>
         </div>
+
+        <div className="options">
+          <Panel title={dict.options}>
+            <div className="ui-fields">
+              <Field label={dict.sample}>
+                <Select
+                  value={sample.id}
+                  options={SAMPLES.map((s) => ({ value: s.id, label: s.label }))}
+                  onChange={(value) => {
+                    setSampleId(value)
+                    syncUrl({ sample: value })
+                  }}
+                />
+              </Field>
+              <Field label={dict.theme}>
+                <Select
+                  value={theme}
+                  options={[
+                    { value: 'dark' as Theme, label: dict.dark },
+                    { value: 'light' as Theme, label: dict.light },
+                    { value: 'auto' as Theme, label: dict.auto },
+                  ]}
+                  onChange={(value) => {
+                    setTheme(value)
+                    syncUrl({ theme: value })
+                  }}
+                />
+              </Field>
+              <Field label={dict.collapsedDepth}>
+                <NumberField
+                  value={collapsedDepth}
+                  min={0}
+                  max={20}
+                  placeholder={dict.off}
+                  onChange={setCollapsedDepth}
+                />
+              </Field>
+              <Field label={dict.lineHeight}>
+                <NumberField
+                  value={lineHeight}
+                  min={12}
+                  max={48}
+                  onChange={(v) => setLineHeight(v ?? 20)}
+                />
+              </Field>
+              <Field label={dict.overscan}>
+                <NumberField
+                  value={overscan}
+                  min={0}
+                  max={80}
+                  onChange={(v) => setOverscan(v ?? 8)}
+                />
+              </Field>
+              {mode === 'diff' ? (
+                <>
+                  <Field label={dict.context}>
+                    <NumberField
+                      value={context}
+                      min={0}
+                      max={40}
+                      onChange={(v) => setContext(v ?? 3)}
+                    />
+                  </Field>
+                  <Field label={dict.minimumHidden}>
+                    <NumberField
+                      value={minimumHidden}
+                      min={1}
+                      max={200}
+                      onChange={(v) => setMinimumHidden(v ?? 10)}
+                    />
+                  </Field>
+                  <Field label={dict.step}>
+                    <NumberField
+                      value={step}
+                      min={1}
+                      max={200}
+                      onChange={(v) => setStep(v ?? 20)}
+                    />
+                  </Field>
+                </>
+              ) : null}
+            </div>
+
+            <div className="ui-checkboxes">
+              {mode === 'diff' ? (
+                <>
+                  <Checkbox
+                    checked={collapseUnchanged}
+                    onChange={(v) => {
+                      setCollapseUnchanged(v)
+                      syncUrl({ collapse: v ? 'on' : 'off' })
+                    }}
+                  >
+                    {dict.collapseUnchanged}
+                  </Checkbox>
+                  <Checkbox
+                    checked={showMinimap}
+                    onChange={(v) => {
+                      setShowMinimap(v)
+                      syncUrl({ minimap: v ? 'on' : 'off' })
+                    }}
+                  >
+                    {dict.minimap}
+                  </Checkbox>
+                  <Checkbox
+                    checked={ignoreTrailingWhitespace}
+                    onChange={setIgnoreTrailingWhitespace}
+                  >
+                    {dict.ignoreTrailingWhitespace}
+                  </Checkbox>
+                </>
+              ) : (
+                <Checkbox checked={showDiagnostics} onChange={setShowDiagnostics}>
+                  {dict.showDiagnostics}
+                </Checkbox>
+              )}
+              <Checkbox checked={showMarkers} onChange={setShowMarkers}>
+                {dict.showMarkers}
+              </Checkbox>
+            </div>
+
+            <p className="ui-note">{dict.optionsNote}</p>
+          </Panel>
+
+          <Panel title={dict.install}>
+            <pre className="ui-install">
+              <code>{'npm i krona\nyarn add krona\npnpm add krona'}</code>
+            </pre>
+            <p className="ui-note">{dict.installNote}</p>
+          </Panel>
+        </div>
       </div>
 
-      <footer className="app-foot">{dict.footer}</footer>
+      <footer className="app-foot">
+        <span>{dict.footer}</span>
+        <span>krona v{__KRONA_VERSION__}</span>
+      </footer>
     </div>
   )
 }
