@@ -10,6 +10,7 @@ import { type KronaLabels, resolveLabels } from '../labels'
 import { Diagnostics } from '../parts/Diagnostics'
 import { Gutter } from '../parts/Gutter'
 import { Lines } from '../parts/Lines'
+import { contentColumnsOf } from '../render/width'
 import { ViewerContext } from './ViewerContext'
 
 /** Props of `<Krona.Viewer>`. */
@@ -110,6 +111,8 @@ export function KronaViewer({
   const virtualItems = virtualizer.getVirtualItems()
   const totalSize = virtualizer.getTotalSize()
 
+  const contentColumns = useMemo(() => contentColumnsOf(model), [model])
+
   const lineSource = useMemo(
     () => ({
       side: 'single' as const,
@@ -122,6 +125,7 @@ export function KronaViewer({
       labels: resolvedLabels,
       lineHeight: config.lineHeight,
       maxLineNumber: model.lines.length,
+      contentColumns,
       isFolded: foldState.isFolded,
       toggleFold: foldState.toggleFold,
       foldAt: (lineIndex: number) => model.foldAt(lineIndex),
@@ -134,6 +138,7 @@ export function KronaViewer({
       totalSize,
       resolvedLabels,
       config.lineHeight,
+      contentColumns,
       foldState,
     ],
   )

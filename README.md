@@ -411,6 +411,13 @@ A semantic diff would hide changes that matter in a configuration file.
 characters are painted as visible `U+XXXX` badges. A diff that renders them
 verbatim can show two different files as identical.
 
+**Both panels scroll as one, on both axes.** Rows are a fixed height and the
+panels share a row list, so vertical sync is an exact `scrollTop` copy rather
+than a ratio. Horizontally both panels reserve the width of the widest line in
+*either* document, so column *n* is at the same offset on both sides — reading
+the same column on the left and the right is the whole point of a side-by-side
+diff.
+
 **No `innerHTML`, anywhere.** Content is emitted as React text nodes; the rule is
 enforced by the linter.
 

@@ -5,6 +5,7 @@ import { LineSourceContext, type RenderRow, type RowTone } from '../context/line
 import { splitSlots } from '../context/slots'
 import { Gutter } from '../parts/Gutter'
 import { Lines } from '../parts/Lines'
+import { contentColumnsOf } from '../render/width'
 import { usePanelLayout } from './PanelLayoutContext'
 
 /** Props of `<Krona.Panel>`. */
@@ -66,6 +67,13 @@ function PanelBase({ side, className, style, children }: KronaPanelProps) {
   const virtualItems = virtualizer.getVirtualItems()
   const totalSize = virtualizer.getTotalSize()
 
+  // Both sides, not just this panel's: the panels must reserve the same width
+  // for their horizontal scrolling to stay in step.
+  const contentColumns = useMemo(
+    () => contentColumnsOf(layout.leftModel, layout.rightModel),
+    [layout.leftModel, layout.rightModel],
+  )
+
   const lineSource = useMemo(
     () => ({
       side,
@@ -78,6 +86,7 @@ function PanelBase({ side, className, style, children }: KronaPanelProps) {
       labels: layout.labels,
       lineHeight: layout.lineHeight,
       maxLineNumber: model.lines.length,
+      contentColumns,
       isFolded: (startLine: number) => layout.collapsedRows.has(rowOf[startLine] ?? -1),
       toggleFold: (startLine: number) => {
         const row = rowOf[startLine] ?? -1
@@ -88,7 +97,7 @@ function PanelBase({ side, className, style, children }: KronaPanelProps) {
       regions: layout.regions,
       step: layout.step,
     }),
-    [side, model, rows, virtualizer, virtualItems, totalSize, layout, rowOf],
+    [side, model, rows, virtualizer, virtualItems, totalSize, contentColumns, layout, rowOf],
   )
 
   const slots = useMemo(() => (children ? splitSlots(children, 'canvas') : null), [children])
