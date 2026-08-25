@@ -285,6 +285,25 @@ describe('editing in Krona.Viewer', () => {
     await expect.poll(() => resultOf(screen.container)).toBe(SOURCE)
   })
 
+  it('lifts a hovered row above the ones drawn after it', async () => {
+    const screen = await render(<Harness editable={false} />)
+    await expect
+      .poll(() => screen.container.querySelectorAll('.krona-row--actionable').length)
+      .toBeGreaterThan(0)
+
+    const rows = screen.container.querySelectorAll<HTMLElement>('.krona-lines .krona-row')
+    const row = rows[1]
+    expect(row).toBeDefined()
+    if (!row) return
+    expect(getComputedStyle(row).zIndex).toBe('auto')
+
+    await userEvent.hover(row)
+    // Rows contain their layout, so each is its own stacking context and a
+    // tooltip's own z-index only ranks it inside its row. Without this the
+    // bubble hides behind whatever row is drawn next.
+    await expect.poll(() => getComputedStyle(row).zIndex).not.toBe('auto')
+  })
+
   it('keeps the tooltip text out of a control\u2019s accessible name', async () => {
     const screen = await render(<Harness />)
     await expect.poll(() => screen.container.querySelectorAll('.krona-row-actions').length).toBe(7)
