@@ -285,7 +285,7 @@ describe('editing in Krona.Viewer', () => {
     await expect.poll(() => resultOf(screen.container)).toBe(SOURCE)
   })
 
-  it('lifts a hovered row above the ones drawn after it', async () => {
+  it('lifts a hovered row over its neighbours, but not over the gutter', async () => {
     const screen = await render(<Harness editable={false} />)
     await expect
       .poll(() => screen.container.querySelectorAll('.krona-row--actionable').length)
@@ -293,15 +293,21 @@ describe('editing in Krona.Viewer', () => {
 
     const rows = screen.container.querySelectorAll<HTMLElement>('.krona-lines .krona-row')
     const row = rows[1]
+    const gutter = screen.container.querySelector<HTMLElement>('.krona-gutter')
     expect(row).toBeDefined()
-    if (!row) return
+    expect(gutter).toBeDefined()
+    if (!row || !gutter) return
     expect(getComputedStyle(row).zIndex).toBe('auto')
 
     await userEvent.hover(row)
     // Rows contain their layout, so each is its own stacking context and a
-    // tooltip's own z-index only ranks it inside its row. Without this the
-    // bubble hides behind whatever row is drawn next.
-    await expect.poll(() => getComputedStyle(row).zIndex).not.toBe('auto')
+    // tooltip's z-index only ranks it inside its row; the row itself has to
+    // rise. Only just, though: the gutter is sticky, and a row that outranked
+    // it would slide over the line numbers when the panel scrolls sideways.
+    await expect.poll(() => Number(getComputedStyle(row).zIndex)).toBeGreaterThan(0)
+    expect(Number(getComputedStyle(row).zIndex)).toBeLessThan(
+      Number(getComputedStyle(gutter).zIndex),
+    )
   })
 
   it('keeps the tooltip text out of a control\u2019s accessible name', async () => {
