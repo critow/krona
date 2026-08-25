@@ -147,6 +147,8 @@ const PLUS = 'M8 3.2v9.6M3.2 8h9.6'
 const COPY =
   'M5.5 5.5V3.2c0-.4.3-.7.7-.7h6.6c.4 0 .7.3.7.7v6.6c0 .4-.3.7-.7.7h-2.3M3.2 5.5h6.6c.4 0 .7.3.7.7v6.6c0 .4-.3.7-.7.7H3.2a.7.7 0 0 1-.7-.7V6.2c0-.4.3-.7.7-.7Z'
 const TICK = 'M3 8.5 6.4 12 13 4.6'
+const PATH =
+  'M6.2 9.8a2.6 2.6 0 0 0 3.9.3l2.4-2.4a2.6 2.6 0 0 0-3.7-3.7l-1.4 1.4M9.8 6.2a2.6 2.6 0 0 0-3.9-.3L3.5 8.3a2.6 2.6 0 0 0 3.7 3.7l1.4-1.4'
 
 function Icon({ path, filled }: { path: string; filled?: boolean }) {
   return (
@@ -199,9 +201,9 @@ function RowActions({
   labels: KronaLabels
   showCopy: boolean
 }) {
-  const [copied, setCopied] = useState<'entry' | 'value' | null>(null)
+  const [copied, setCopied] = useState<'entry' | 'value' | 'path' | null>(null)
 
-  const copy = (what: 'entry' | 'value', text: string) => {
+  const copy = (what: 'entry' | 'value' | 'path', text: string) => {
     void copyText(text).then((ok) => {
       if (!ok) return
       setCopied(what)
@@ -212,6 +214,7 @@ function RowActions({
   const values = showCopy ? valueSpansAt(model, lineIndex) : []
   const only = values.length === 1 ? values[0] : undefined
   const block = showCopy ? blockSpanAt(model, lineIndex) : undefined
+  const path = showCopy ? model.pathAt(lineIndex) : undefined
 
   return (
     <span className="krona-row-actions">
@@ -229,6 +232,17 @@ function RowActions({
           onClick={() => copy('value', model.source.slice(only.start, only.end))}
         >
           <Icon path={copied === 'value' ? TICK : COPY} />
+        </button>
+      ) : null}
+      {path ? (
+        <button
+          type="button"
+          className={copied === 'path' ? 'krona-action--confirmed' : undefined}
+          data-tip={copied === 'path' ? labels.copied : `${labels.copyPath}: ${path}`}
+          aria-label={labels.copyPath}
+          onClick={() => copy('path', path)}
+        >
+          <Icon path={copied === 'path' ? TICK : PATH} />
         </button>
       ) : null}
       {block ? (

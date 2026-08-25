@@ -1,3 +1,4 @@
+import { pathSegmentOf } from '../model/path'
 import { registerFormat } from '../model/registry'
 import type {
   AnalysisResult,
@@ -24,6 +25,34 @@ interface Header {
  * Parses a `[table]` / `[[array of tables]]` header, honouring quoted key
  * segments such as `["weird.key"]`. Returns undefined for any other line.
  */
+/**
+ * Splits a key into its dotted parts, honouring quoted ones.
+ *
+ * `a.b = 1` and `[a] b = 1` name the same value in TOML, so a dotted key has to
+ * contribute the same parts a header would.
+ */
+function splitDottedKey(text: string): string[] {
+  const parts: string[] = []
+  let part = ''
+  for (let i = 0; i < text.length; i++) {
+    const c = text.charCodeAt(i)
+    if (c === 34 || c === 39) {
+      const end = scanQuoted(text, i, c === 34)
+      part += text.slice(i + 1, Math.max(i + 1, end - 1))
+      i = end - 1
+      continue
+    }
+    if (c === 46 /* . */) {
+      parts.push(part.trim())
+      part = ''
+      continue
+    }
+    part += text[i]
+  }
+  parts.push(part.trim())
+  return parts
+}
+
 function parseHeader(text: string): Header | undefined {
   const start = indentOf(text)
   if (text.charCodeAt(start) !== 91 /* [ */) return undefined
@@ -84,6 +113,7 @@ function analyze(
 ): AnalysisResult {
   const ranges: FoldRange[] = []
   const states: LineStates = new Uint8Array(lines.length)
+  const segments: (string | undefined)[] = new Array(lines.length)
   const sections: OpenSection[] = []
   const { maxFoldRanges } = options.limits
 
@@ -159,12 +189,26 @@ function analyze(
       const level = sections.length
       const parent = sections[sections.length - 1]
       if (parent) parent.childCount++
+      // Only the part this header adds: the rest already comes from the
+      // sections it nests inside. A header with none above it names the lot.
+      const owned =
+        parent && isPrefix(parent.path, header.path)
+          ? header.path.slice(parent.path.length)
+          : header.path
+      segments[i] = pathSegmentOf(owned)
       sections.push({ path: header.path, startLine: i, level, childCount: 0 })
       continue
     }
 
     const section = sections[sections.length - 1]
-    if (section && findAssignment(text, indentOf(text)) !== -1) section.childCount++
+    const keyStart = indentOf(text)
+    const assignment = findAssignment(text, keyStart)
+    if (assignment !== -1) {
+      if (section) section.childCount++
+      segments[i] = pathSegmentOf(
+        splitDottedKey(text.slice(keyStart, trimEnd(text, keyStart, assignment))),
+      )
+    }
 
     const opened = openMultiline(text)
     if (opened) {
@@ -190,7 +234,7 @@ function analyze(
   }
 
   ranges.sort((a, b) => a.startLine - b.startLine || a.level - b.level)
-  return { foldingRanges: ranges }
+  return { foldingRanges: ranges, lineStates: states, pathSegments: segments }
 }
 
 /** Returns the bracket depth at the end of the line, skipping strings and comments. */

@@ -133,6 +133,17 @@ export interface AnalysisResult {
   readonly foldingRanges: readonly FoldRange[]
   readonly diagnostics?: readonly Diagnostic[]
   readonly lineStates?: LineStates
+  /**
+   * The one path segment each line introduces — a key, or `[3]` for an array
+   * element — and nothing for lines that introduce none.
+   *
+   * Segments, not whole paths: a line's full path is its containers' segments
+   * followed by its own, and the containers are the folding ranges around it.
+   * Storing the assembled path per line would keep a copy of every ancestor on
+   * every descendant, which on a deeply nested file costs far more than the
+   * document itself.
+   */
+  readonly pathSegments?: readonly (string | undefined)[]
 }
 
 /** Pluggable support for one configuration file format. */
@@ -211,10 +222,24 @@ export interface DocumentModel {
   readonly lines: readonly Line[]
   readonly foldingRanges: readonly FoldRange[]
   readonly diagnostics: readonly Diagnostic[]
+  /**
+   * Per-line path segments, when the provider reports them. Read this to build
+   * paths yourself; {@link DocumentModel.pathAt} is the usual way.
+   */
+  readonly pathSegments: readonly (string | undefined)[] | undefined
   /** Tokens for one line. Results are memoized per line index. */
   tokensAt(lineIndex: number): readonly Token[]
   /** Folding range that starts on the given line, if any. */
   foldAt(lineIndex: number): FoldRange | undefined
+  /**
+   * Dotted path to what the line introduces — `server.tls.ciphers[0]` — or
+   * `undefined` where the format has no such notion, or the line introduces
+   * nothing, or the provider does not report segments.
+   *
+   * A line holding several entries answers with the first: a path names a line,
+   * and a line is as fine as this gets.
+   */
+  pathAt(lineIndex: number): string | undefined
 }
 
 /**
@@ -228,4 +253,5 @@ export interface DocumentSnapshot {
   readonly foldingRanges: readonly FoldRange[]
   readonly diagnostics: readonly Diagnostic[]
   readonly lineStates?: LineStates
+  readonly pathSegments?: readonly (string | undefined)[]
 }

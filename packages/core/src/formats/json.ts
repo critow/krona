@@ -1,4 +1,5 @@
 import { format as formatJson, visit } from 'jsonc-parser'
+import { pathSegmentOf } from '../model/path'
 import { registerFormat } from '../model/registry'
 import type {
   AnalysisResult,
@@ -33,12 +34,22 @@ function analyze(
   const ranges: FoldRange[] = []
   const diagnostics: Diagnostic[] = []
   const states: LineStates = new Uint8Array(lines.length)
+  const segments: (string | undefined)[] = new Array(lines.length)
   const stack: Frame[] = []
   const { maxFoldRanges } = options.limits
 
-  const noteChild = (): void => {
+  /**
+   * Records what an entry contributes to a path, and counts it in its parent.
+   *
+   * Only the first entry on a line is recorded: a path names a line, and
+   * `"timeouts": { "read": 30, "write": 60 }` is one line however many entries
+   * it holds.
+   */
+  const noteChild = (startLine: number): void => {
     const top = stack[stack.length - 1]
-    if (top?.kind === 'array') top.count++
+    if (top?.kind !== 'array') return
+    if (segments[startLine] === undefined) segments[startLine] = pathSegmentOf([top.count])
+    top.count++
   }
 
   const lastLine = lines.length - 1
@@ -63,20 +74,21 @@ function analyze(
     source,
     {
       onObjectBegin: (_offset, _length, startLine) => {
-        noteChild()
+        noteChild(startLine)
         stack.push({ kind: 'object', startLine, level: stack.length, count: 0 })
       },
       onObjectEnd: (_offset, _length, startLine) => close(startLine),
       onArrayBegin: (_offset, _length, startLine) => {
-        noteChild()
+        noteChild(startLine)
         stack.push({ kind: 'array', startLine, level: stack.length, count: 0 })
       },
       onArrayEnd: (_offset, _length, startLine) => close(startLine),
-      onObjectProperty: () => {
+      onObjectProperty: (property, _offset, _length, startLine) => {
         const top = stack[stack.length - 1]
         if (top?.kind === 'object') top.count++
+        if (segments[startLine] === undefined) segments[startLine] = pathSegmentOf([property])
       },
-      onLiteralValue: () => noteChild(),
+      onLiteralValue: (_value, _offset, _length, startLine) => noteChild(startLine),
       onComment: (offset, length, startLine) => {
         // Only block comments carry state across lines; mark every line the
         // comment continues onto so a single line can be tokenized in isolation.
@@ -107,7 +119,7 @@ function analyze(
   while (stack.length > 0) close(lastLine)
   ranges.sort((a, b) => a.startLine - b.startLine || a.level - b.level)
 
-  return { foldingRanges: ranges, diagnostics, lineStates: states }
+  return { foldingRanges: ranges, diagnostics, lineStates: states, pathSegments: segments }
 }
 
 const ERROR_NAMES: Record<number, string> = {

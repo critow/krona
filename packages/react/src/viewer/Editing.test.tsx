@@ -101,6 +101,30 @@ describe('editing in Krona.Viewer', () => {
     }
   })
 
+  it('copies the path to a nested line', async () => {
+    const written: string[] = []
+    const write = vi
+      .spyOn(navigator.clipboard, 'writeText')
+      .mockImplementation(async (text: string) => {
+        written.push(text)
+      })
+
+    try {
+      const screen = await render(<Harness editable={false} />)
+      await expect
+        .poll(() => screen.container.querySelectorAll('.krona-row').length)
+        .toBeGreaterThan(0)
+
+      const copyPath = await rowAction(screen.container, 3, 'Copy path')
+      expect(copyPath).toBeDefined()
+      if (!copyPath) return
+      await userEvent.click(copyPath)
+      await expect.poll(() => written).toEqual(['server.host'])
+    } finally {
+      write.mockRestore()
+    }
+  })
+
   it('duplicates an entry and opens the copy for editing', async () => {
     const screen = await render(<Harness />)
     await expect.poll(() => valueButtons(screen.container).length).toBeGreaterThan(0)
