@@ -101,6 +101,15 @@ const LinesBase = memo(function Lines({ className, style }: KronaLinesProps) {
       }
       style={{ height: `${totalSize}px`, ...style }}
     >
+      {/* Reserves the document's full width. Rows are absolutely positioned, so
+          they give this column no intrinsic width of their own, and the
+          horizontal scroll extent would otherwise be whatever the handful of
+          rows on screen happen to need. */}
+      <div
+        className="krona-width-strut"
+        style={{ width: `${source.contentColumns}ch` }}
+        aria-hidden="true"
+      />
       {virtualItems.map((item) => {
         const row = rows[item.index]
         if (!row) return null

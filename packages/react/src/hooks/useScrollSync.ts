@@ -1,18 +1,21 @@
 import { useCallback, useMemo, useRef } from 'react'
 
 /**
- * Keeps several scroll containers vertically in lockstep.
+ * Keeps several scroll containers in lockstep, on both axes.
  *
  * A diff renders one virtualizer per panel over the *same* aligned rows, all at
  * the same fixed row height, so the panels are identical in height and syncing
  * is an exact `scrollTop` copy rather than a ratio — no drift, no rounding.
- * Horizontal scrolling stays independent, because the two sides have different
- * line lengths and locking them would drag one panel out of view.
+ *
+ * The horizontal axis copies just as exactly, because both panels reserve the
+ * same content width (see `contentColumns`): comparing two versions of a line
+ * means reading the same column in both, which independent horizontal scrolling
+ * makes impossible.
  */
 export interface ScrollSync {
   /** Registers a scroll container. Returns a cleanup function. */
   register(element: HTMLElement | null): () => void
-  /** Scrolls every registered container to the same offset. */
+  /** Scrolls every registered container to the same vertical offset. */
   scrollTo(top: number): void
 }
 
@@ -25,9 +28,9 @@ export function useScrollSync(): ScrollSync {
     const source = event.currentTarget as HTMLElement
     syncing.current = true
     for (const element of elements.current) {
-      if (element !== source && element.scrollTop !== source.scrollTop) {
-        element.scrollTop = source.scrollTop
-      }
+      if (element === source) continue
+      if (element.scrollTop !== source.scrollTop) element.scrollTop = source.scrollTop
+      if (element.scrollLeft !== source.scrollLeft) element.scrollLeft = source.scrollLeft
     }
     // Released on the next frame: the assignments above fire their own scroll
     // events, and re-entering here would ping-pong the panels.

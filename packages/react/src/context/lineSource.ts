@@ -49,6 +49,11 @@ export interface LineSource {
   readonly lineHeight: number
   /** Widest line number, used to size the gutter without measuring the DOM. */
   readonly maxLineNumber: number
+  /**
+   * Width to reserve for the document, in characters. In a diff both panels get
+   * the same number, so the two sides scroll horizontally to the same column.
+   */
+  readonly contentColumns: number
   isFolded(startLine: number): boolean
   toggleFold(startLine: number): void
   foldAt(lineIndex: number): FoldRange | undefined

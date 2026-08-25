@@ -110,6 +110,39 @@ describe('Krona.Diff', () => {
     await expect.poll(() => leftScroll.scrollTop).toBe(1200)
   })
 
+  it('keeps the panels in step horizontally, at a width the whole document sets', async () => {
+    // The one wide line sits at the very bottom, far outside the first
+    // viewport: if the reserved width came from the rendered rows alone, there
+    // would be nothing to scroll horizontally at all.
+    const wide = (marker: string) =>
+      [
+        '{',
+        ...Array.from({ length: 2000 }, (_, i) => `  "k${i}": "${marker}",`),
+        `  "long": "${marker.repeat(300)}"`,
+        '}',
+      ].join('\n')
+    const screen = await render(
+      <Krona format="json">
+        <Krona.Diff left={wide('a')} right={wide('b')} />
+      </Krona>,
+    )
+    const [leftScroll, rightScroll] = [
+      ...screen.container.querySelectorAll<HTMLElement>('.krona-scroll'),
+    ]
+    expect(leftScroll).toBeDefined()
+    expect(rightScroll).toBeDefined()
+    if (!leftScroll || !rightScroll) return
+
+    await expect.poll(() => leftScroll.scrollWidth > leftScroll.clientWidth).toBe(true)
+    expect(leftScroll.scrollWidth).toBe(rightScroll.scrollWidth)
+
+    leftScroll.scrollLeft = 120
+    await expect.poll(() => rightScroll.scrollLeft).toBe(120)
+
+    rightScroll.scrollLeft = 40
+    await expect.poll(() => leftScroll.scrollLeft).toBe(40)
+  })
+
   it('folds the matching range in both panels at once', async () => {
     const screen = await renderDiff()
     await expect.poll(() => rowsOf(screen.container, 'left').length).toBe(10)

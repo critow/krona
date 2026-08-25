@@ -170,6 +170,11 @@ export const KRONA_CSS = `:where(.krona) {
   min-width: max-content;
 }
 
+.krona-width-strut {
+  height: 0;
+  pointer-events: none;
+}
+
 .krona-row {
   position: absolute;
   top: 0;
