@@ -1,5 +1,6 @@
 import { KronaDiff } from './diff/Diff'
 import { Panel } from './diff/Panel'
+import { Unified } from './diff/Unified'
 import { KronaRoot } from './KronaRoot'
 import { Diagnostics } from './parts/Diagnostics'
 import { ExpandBar } from './parts/ExpandBar'
@@ -31,6 +32,13 @@ import { KronaViewer } from './viewer/Viewer'
  * </Krona>
  * ```
  *
+ * @example Unified diff
+ * ```tsx
+ * <Krona format="json">
+ *   <Krona.Diff left={before} right={after} view="unified" />
+ * </Krona>
+ * ```
+ *
  * @example Custom diff layout
  * ```tsx
  * <Krona.Diff left={before} right={after}>
@@ -50,6 +58,7 @@ export const Krona = Object.assign(KronaRoot, {
   Viewer: KronaViewer,
   Diff: KronaDiff,
   Panel,
+  Unified,
   Gutter,
   Lines,
   Toolbar,

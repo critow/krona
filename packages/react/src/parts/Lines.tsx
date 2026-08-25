@@ -358,9 +358,12 @@ const LinesBase = memo(function Lines({
             />
           )
         }
-        const text = model.lines[lineIndex]?.text ?? ''
-        const range = source.foldAt(lineIndex)
-        const folded = range ? source.isFolded(range.startLine) : false
+        // In a unified diff consecutive rows come from the two versions, so a
+        // row names its own document; everywhere else there is only one.
+        const rowModel = row.model ?? model
+        const text = rowModel.lines[lineIndex]?.text ?? ''
+        const range = source.foldAt(lineIndex, row.side)
+        const folded = range ? source.isFolded(range.startLine, row.side) : false
         const valueOpen = target?.kind === 'value' && target.lineIndex === lineIndex
         return (
           <div
@@ -385,7 +388,7 @@ const LinesBase = memo(function Lines({
             ) : (
               renderSegments(
                 text,
-                model.tokensAt(lineIndex),
+                rowModel.tokensAt(lineIndex),
                 row.intraline,
                 row.wholeLine ?? false,
                 labels,
@@ -396,14 +399,14 @@ const LinesBase = memo(function Lines({
               <FoldPlaceholder
                 range={range}
                 labels={labels}
-                onExpand={() => source.toggleFold(range.startLine)}
+                onExpand={() => source.toggleFold(range.startLine, row.side)}
               />
             ) : null}
             {(editing || showCopyActions) && !valueOpen ? (
               <RowActions
                 lineIndex={lineIndex}
                 range={range}
-                model={model}
+                model={rowModel}
                 editing={editing}
                 labels={labels}
                 showCopy={showCopyActions}

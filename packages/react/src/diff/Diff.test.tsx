@@ -179,11 +179,13 @@ describe('Krona.Diff', () => {
     expect(barOf(rightScroll)).toBe(hidden)
   })
 
-  it('shows one panel and a side switch when the root is narrow', async () => {
+  // A narrow root turns the diff unified unless the layout is pinned to split;
+  // that default has its own tests in Unified.test.tsx.
+  it('shows one panel and a side switch when a split diff is narrow', async () => {
     const screen = await render(
       <div style={{ width: 360 }}>
         <Krona format="json" narrowWidth={640}>
-          <Krona.Diff left={BEFORE} right={AFTER} />
+          <Krona.Diff left={BEFORE} right={AFTER} view="split" />
         </Krona>
       </div>,
     )

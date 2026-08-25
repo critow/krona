@@ -35,7 +35,12 @@ export interface KronaDiffState {
    * than its `narrowWidth`. Two panels on a phone are two unreadable panels.
    */
   readonly narrow: boolean
-  /** The side on screen while {@link KronaDiffState.narrow}. */
+  /**
+   * True while both versions share one column. Follows the `view` prop, which
+   * on `'auto'` turns unified as soon as {@link KronaDiffState.narrow} does.
+   */
+  readonly unified: boolean
+  /** The side on screen while narrow and split. */
   readonly side: 'left' | 'right'
   /** Switches which side a narrow layout shows. */
   showSide(side: 'left' | 'right'): void

@@ -25,6 +25,11 @@ function readParams() {
     lang: params.get('lang') === 'ru' ? ('ru' as Lang) : ('en' as Lang),
     collapse: params.get('collapse') !== 'off',
     minimap: params.get('minimap') !== 'off',
+    view: (['auto', 'split', 'unified'] as const).includes(
+      params.get('view') as 'auto' | 'split' | 'unified',
+    )
+      ? (params.get('view') as 'auto' | 'split' | 'unified')
+      : ('auto' as const),
   }
 }
 
@@ -42,13 +47,23 @@ function DiffPanelsBase({
   showMarkers: boolean
   showMinimap: boolean
 }) {
-  const { narrow, side } = useKronaDiff()
+  const { narrow, side, unified } = useKronaDiff()
   const panel = (which: 'left' | 'right') => (
     <Krona.Panel side={which}>
       <Krona.Gutter showMarkers={showMarkers} />
       <Krona.Lines />
     </Krona.Panel>
   )
+  // `view` decides for the default layout; a custom one asks `unified` and
+  // arranges itself, which is the whole point of laying it out by hand.
+  if (unified) {
+    return (
+      <Krona.Unified>
+        <Krona.Gutter showMarkers={showMarkers} />
+        <Krona.Lines />
+      </Krona.Unified>
+    )
+  }
   if (narrow) return panel(side)
   return (
     <>
@@ -74,6 +89,7 @@ export function App() {
 
   const [collapseUnchanged, setCollapseUnchanged] = useState(initial.collapse)
   const [showMinimap, setShowMinimap] = useState(initial.minimap)
+  const [view, setView] = useState(initial.view)
   const [showDiagnostics, setShowDiagnostics] = useState(true)
   const [editable, setEditable] = useState(false)
   const [showMarkers, setShowMarkers] = useState(true)
@@ -136,6 +152,7 @@ export function App() {
         step,
         showMinimap,
         ignoreTrailingWhitespace,
+        view,
       }),
     [
       sample.format,
@@ -152,6 +169,7 @@ export function App() {
       step,
       showMinimap,
       ignoreTrailingWhitespace,
+      view,
     ],
   )
 
@@ -238,6 +256,7 @@ export function App() {
                   left={sample.left}
                   right={sample.right}
                   collapseUnchanged={collapseUnchanged && collapseOptions}
+                  view={view}
                   showMinimap={showMinimap}
                   ignoreTrailingWhitespace={ignoreTrailingWhitespace}
                   overscan={overscan}
@@ -327,6 +346,20 @@ export function App() {
               </Field>
               {mode === 'diff' ? (
                 <>
+                  <Field label={dict.layout}>
+                    <Select
+                      value={view}
+                      options={[
+                        { value: 'auto' as const, label: dict.auto },
+                        { value: 'split' as const, label: dict.split },
+                        { value: 'unified' as const, label: dict.unified },
+                      ]}
+                      onChange={(value) => {
+                        setView(value)
+                        syncUrl({ view: value })
+                      }}
+                    />
+                  </Field>
                   <Field label={dict.context}>
                     <NumberField
                       value={context}

@@ -67,8 +67,10 @@ const GutterBase = memo(function Gutter({
             />
           )
         }
-        const range = lineIndex === null ? undefined : source.foldAt(lineIndex)
-        const folded = range ? source.isFolded(range.startLine) : false
+        // `row.side` is set only in a unified diff, where the two versions
+        // share one column and a line index alone does not name a line.
+        const range = lineIndex === null ? undefined : source.foldAt(lineIndex, row.side)
+        const folded = range ? source.isFolded(range.startLine, row.side) : false
         const body = (
           <>
             {showMarkers && MARKERS[tone] ? (
@@ -95,7 +97,7 @@ const GutterBase = memo(function Gutter({
             aria-expanded={!folded}
             aria-label={folded ? labels.expandBlock : labels.collapseBlock}
             title={folded ? labels.expandBlock : labels.collapseBlock}
-            onClick={() => source.toggleFold(range.startLine)}
+            onClick={() => source.toggleFold(range.startLine, row.side)}
           >
             {body}
           </button>

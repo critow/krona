@@ -21,6 +21,7 @@ import { DiffContext } from './DiffContext'
 import { Panel } from './Panel'
 import { PanelLayoutContext } from './PanelLayoutContext'
 import { buildRowIndex, hasFoldAt, useDisplayItems } from './rows'
+import { Unified } from './Unified'
 
 /** How much of an unchanged run stays visible around a change. */
 export interface CollapseUnchangedOptions {
@@ -52,7 +53,14 @@ export interface KronaDiffProps {
   defaultCollapsedDepth?: number
   /** Compare lines ignoring trailing whitespace. Default false. */
   ignoreTrailingWhitespace?: boolean
-  /** Show the change minimap between the panels. Default false. */
+  /**
+   * `'split'` shows the two versions side by side, `'unified'` shows one column
+   * with the old line above the new one. `'auto'`, the default, is split where
+   * there is room and unified below `narrowWidth`: two panels on a phone are
+   * two unreadable panels, and a unified diff needs only one.
+   */
+  view?: 'split' | 'unified' | 'auto'
+  /** Show the change minimap between the panels. Split view only. Default false. */
   showMinimap?: boolean
   /** Extra rows rendered outside the viewport. Default 8. */
   overscan?: number
@@ -87,6 +95,7 @@ export function KronaDiff({
   collapseUnchanged: collapse = false,
   defaultCollapsedDepth,
   ignoreTrailingWhitespace = false,
+  view = 'auto',
   showMinimap = false,
   overscan = 8,
   className,
@@ -254,6 +263,8 @@ export function KronaDiff({
     setCollapsedRows(collapsed)
   }, [leftModel, rightModel, rowIndex])
 
+  const unified = view === 'unified' || (view === 'auto' && config.narrow)
+
   const scrollSync = useScrollSync()
 
   const panelLayout = useMemo(
@@ -315,6 +326,7 @@ export function KronaDiff({
       collapseAll,
       labels: resolvedLabels,
       narrow: config.narrow,
+      unified,
       side,
       showSide: setSide,
     }),
@@ -331,24 +343,26 @@ export function KronaDiff({
       collapseAll,
       resolvedLabels,
       config.narrow,
+      unified,
       side,
     ],
   )
 
   const slots = useMemo(() => (children ? splitSlots(children, 'chrome') : null), [children])
-  // One panel when there is no room for two. Splitting the width of a phone
+  // One column when there is no room for two. Splitting the width of a phone
   // between two panels gives about ten characters each, which shows neither
-  // version; the reader switches sides instead, over the same aligned rows, so
-  // the line numbers still line up with what the other side had.
+  // version; a unified diff puts the whole width behind one line at a time.
   const panels = slots
     ? slots.panels
-    : config.narrow
-      ? [<Panel key={side} side={side} />]
-      : [
-          <Panel key="left" side="left" />,
-          ...(showMinimap ? [<Minimap key="minimap" />] : []),
-          <Panel key="right" side="right" />,
-        ]
+    : unified
+      ? [<Unified key="unified" />]
+      : config.narrow
+        ? [<Panel key={side} side={side} />]
+        : [
+            <Panel key="left" side="left" />,
+            ...(showMinimap ? [<Minimap key="minimap" />] : []),
+            <Panel key="right" side="right" />,
+          ]
 
   return (
     <DiffContext.Provider value={diffState}>
@@ -358,7 +372,9 @@ export function KronaDiff({
           style={style}
           aria-label={resolvedLabels.document}
         >
-          {slots ? slots.chrome : config.narrow ? <SideSwitch /> : null}
+          {/* Nothing to switch between in a unified diff: both versions are
+              already on screen, one line above the other. */}
+          {slots ? slots.chrome : config.narrow && !unified ? <SideSwitch /> : null}
           <div
             className={
               panels.length > 2 ? 'krona-panels krona-panels--with-minimap' : 'krona-panels'

@@ -162,7 +162,8 @@ below it.
 | `collapseUnchanged` | `boolean \| CollapseUnchangedOptions` | `false` | Hide long unchanged runs behind an expandable bar |
 | `defaultCollapsedDepth` | `number` | — | Collapse folding ranges at this depth or deeper on load |
 | `ignoreTrailingWhitespace` | `boolean` | `false` | Compare lines ignoring trailing whitespace |
-| `showMinimap` | `boolean` | `false` | Show the change minimap between the panels |
+| `view` | `'split' \| 'unified' \| 'auto'` | `'auto'` | Two panels, one column, or two until the root is narrower than `narrowWidth` |
+| `showMinimap` | `boolean` | `false` | Show the change minimap between the panels (split view) |
 | `overscan` | `number` | `8` | Extra rows rendered outside the viewport |
 | `className` / `style` | — | — | Applied to the diff region |
 | `children` | `ReactNode` | two default panels | [Custom layout](#custom-layouts) |
@@ -191,6 +192,7 @@ learn which mode they are in.
 | `Krona.Toolbar` | above the content | Fold actions, plus change counts inside a diff. Accepts `children` |
 | `Krona.Diagnostics` | above the content | Parse problems. `includeWarnings?: boolean` |
 | `Krona.Panel` | diff only | One side. `side: 'left' \| 'right'` |
+| `Krona.Unified` | diff only | Both versions in one column, old line above new; what `view="unified"` renders |
 | `Krona.Minimap` | diff only | Change map between the panels; throws elsewhere |
 | `Krona.SideSwitch` | diff only | Chooses the version a [narrow](#small-screens) diff shows. `always?: boolean`; renders nothing where both panels fit |
 | `Krona.ExpandBar` | rendered for you | The hidden-rows bar; exported for restyling |
@@ -383,11 +385,15 @@ function plural(n: number, one: string, few: string, many: string): string {
 
 ## Small screens
 
-Below `narrowWidth` (640px by default) a diff shows **one panel at a time**,
-with a side switch in the toolbar. Splitting the width of a phone between two
-panels gives about ten characters each, which shows neither version; the reader
-switches sides instead, over the same aligned rows, so the line numbers still
-line up with what the other side had. The gutter narrows too.
+Below `narrowWidth` (640px by default) a diff turns **unified**: one column, the
+old line above the new one. Splitting the width of a phone between two panels
+gives about ten characters each, which shows neither version, and switching
+between them means holding one in your head — a unified diff puts the whole
+width behind one line at a time and keeps both on screen. The gutter narrows too.
+
+`view="split"` keeps two panels at every width; a narrow one then shows a single
+side with `Krona.SideSwitch` to change it. `view="unified"` uses one column at
+every width.
 
 The width measured is the **root's**, not the window's. A diff in a sidebar on a
 wide screen is just as cramped as one on a phone, and a media query cannot tell
@@ -399,10 +405,10 @@ the difference. Pass `narrowWidth={0}` to keep the wide layout at every size.
 </Krona>
 ```
 
-`useKronaDiff()` exposes the same state, for a switch of your own:
+`useKronaDiff()` exposes the same state, for a layout of your own:
 
 ```tsx
-const { narrow, side, showSide } = useKronaDiff()
+const { narrow, unified, side, showSide } = useKronaDiff()
 ```
 
 Row actions stay visible without hovering where there is no pointer to hover
@@ -573,15 +579,13 @@ its own size.
 
 ## Roadmap
 
-Krona 0.1 shows one configuration file, or two of them side by side, and lets
-you [edit](#editing) the one. Everything below is deliberately absent rather
-than forgotten.
+Krona 0.1 shows one configuration file, or two of them — side by side or in one
+column — and lets you [edit](#editing) the single file. Everything below is
+deliberately absent rather than forgotten.
 
 | Not in 0.1 | Reasoning | Likely |
 | --- | --- | --- |
-| Inline (unified) diff | Side by side answers the question the library exists for. A unified view is a second layout over the same aligned rows, so it is cheap to add once the row model settles. | Next |
 | Search inside the document | Needs a match index that survives folding and virtualization; worth doing properly rather than early. | Next |
-| Unified diff on a phone | A narrow diff shows one side at a time today, which reads well but makes you switch to compare. A unified view is the better answer, and the same second layout listed above. | Next |
 | More formats (XML, `.properties`, HCL) | Each is a provider — an `analyze` and a `tokenize` — behind the same interface. Waiting for someone to actually need one. | Maybe |
 | Semantic diff | Reordering keys *is* a difference in a configuration file. Krona compares text, exactly like git. | Not planned |
 
