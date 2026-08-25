@@ -57,6 +57,16 @@ The first release. Try it in the [demo](https://critow.github.io/krona/).
   whole entry — the whole block when the line opens one.
 - Diff panels scroll in lockstep on both axes, over a content width the whole
   document sets rather than the rows currently on screen.
+- Search, in both modes: `showSearch` puts a field above the document, or
+  `Krona.Search` goes wherever a custom layout wants it. Matching is literal
+  rather than a pattern — a regular expression from a text field is one a
+  stranger can type too — case-insensitive by default, and capped at 5000
+  matches, after which the counter says the number is a floor. Jumping opens
+  whatever hides the match, a folded block or a collapsed run of unchanged
+  lines, and scrolls it into view. In a diff both versions are searched and the
+  matches are ordered by row, so walking them reads down the screen.
+  `useKronaSearch()` exposes the state, and `findMatches` in the core does the
+  matching without any UI.
 - A unified diff: `<Krona.Diff view="unified">` puts both versions in one
   column, old line above new, and `Krona.Unified` is the part it renders. It is
   the same alignment the two panels share, read as one column — a changed row

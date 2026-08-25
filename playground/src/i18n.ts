@@ -29,6 +29,7 @@ export interface Dict {
   step: string
   collapseUnchanged: string
   minimap: string
+  search: string
   layout: string
   split: string
   unified: string
@@ -69,6 +70,7 @@ const en: Dict = {
   step: 'Expand step',
   collapseUnchanged: 'Fold unchanged',
   minimap: 'Minimap',
+  search: 'Search box',
   layout: 'Layout',
   split: 'Split',
   unified: 'Unified',
@@ -123,6 +125,7 @@ const ru: Dict = {
   step: 'Шаг разворота',
   collapseUnchanged: 'Сворачивать неизменённое',
   minimap: 'Миникарта',
+  search: 'Поиск',
   layout: 'Раскладка',
   split: 'Рядом',
   unified: 'Одной колонкой',
@@ -161,6 +164,13 @@ const ru: Dict = {
       `${ruNumbers.format(count)} ${ruPlural(count, 'строка', 'строки', 'строк')}`,
     hiddenLines: (count) =>
       `${ruNumbers.format(count)} ${ruPlural(count, 'строка', 'строки', 'строк')} без изменений`,
+    search: 'Поиск',
+    nextMatch: 'Следующее совпадение',
+    previousMatch: 'Предыдущее совпадение',
+    matchCase: 'Учитывать регистр',
+    matchCount: (position, total, more) =>
+      `${ruNumbers.format(position)} / ${ruNumbers.format(total)}${more ? '+' : ''}`,
+    noMatches: 'Ничего не найдено',
     expandUp: 'Развернуть вверх',
     expandDown: 'Развернуть вниз',
     expandAllHidden: 'Развернуть всё',

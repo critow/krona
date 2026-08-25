@@ -60,6 +60,8 @@ export type {
 } from './model/types'
 export type { UnsafeKind, UnsafeSpan } from './model/unicode'
 export { hasUnsafeCharacters, scanUnsafeCharacters } from './model/unicode'
+export type { SearchMatch, SearchOptions, SearchResult } from './search/search'
+export { findMatches, matchAfter } from './search/search'
 
 // yamlProvider is intentionally NOT re-exported here: see '@krona/core/yaml'.
 

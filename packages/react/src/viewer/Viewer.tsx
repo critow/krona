@@ -9,7 +9,15 @@ import {
   removeBlockEdit,
 } from '@krona/core'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import { type CSSProperties, type ReactNode, useMemo, useRef, useState } from 'react'
+import {
+  type CSSProperties,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { useKronaConfig } from '../context/config'
 import {
   type EditTarget,
@@ -17,14 +25,17 @@ import {
   LineSourceContext,
   type RenderRow,
 } from '../context/lineSource'
+import { SearchContext } from '../context/search'
 import { splitSlots } from '../context/slots'
 import { useDocument } from '../hooks/useDocument'
 import { useEditState } from '../hooks/useEditState'
 import { computeVisibleLines, useFoldState } from '../hooks/useFoldState'
+import { type SearchHit, useSearch } from '../hooks/useSearch'
 import { type KronaLabels, resolveLabels } from '../labels'
 import { Diagnostics } from '../parts/Diagnostics'
 import { Gutter } from '../parts/Gutter'
 import { Lines } from '../parts/Lines'
+import { Search } from '../parts/Search'
 import { contentColumnsOf } from '../render/width'
 import { ViewerContext } from './ViewerContext'
 
@@ -50,6 +61,8 @@ export interface KronaViewerProps {
   overscan?: number
   /** Show parse errors above the document. Default true. */
   showDiagnostics?: boolean
+  /** Show the search field above the document. Default false. */
+  showSearch?: boolean
   /**
    * Let the reader edit the document. Off by default.
    *
@@ -99,6 +112,7 @@ export function KronaViewer({
   defaultCollapsedDepth,
   overscan = 8,
   showDiagnostics = true,
+  showSearch = false,
   editable = false,
   onChange,
   className,
@@ -207,6 +221,26 @@ export function KronaViewer({
     }
   }, [editable, target, model, edit, foldState, config.providers])
 
+  // A match may be inside a folded block and outside the rendered window, so
+  // jumping to one opens whatever hides it and only then scrolls. The scroll
+  // waits for the render that unfolding causes: until then the row it wants
+  // does not exist.
+  const [pendingLine, setPendingLine] = useState<number | null>(null)
+  const reveal = useCallback(
+    (hit: SearchHit) => {
+      for (const range of model.foldingRanges) {
+        if (range.startLine > hit.lineIndex) break
+        if (range.endLine >= hit.lineIndex && foldState.isFolded(range.startLine)) {
+          foldState.unfold(range.startLine)
+        }
+      }
+      setPendingLine(hit.lineIndex)
+    },
+    [model, foldState],
+  )
+
+  const search = useSearch({ kind: 'single', model }, reveal, resolvedLabels)
+
   const visibleLines = useMemo(
     () => computeVisibleLines(model, foldState.collapsed),
     [model, foldState.collapsed],
@@ -228,6 +262,13 @@ export function KronaViewer({
   const virtualItems = virtualizer.getVirtualItems()
   const totalSize = virtualizer.getTotalSize()
 
+  useEffect(() => {
+    if (pendingLine === null) return
+    const row = visibleLines.indexOf(pendingLine)
+    if (row >= 0) virtualizer.scrollToIndex(row, { align: 'center' })
+    setPendingLine(null)
+  }, [pendingLine, visibleLines, virtualizer])
+
   const contentColumns = useMemo(() => contentColumnsOf(model), [model])
 
   const lineSource = useMemo(
@@ -246,6 +287,11 @@ export function KronaViewer({
       isFolded: foldState.isFolded,
       toggleFold: foldState.toggleFold,
       foldAt: (lineIndex: number) => model.foldAt(lineIndex),
+      search: {
+        query: search.state.query,
+        matchesAt: search.matchesAt,
+        current: search.current,
+      },
       // Spread rather than assigned: with `exactOptionalPropertyTypes` an
       // optional field is absent or set, never explicitly `undefined`.
       ...(editing ? { editing } : {}),
@@ -261,6 +307,9 @@ export function KronaViewer({
       contentColumns,
       editing,
       foldState,
+      search.state.query,
+      search.matchesAt,
+      search.current,
     ],
   )
 
@@ -281,25 +330,32 @@ export function KronaViewer({
   )
 
   const slots = useMemo(() => (children ? splitSlots(children, 'chrome') : null), [children])
-  const chrome = slots ? slots.chrome : showDiagnostics ? [<Diagnostics key="diagnostics" />] : []
+  const chrome = slots
+    ? slots.chrome
+    : [
+        ...(showSearch ? [<Search key="search" />] : []),
+        ...(showDiagnostics ? [<Diagnostics key="diagnostics" />] : []),
+      ]
   const canvas = slots ? slots.canvas : [<Gutter key="gutter" />, <Lines key="lines" />]
 
   return (
     <ViewerContext.Provider value={viewerState}>
-      <LineSourceContext.Provider value={lineSource}>
-        <section
-          className={className ? `krona-viewer ${className}` : 'krona-viewer'}
-          style={style}
-          aria-label={resolvedLabels.document}
-        >
-          {chrome}
-          <div className="krona-scroll" ref={scrollRef}>
-            <div className="krona-canvas" style={{ height: `${totalSize}px` }}>
-              {canvas}
+      <SearchContext.Provider value={search.state}>
+        <LineSourceContext.Provider value={lineSource}>
+          <section
+            className={className ? `krona-viewer ${className}` : 'krona-viewer'}
+            style={style}
+            aria-label={resolvedLabels.document}
+          >
+            {chrome}
+            <div className="krona-scroll" ref={scrollRef}>
+              <div className="krona-canvas" style={{ height: `${totalSize}px` }}>
+                {canvas}
+              </div>
             </div>
-          </div>
-        </section>
-      </LineSourceContext.Provider>
+          </section>
+        </LineSourceContext.Provider>
+      </SearchContext.Provider>
     </ViewerContext.Provider>
   )
 }

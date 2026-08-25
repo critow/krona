@@ -84,6 +84,22 @@ export interface LineSource {
   readonly step?: number
   /** Viewer only, and only when `editable`: the editing operations. */
   readonly editing?: LineEditing
+  /** Present while a search is open: what to paint on each line. */
+  readonly search?: LineSearch
+}
+
+/** The search, as the parts that paint it see it. */
+export interface LineSearch {
+  readonly query: string
+  /** Columns to highlight on a line of this source's document. */
+  matchesAt(lineIndex: number, side?: 'left' | 'right'): readonly Span[]
+  /** The one match the reader is standing on, wherever it is. */
+  readonly current: {
+    readonly side: 'single' | 'left' | 'right'
+    readonly lineIndex: number
+    readonly start: number
+    readonly end: number
+  } | null
 }
 
 /** What an open inline editor covers. */

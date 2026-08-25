@@ -9,6 +9,9 @@ export interface Segment {
   readonly token?: Token['type']
   /** True when the segment is inside a word-level diff highlight. */
   readonly changed: boolean
+  /** Set when the segment is inside a search match, and whether it is the one
+   *  the reader is standing on. */
+  readonly match?: 'match' | 'current'
   /** Set when the segment is a single character that must not be rendered raw. */
   readonly unsafe?: UnsafeSpan
 }
@@ -29,6 +32,8 @@ export function buildSegments(
   tokens: readonly Token[],
   intraline: readonly Span[] | undefined,
   wholeLineChanged: boolean,
+  matches?: readonly Span[],
+  current?: Span,
 ): Segment[] {
   if (text.length === 0) return []
 
@@ -48,12 +53,19 @@ export function buildSegments(
     addBoundary(boundaries, span.start, text.length)
     addBoundary(boundaries, span.end, text.length)
   }
+  if (matches) {
+    for (const span of matches) {
+      addBoundary(boundaries, span.start, text.length)
+      addBoundary(boundaries, span.end, text.length)
+    }
+  }
 
   const cuts = [0, ...[...boundaries].sort((a, b) => a - b), text.length]
   const segments: Segment[] = []
   let tokenIndex = 0
   let spanIndex = 0
   let unsafeIndex = 0
+  let matchIndex = 0
 
   for (let i = 0; i < cuts.length - 1; i++) {
     const start = cuts[i] as number
@@ -79,11 +91,24 @@ export function buildSegments(
     const dangerous = unsafe[unsafeIndex]
     const isUnsafe = dangerous !== undefined && dangerous.start === start && dangerous.end === end
 
+    let match: Segment['match']
+    if (matches) {
+      while (matchIndex < matches.length && (matches[matchIndex] as Span).end <= start) matchIndex++
+      const span = matches[matchIndex]
+      if (span !== undefined && span.start <= start && span.end >= end) {
+        // The current match is one of the matches, told apart by its columns:
+        // the reader has to see which of several on a line they are on.
+        match =
+          current && current.start === span.start && current.end === span.end ? 'current' : 'match'
+      }
+    }
+
     segments.push({
       start,
       end,
       ...(tokenType ? { token: tokenType } : {}),
       changed,
+      ...(match ? { match } : {}),
       ...(isUnsafe ? { unsafe: dangerous } : {}),
     })
   }

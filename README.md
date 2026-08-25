@@ -146,6 +146,7 @@ below it.
 | `defaultCollapsedDepth` | `number` | — | Collapse every range at this nesting depth or deeper, on mount and whenever the value changes; `0` collapses everything |
 | `overscan` | `number` | `8` | Extra rows rendered outside the viewport |
 | `showDiagnostics` | `boolean` | `true` | Show parse errors above the document (default layout only) |
+| `showSearch` | `boolean` | `false` | Show the search field above the document (default layout only) |
 | `editable` | `boolean` | `false` | Let the reader edit the document — see [Editing](#editing) |
 | `onChange` | `(source: string) => void` | — | Called with the whole document after every edit, undo and redo |
 | `className` / `style` | — | — | Applied to the viewer region |
@@ -164,6 +165,7 @@ below it.
 | `ignoreTrailingWhitespace` | `boolean` | `false` | Compare lines ignoring trailing whitespace |
 | `view` | `'split' \| 'unified' \| 'auto'` | `'auto'` | Two panels, one column, or two until the root is narrower than `narrowWidth` |
 | `showMinimap` | `boolean` | `false` | Show the change minimap between the panels (split view) |
+| `showSearch` | `boolean` | `false` | Show the search field above the panels |
 | `overscan` | `number` | `8` | Extra rows rendered outside the viewport |
 | `className` / `style` | — | — | Applied to the diff region |
 | `children` | `ReactNode` | two default panels | [Custom layout](#custom-layouts) |
@@ -194,6 +196,7 @@ learn which mode they are in.
 | `Krona.Panel` | diff only | One side. `side: 'left' \| 'right'` |
 | `Krona.Unified` | diff only | Both versions in one column, old line above new; what `view="unified"` renders |
 | `Krona.Minimap` | diff only | Change map between the panels; throws elsewhere |
+| `Krona.Search` | above the content | Search field, counter and step buttons. `showMatchCase?: boolean`, `autoFocus?: boolean` |
 | `Krona.SideSwitch` | diff only | Chooses the version a [narrow](#small-screens) diff shows. `always?: boolean`; renders nothing where both panels fit |
 | `Krona.ExpandBar` | rendered for you | The hidden-rows bar; exported for restyling |
 
@@ -325,6 +328,42 @@ function ChangeCount() {
 }
 ```
 
+## Search
+
+`showSearch` puts a field above the document, or `Krona.Search` puts one wherever
+your layout wants it. Matches are highlighted as you type; Enter and Shift+Enter
+walk them, as do the step buttons.
+
+```tsx
+<Krona format="yaml">
+  <Krona.Viewer source={text} showSearch />
+</Krona>
+```
+
+**Matching is literal, never a pattern.** A regular expression typed into a text
+field is one a stranger can type too, and a viewer that stops answering is worse
+than one that finds less. Case is ignored by default; the `Aa` toggle stops that.
+
+Jumping to a match **opens whatever hides it** — a folded block, a collapsed run
+of unchanged lines — and scrolls it into view, so a match in a file you are
+looking at from a distance is still one keystroke away.
+
+In a diff both versions are searched and the matches are ordered **by row**, so
+walking them reads down the screen rather than through one file and then the
+other. A line that was removed and the line that replaced it are neighbours.
+
+Long searches stop at 5000 matches; the counter then reads `1 / 5000+`, because a
+count nobody will walk is not worth the memory to hold.
+
+`useKronaSearch()` exposes the same state for a control of your own:
+
+```tsx
+const { query, setQuery, total, position, next, previous } = useKronaSearch()
+```
+
+`findMatches(model, query)` from the core does the matching itself, if you want
+the occurrences without the UI.
+
 ## Localization
 
 Krona ships **no i18n runtime**. Every visible string is an English default you
@@ -358,6 +397,11 @@ app where they belong. Numbers in the defaults are formatted with
 | `copyValue` | `string` | `Copy value` | Row action copying just the value |
 | `copyPath` | `string` | `Copy path` | Row action copying the dotted path to the line |
 | `copied` | `string` | `Copied` | Shown briefly on a copy action that has run |
+| `search` | `string` | `Search` | Search field placeholder and accessible name |
+| `nextMatch` / `previousMatch` | `string` | `Next match` / `Previous match` | Search step buttons |
+| `matchCase` | `string` | `Match case` | Search toggle for case-sensitive matching |
+| `matchCount` | `(position: number, total: number, more: boolean) => string` | `3 / 17` | Match counter; `more` when the count is a floor |
+| `noMatches` | `string` | `No matches` | Shown and announced when a query finds nothing |
 
 Russian needs three plural forms, which is exactly why plurals live in your app
 and not in the library:
@@ -433,6 +477,7 @@ ancestor — no selector needs to be touched.
 | Layout | `--krona-height`, `--krona-line-height`, `--krona-font-family`, `--krona-font-size`, `--krona-gutter-width`, `--krona-padding-inline` |
 | Surfaces | `--krona-bg`, `--krona-bg-gutter`, `--krona-bg-hover`, `--krona-border`, `--krona-fg`, `--krona-fg-muted` |
 | Controls | `--krona-chevron`, `--krona-chevron-hover`, `--krona-scrollbar` |
+| Search | `--krona-match-bg`, `--krona-match-current-bg` |
 | Tokens | `--krona-token-key`, `-string`, `-number`, `-boolean`, `-null`, `-comment`, `-punctuation`, `-section` |
 | Diff | `--krona-added-bg`, `--krona-added-strong-bg`, `--krona-removed-bg`, `--krona-removed-strong-bg`, `--krona-spacer-bg`, `--krona-added-marker`, `--krona-removed-marker` |
 | Warnings | `--krona-unsafe-bg`, `--krona-unsafe-fg` |
@@ -580,12 +625,11 @@ its own size.
 ## Roadmap
 
 Krona 0.1 shows one configuration file, or two of them — side by side or in one
-column — and lets you [edit](#editing) the single file. Everything below is
-deliberately absent rather than forgotten.
+column — lets you [edit](#editing) the single file and [search](#search) either.
+Everything below is deliberately absent rather than forgotten.
 
 | Not in 0.1 | Reasoning | Likely |
 | --- | --- | --- |
-| Search inside the document | Needs a match index that survives folding and virtualization; worth doing properly rather than early. | Next |
 | More formats (XML, `.properties`, HCL) | Each is a provider — an `analyze` and a `tokenize` — behind the same interface. Waiting for someone to actually need one. | Maybe |
 | Semantic diff | Reordering keys *is* a difference in a configuration file. Krona compares text, exactly like git. | Not planned |
 
