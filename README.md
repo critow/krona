@@ -283,6 +283,7 @@ ancestor — no selector needs to be touched.
 | --- | --- |
 | Layout | `--krona-height`, `--krona-line-height`, `--krona-font-family`, `--krona-font-size`, `--krona-gutter-width`, `--krona-padding-inline` |
 | Surfaces | `--krona-bg`, `--krona-bg-gutter`, `--krona-bg-hover`, `--krona-border`, `--krona-fg`, `--krona-fg-muted` |
+| Controls | `--krona-chevron`, `--krona-chevron-hover` |
 | Tokens | `--krona-token-key`, `-string`, `-number`, `-boolean`, `-null`, `-comment`, `-punctuation`, `-section` |
 | Diff | `--krona-added-bg`, `--krona-added-strong-bg`, `--krona-removed-bg`, `--krona-removed-strong-bg`, `--krona-spacer-bg`, `--krona-added-marker`, `--krona-removed-marker` |
 | Warnings | `--krona-unsafe-bg`, `--krona-unsafe-fg` |

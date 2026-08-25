@@ -24,6 +24,8 @@ export const KRONA_CSS = `:where(.krona) {
   --krona-border: #d8dee4;
   --krona-fg: #1f2328;
   --krona-fg-muted: #59636e;
+  --krona-chevron: #57606a;
+  --krona-chevron-hover: #0550ae;
 
   /* Tokens */
   --krona-token-key: #0550ae;
@@ -56,6 +58,8 @@ export const KRONA_CSS = `:where(.krona) {
   --krona-border: #30363d;
   --krona-fg: #e6edf3;
   --krona-fg-muted: #8d96a0;
+  --krona-chevron: #a8b3bf;
+  --krona-chevron-hover: #79c0ff;
 
   --krona-token-key: #79c0ff;
   --krona-token-string: #7ee787;
@@ -86,6 +90,8 @@ export const KRONA_CSS = `:where(.krona) {
     --krona-border: #30363d;
     --krona-fg: #e6edf3;
     --krona-fg-muted: #8d96a0;
+    --krona-chevron: #a8b3bf;
+    --krona-chevron-hover: #79c0ff;
 
     --krona-token-key: #79c0ff;
     --krona-token-string: #7ee787;
@@ -205,17 +211,20 @@ export const KRONA_CSS = `:where(.krona) {
   text-align: right;
 }
 
+/* The control is the whole gutter cell, not just the icon: a 16px chevron
+   wedged between a line number and the code reads as punctuation rather than
+   as something to click, and nothing else competes for a click in a read-only
+   gutter. */
 .krona-fold-toggle {
-  all: unset;
-  cursor: pointer;
-  width: 1rem;
-  height: 1rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 3px;
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
   color: var(--krona-fg-muted);
-  flex: 0 0 auto;
+  cursor: pointer;
+  text-align: inherit;
 }
 
 .krona-fold-toggle:hover {
@@ -223,29 +232,37 @@ export const KRONA_CSS = `:where(.krona) {
   color: var(--krona-fg);
 }
 
+.krona-fold-toggle:hover .krona-fold-chevron {
+  color: var(--krona-chevron-hover);
+}
+
 .krona-fold-toggle:focus-visible {
   outline: 2px solid var(--krona-token-key);
-  outline-offset: -1px;
+  outline-offset: -2px;
 }
 
-.krona-fold-toggle svg {
-  width: 0.75rem;
-  height: 0.75rem;
-  transition: transform 80ms linear;
+.krona-fold-chevron {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex: 0 0 auto;
+  color: var(--krona-chevron);
+  transition:
+    transform 80ms linear,
+    color 80ms linear;
 }
 
-.krona-fold-toggle[aria-expanded="false"] svg {
+.krona-fold-toggle[aria-expanded="false"] .krona-fold-chevron {
   transform: rotate(-90deg);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .krona-fold-toggle svg {
+  .krona-fold-chevron {
     transition: none;
   }
 }
 
 .krona-fold-spacer {
-  width: 1rem;
+  width: 0.875rem;
   flex: 0 0 auto;
 }
 

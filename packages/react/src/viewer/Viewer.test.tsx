@@ -91,6 +91,22 @@ describe('Krona.Viewer', () => {
     await expect.poll(() => toggle?.getAttribute('aria-expanded')).toBe('true')
   })
 
+  it('gives the fold control a target you can actually hit', async () => {
+    const { screen } = await renderViewer()
+    await expect
+      .poll(() => screen.container.querySelectorAll('.krona-fold-toggle').length)
+      .toBeGreaterThan(0)
+    const toggle = screen.container.querySelector('.krona-fold-toggle') as HTMLElement
+    const box = toggle.getBoundingClientRect()
+    // This started life as a 16x16 icon wedged between a line number and the
+    // code, which read as punctuation rather than as a control. The whole
+    // gutter cell is the button now; the assertion is here so it cannot shrink
+    // back without someone noticing.
+    expect(box.width).toBeGreaterThanOrEqual(40)
+    expect(box.height).toBeGreaterThanOrEqual(16)
+    expect(toggle.tagName).toBe('BUTTON')
+  })
+
   it('reaches every fold chevron with Tab alone', async () => {
     const { screen } = await renderViewer()
     await expect.poll(() => screen.container.querySelectorAll('.krona-fold-toggle').length).toBe(3)

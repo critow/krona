@@ -8,9 +8,6 @@
 8:removed          | spacer:spacer
 9:removed          | spacer:spacer
 10:removed         | spacer:spacer
-11:removed         | spacer:spacer
-12:removed         | spacer:spacer
-13:removed         | spacer:spacer
 spacer:spacer      | 1:added
 spacer:spacer      | 2:added
 spacer:spacer      | 3:added

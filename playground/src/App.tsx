@@ -40,7 +40,9 @@ export function App() {
   const [showDiagnostics, setShowDiagnostics] = useState(true)
   const [showMarkers, setShowMarkers] = useState(true)
   const [ignoreTrailingWhitespace, setIgnoreTrailingWhitespace] = useState(false)
-  const [collapsedDepth, setCollapsedDepth] = useState<number | undefined>(undefined)
+  // The demo lands partially collapsed on purpose: with everything expanded
+  // there is nothing to notice, and the fold controls read as decoration.
+  const [collapsedDepth, setCollapsedDepth] = useState<number | undefined>(2)
   const [lineHeight, setLineHeight] = useState(20)
   const [overscan, setOverscan] = useState(8)
   const [context, setContext] = useState(3)
