@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="./docs/assets/logo.svg" width="88" height="88" alt="">
+
 # Krona
 
 **Collapsible tree view and side-by-side diff for configuration files, as a React component.**
@@ -9,6 +11,12 @@ JSON/JSONC · YAML · TOML · INI/.env
 [**Explore the demo →**](https://critow.github.io/krona/)
 
 [English](./README.md) · [Русский](./README.ru.md)
+
+[![CI](https://github.com/critow/krona/actions/workflows/ci.yml/badge.svg)](https://github.com/critow/krona/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-5ccfe6?style=flat-square)](./LICENSE)
+[![Runtime dependencies: 3](https://img.shields.io/badge/runtime%20deps-3-5ccfe6?style=flat-square)](#design-notes)
+[![Types: included](https://img.shields.io/badge/types-included-5ccfe6?style=flat-square)](#props-reference)
+[![React 18 | 19](https://img.shields.io/badge/react-18%20%7C%2019-5ccfe6?style=flat-square)](#installation)
 
 </div>
 
@@ -41,6 +49,7 @@ JSON/JSONC · YAML · TOML · INI/.env
 - [Large files and Web Workers](#large-files-and-web-workers)
 - [Using the core without React](#using-the-core-without-react)
 - [Design notes](#design-notes)
+- [Roadmap](#roadmap)
 - [Development](#development)
 - [License](#license)
 
@@ -407,6 +416,22 @@ enforced by the linter.
 
 **Aliases are never expanded.** A YAML "billion laughs" file costs no more than
 its own size.
+
+## Roadmap
+
+Krona 0.1 shows one configuration file, or two of them side by side. Everything
+below is deliberately absent rather than forgotten.
+
+| Not in 0.1 | Reasoning | Likely |
+| --- | --- | --- |
+| Inline (unified) diff | Side by side answers the question the library exists for. A unified view is a second layout over the same aligned rows, so it is cheap to add once the row model settles. | Next |
+| Search inside the document | Needs a match index that survives folding and virtualization; worth doing properly rather than early. | Next |
+| More formats (XML, `.properties`, HCL) | Each is a provider — an `analyze` and a `tokenize` — behind the same interface. Waiting for someone to actually need one. | Maybe |
+| Editing | Read-only keeps the model an immutable list of lines, which is what makes folding and diffing share a substrate. Editing would change that trade, not extend it. | Not planned |
+| Semantic diff | Reordering keys *is* a difference in a configuration file. Krona compares text, exactly like git. | Not planned |
+
+Issues and pull requests are welcome. See [Development](#development) for the
+commands, and [CHANGELOG.md](./CHANGELOG.md) for what has landed.
 
 ## Development
 

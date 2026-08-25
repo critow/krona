@@ -109,9 +109,13 @@ export function App() {
     <div className="app">
       <header className="app-head">
         <div className="brand">
-          <span className="brand-mark" aria-hidden="true">
-            {'{ }'}
-          </span>
+          <img
+            className="brand-mark"
+            src={`${import.meta.env.BASE_URL}logo.svg`}
+            width={40}
+            height={40}
+            alt=""
+          />
           <div>
             <h1 className="brand-name">Krona</h1>
             <p className="brand-tagline">
