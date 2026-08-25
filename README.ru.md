@@ -428,7 +428,7 @@ const { narrow, side, showSide } = useKronaDiff()
 | --- | --- |
 | Раскладка | `--krona-height`, `--krona-line-height`, `--krona-font-family`, `--krona-font-size`, `--krona-gutter-width`, `--krona-padding-inline` |
 | Поверхности | `--krona-bg`, `--krona-bg-gutter`, `--krona-bg-hover`, `--krona-border`, `--krona-fg`, `--krona-fg-muted` |
-| Контролы | `--krona-chevron`, `--krona-chevron-hover` |
+| Контролы | `--krona-chevron`, `--krona-chevron-hover`, `--krona-scrollbar` |
 | Токены | `--krona-token-key`, `-string`, `-number`, `-boolean`, `-null`, `-comment`, `-punctuation`, `-section` |
 | Diff | `--krona-added-bg`, `--krona-added-strong-bg`, `--krona-removed-bg`, `--krona-removed-strong-bg`, `--krona-spacer-bg`, `--krona-added-marker`, `--krona-removed-marker` |
 | Предупреждения | `--krona-unsafe-bg`, `--krona-unsafe-fg` |

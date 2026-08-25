@@ -150,6 +150,35 @@ describe('Krona.Diff', () => {
     await expect.poll(() => leftScroll.scrollLeft).toBe(40)
   })
 
+  it('paints a scrollbar only on the panel under the pointer', async () => {
+    const long = (marker: string) =>
+      `{\n${Array.from({ length: 400 }, (_, i) => `  "k${i}": "${marker}${i}",`).join('\n')}\n  "z": 1\n}`
+    const screen = await render(
+      <Krona format="json" narrowWidth={0}>
+        <Krona.Diff left={long('a')} right={long('b')} />
+      </Krona>,
+    )
+    const [leftScroll, rightScroll] = [
+      ...screen.container.querySelectorAll<HTMLElement>('.krona-scroll'),
+    ]
+    expect(leftScroll).toBeDefined()
+    expect(rightScroll).toBeDefined()
+    if (!leftScroll || !rightScroll) return
+
+    const barOf = (element: HTMLElement) => getComputedStyle(element).scrollbarColor.split(' ')[0]
+    const hidden = barOf(leftScroll)
+    expect(hidden).toBe(barOf(rightScroll))
+
+    // Scrolling one panel moves the other; only the pointer decides which of
+    // the two shows a bar for it.
+    await userEvent.hover(leftScroll)
+    leftScroll.scrollTop = 1200
+    await expect.poll(() => rightScroll.scrollTop).toBe(1200)
+
+    await expect.poll(() => barOf(leftScroll)).not.toBe(hidden)
+    expect(barOf(rightScroll)).toBe(hidden)
+  })
+
   it('shows one panel and a side switch when the root is narrow', async () => {
     const screen = await render(
       <div style={{ width: 360 }}>

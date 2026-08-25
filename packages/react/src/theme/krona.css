@@ -16,6 +16,7 @@
   --krona-fg-muted: #59636e;
   --krona-chevron: #57606a;
   --krona-chevron-hover: #0550ae;
+  --krona-scrollbar: #c2c9d1;
 
   /* Tokens */
   --krona-token-key: #0550ae;
@@ -52,6 +53,7 @@
   --krona-fg-muted: #8d96a0;
   --krona-chevron: #a8b3bf;
   --krona-chevron-hover: #79c0ff;
+  --krona-scrollbar: #3d444d;
 
   --krona-token-key: #79c0ff;
   --krona-token-string: #7ee787;
@@ -86,6 +88,7 @@
     --krona-fg-muted: #8d96a0;
     --krona-chevron: #a8b3bf;
     --krona-chevron-hover: #79c0ff;
+    --krona-scrollbar: #3d444d;
 
     --krona-token-key: #79c0ff;
     --krona-token-string: #7ee787;
@@ -597,6 +600,25 @@
 
 .krona-panel:last-child {
   border-right: none;
+}
+
+/* A wheel over one panel scrolls both, and the browser then flashes a scrollbar
+   on the panel nobody is pointing at — two bars moving for one gesture. Paint
+   the bar only on the pane the reader is over, or has focus in. Only the colour
+   changes, so the track keeps whatever width the platform gives it and the two
+   panels stay equal as one appears. Left alone where there is no pointer to
+   hover with: a touch device already shows its overlay bar on the pane it
+   scrolled, which is the behaviour being asked for. */
+@media (hover: hover) {
+  .krona-panel > .krona-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  .krona-panel > .krona-scroll:hover,
+  .krona-panel > .krona-scroll:focus-within {
+    scrollbar-color: var(--krona-scrollbar) transparent;
+  }
 }
 
 .krona-row--added {
