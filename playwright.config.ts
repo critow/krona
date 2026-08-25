@@ -31,7 +31,11 @@ export default defineConfig({
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
-    command: 'pnpm --filter krona-playground exec vite --port 5174 --strictPort --host 127.0.0.1',
+    // Built and previewed, not served by the dev server. Tree-shaking only runs
+    // in a production build, and a suite pointed at `vite dev` happily passed
+    // while every shipped bundle rendered plain text with no folding at all.
+    command:
+      'pnpm --filter krona-playground exec vite build && pnpm --filter krona-playground exec vite preview --port 5174 --strictPort --host 127.0.0.1',
     url: 'http://127.0.0.1:5174',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
