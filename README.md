@@ -1,21 +1,56 @@
+<div align="center">
+
 # Krona
+
+**Collapsible tree view and side-by-side diff for configuration files, as a React component.**
+
+JSON/JSONC · YAML · TOML · INI/.env
+
+[**Explore the demo →**](https://critow.github.io/krona/)
 
 [English](./README.md) · [Русский](./README.ru.md)
 
-Collapsible tree view and side-by-side diff for configuration files, as a React
-component. JSON/JSONC, YAML, TOML and INI/.env.
+</div>
 
-- **Fold like an editor.** Objects, arrays, YAML blocks, TOML tables and INI
-  sections collapse from the gutter, with a placeholder showing what is hidden.
-- **Diff like git.** Line-based, side by side, with word-level highlighting
-  inside changed lines and long unchanged runs folded behind an expand bar.
-- **Composable.** Each mode renders a default layout, or takes apart into the
-  same public parts when you want your own.
-- **Three runtime dependencies.** `jsonc-parser`, `yaml` and `diff` — nothing else.
+---
+
+- **Folds like an editor.** Objects, arrays, YAML blocks, TOML tables and INI sections collapse from the gutter, with a placeholder saying what is hidden: `{ 3 items }`.
+- **Diffs like git.** Line-based, side by side, with word-level highlighting inside changed lines and long unchanged runs folded behind an expandable bar.
+- **Composable.** Each mode renders a default layout, or takes apart into the same public parts when you want your own.
+- **Fast on real files.** A 60k-line lockfile parses in ~30 ms and diffs in ~62 ms; rendering is virtualized and tokenizing is lazy.
+- **Three runtime dependencies.** `jsonc-parser`, `yaml`, `diff`. Nothing else.
+- **Safe with untrusted content.** No `innerHTML` anywhere, no JavaScript objects built from your file, bidi and zero-width characters rendered as visible badges.
+
+![Side-by-side diff of two JSON files](./docs/assets/diff-dark.png)
+
+## Contents
+
+- [Installation](#installation)
+- [Quick start](#quick-start)
+- [Formats](#formats)
+- [Props reference](#props-reference)
+  - [`<Krona>`](#krona)
+  - [`<Krona.Viewer>`](#kronaviewer)
+  - [`<Krona.Diff>`](#kronadiff)
+  - [Parts](#parts)
+- [Custom layouts](#custom-layouts)
+- [Hooks](#hooks)
+- [Localization](#localization)
+- [Theming](#theming)
+- [Safety limits](#safety-limits)
+- [Large files and Web Workers](#large-files-and-web-workers)
+- [Using the core without React](#using-the-core-without-react)
+- [Design notes](#design-notes)
+- [Development](#development)
+- [License](#license)
+
+## Installation
 
 ```bash
 npm install krona
 ```
+
+React 18 or 19 is a peer dependency.
 
 ## Quick start
 
@@ -36,6 +71,8 @@ import { Krona } from 'krona'
 Styles are injected automatically. If you render on the server or own your CSS
 pipeline, pass `injectStyles={false}` and `import 'krona/styles.css'` yourself.
 
+![Viewer showing a YAML file with folded blocks](./docs/assets/viewer-dark.png)
+
 ## Formats
 
 Importing `krona` registers **JSON/JSONC**, **TOML** and **INI/.env**. YAML sits
@@ -47,27 +84,104 @@ import 'krona/yaml'
 ```
 
 `format="auto"` sniffs the content, but only among providers you actually
-imported — it will never resurrect one you chose to leave out. An unknown format,
-a malformed file or an oversized input degrades to plain text with a diagnostic
-instead of throwing.
+imported — it will never resurrect one you chose to leave out. An unknown
+format, a malformed file or an oversized input degrades to plain text with a
+diagnostic instead of throwing.
 
-| Format | Folding |
-| --- | --- |
-| JSON / JSONC | objects and arrays; comments and trailing commas allowed |
-| YAML | indentation, block scalars (`\|`, `>`), multi-line flow collections |
-| TOML | `[table]` and `[[array of tables]]`, nested by dotted path; multi-line strings and arrays |
-| INI | `[section]`, nested by dotted name |
-| .env | none — a flat file has nothing to fold |
+| Format | Entry point | What folds |
+| --- | --- | --- |
+| JSON / JSONC | `krona` | Objects and arrays; comments and trailing commas allowed |
+| YAML | `krona/yaml` | Indentation, block scalars (`\|`, `>`), multi-line flow collections |
+| TOML | `krona` | `[table]` and `[[array of tables]]`, nested by dotted path; multi-line strings and arrays |
+| INI | `krona` | `[section]`, nested by dotted name |
+| .env | `krona` | Nothing — a flat file has nothing to fold, only highlighting |
+
+## Props reference
+
+### `<Krona>`
+
+The configuration root. It carries format, theme and labels in context and
+paints nothing beyond a themed container; parsing and state live in the modes
+below it.
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `format` | `Format` | `'auto'` | Provider id, or `'auto'` to sniff among [registered providers](#formats) |
+| `theme` | `'light' \| 'dark' \| 'auto'` | `'auto'` | `'auto'` follows `prefers-color-scheme` |
+| `labels` | `Partial<KronaLabels>` | English defaults | Every visible string — see [Localization](#localization) |
+| `locale` | `string` | runtime default | BCP 47 locale used by `Intl.NumberFormat` in the default labels |
+| `lineHeight` | `number` | `20` | Row height in pixels; also sets `--krona-line-height`. Fixed height is what makes virtualization exact |
+| `limits` | `Partial<ParseLimits>` | see [Safety limits](#safety-limits) | Overrides for the parser's bounds |
+| `providers` | `FormatRegistry` | module registry | Custom provider lookup |
+| `injectStyles` | `boolean` | `true` | Adds the stylesheet to `document.head` on mount |
+| `className` / `style` | — | — | Applied to the themed container |
+
+### `<Krona.Viewer>`
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `source` | `string` | — | File contents. Provide this **or** `model` |
+| `model` | `DocumentModel` | — | A model parsed elsewhere, e.g. [in a Worker](#large-files-and-web-workers). Wins over `source` |
+| `format` | `Format` | from `<Krona>` | Overrides the enclosing format |
+| `labels` | `Partial<KronaLabels>` | from `<Krona>` | Overrides the enclosing labels |
+| `defaultCollapsedDepth` | `number` | — | Collapse every range at this nesting depth or deeper, on mount and whenever the value changes; `0` collapses everything |
+| `overscan` | `number` | `8` | Extra rows rendered outside the viewport |
+| `showDiagnostics` | `boolean` | `true` | Show parse errors above the document (default layout only) |
+| `className` / `style` | — | — | Applied to the viewer region |
+| `children` | `ReactNode` | default layout | [Custom layout](#custom-layouts) from the same public parts |
+
+### `<Krona.Diff>`
+
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `left` / `right` | `string` | — | The two versions. Provide these **or** the model props |
+| `leftModel` / `rightModel` | `DocumentModel` | — | Pre-parsed models, e.g. [from a Worker](#large-files-and-web-workers) |
+| `format` | `Format` | from `<Krona>` | Overrides the enclosing format |
+| `labels` | `Partial<KronaLabels>` | from `<Krona>` | Overrides the enclosing labels |
+| `collapseUnchanged` | `boolean \| CollapseUnchangedOptions` | `false` | Hide long unchanged runs behind an expandable bar |
+| `defaultCollapsedDepth` | `number` | — | Collapse folding ranges at this depth or deeper on load |
+| `ignoreTrailingWhitespace` | `boolean` | `false` | Compare lines ignoring trailing whitespace |
+| `showMinimap` | `boolean` | `false` | Show the change minimap between the panels |
+| `overscan` | `number` | `8` | Extra rows rendered outside the viewport |
+| `className` / `style` | — | — | Applied to the diff region |
+| `children` | `ReactNode` | two default panels | [Custom layout](#custom-layouts) |
+
+`CollapseUnchangedOptions`:
+
+| Option | Type | Default | Description |
+| --- | --- | --- | --- |
+| `context` | `number` | `3` | Unchanged rows kept visible on each side of a change |
+| `minimumHidden` | `number` | `10` | Shortest run worth hiding; below it the bar costs more space than it saves |
+| `step` | `number` | `20` | Rows revealed by one click of the up / down controls |
+
+A row that opens a folding range is never hidden by this collapse — the run is
+split around it, so its chevron stays reachable.
+
+### Parts
+
+Every part accepts `className` and `style`. `Gutter`, `Lines` and `Toolbar` are
+the *same components* in both modes: they read the nearest line source and never
+learn which mode they are in.
+
+| Part | Where it belongs | Notes |
+| --- | --- | --- |
+| `Krona.Gutter` | viewer or panel | Line numbers, diff markers, fold chevrons. `showMarkers?: boolean` |
+| `Krona.Lines` | viewer or panel | The document text, highlights and collapsed placeholders |
+| `Krona.Toolbar` | above the content | Fold actions, plus change counts inside a diff. Accepts `children` |
+| `Krona.Diagnostics` | above the content | Parse problems. `includeWarnings?: boolean` |
+| `Krona.Panel` | diff only | One side. `side: 'left' \| 'right'` |
+| `Krona.Minimap` | diff only | Change map between the panels; throws elsewhere |
+| `Krona.ExpandBar` | rendered for you | The hidden-rows bar; exported for restyling |
 
 ## Custom layouts
 
 `Krona.Viewer` and `Krona.Diff` render a default layout when given no children.
-Supply children and you compose the same public parts yourself; arbitrary JSX may
-sit between them.
+Supply children and you compose the same public parts yourself; arbitrary JSX
+may sit between them.
 
 ```tsx
 <Krona format="json">
-  <Krona.Diff left={before} right={after}>
+  <Krona.Diff left={before} right={after} collapseUnchanged showMinimap>
     <Krona.Toolbar>
       <button onClick={download}>Download</button>
     </Krona.Toolbar>
@@ -84,20 +198,27 @@ sit between them.
 </Krona>
 ```
 
-`Krona.Gutter` and `Krona.Lines` are the *same components* in both modes. They
-read the nearest line source — provided by the viewer, or by each panel of a
-diff — so they never learn which mode they are in. Parts declare where they
-belong, which is why they can be written as plain siblings and still end up
-inside the scroll container they need.
+Parts declare where they belong, which is why they can be written as plain
+siblings and still end up inside the scroll container they need. A part you
+write yourself lands above the content by default.
 
 ## Hooks
 
 ```tsx
-const { model, foldState, toggleFold, expandAll, collapseAll } = useKronaViewer()
-const { alignedRows, stats, expandContext, toggleRowFold } = useKronaDiff()
+const { model, collapsed, toggleFold, expandAll, collapseAll, visibleLines } = useKronaViewer()
+const { alignedRows, visibleRows, stats, expandContext, toggleRowFold } = useKronaDiff()
+const { format, theme, labels, lineHeight } = useKronaConfig()
 ```
 
-Both throw a clear error outside their mode.
+Each throws a clear error outside its mode, so a misplaced toolbar fails at the
+first render rather than rendering something empty.
+
+```tsx
+function ChangeCount() {
+  const { stats } = useKronaDiff()
+  return <span>{stats.added} added, {stats.removed} removed</span>
+}
+```
 
 ## Localization
 
@@ -106,13 +227,30 @@ replace through `labels`, so plural rules and translation loading stay in your
 app where they belong. Numbers in the defaults are formatted with
 `Intl.NumberFormat` using `locale`.
 
+| Label | Signature | Default | Where it appears |
+| --- | --- | --- | --- |
+| `expandAll` / `collapseAll` | `string` | `Expand all` / `Collapse all` | Toolbar |
+| `expandBlock` / `collapseBlock` | `string` | `Expand block` / `Collapse block` | Gutter chevron, accessible name |
+| `foldedItems` | `(count: number) => string` | `6 items` | Collapsed placeholder, when the item count is known |
+| `foldedLines` | `(count: number) => string` | `12 lines` | Collapsed placeholder for block scalars |
+| `hiddenLines` | `(count: number) => string` | `12 unchanged lines` | Expand bar in a diff |
+| `expandUp` / `expandDown` / `expandAllHidden` | `string` | `Expand up` / … | Expand bar controls |
+| `added` / `removed` / `changed` / `unchanged` | `string` | `Added` / … | Toolbar statistics |
+| `leftPanel` / `rightPanel` | `string` | `Previous version` / `Current version` | Panel accessible names |
+| `changeMap` | `string` | `Change map` | Minimap accessible name |
+| `unsafeCharacter` | `(code: string) => string` | `Hidden character U+202E` | Tooltip on a dangerous-character badge |
+| `document` | `string` | `Configuration file` | Region accessible name |
+
+Russian needs three plural forms, which is exactly why plurals live in your app
+and not in the library:
+
 ```tsx
-function lines(count: number): string {
-  const mod10 = count % 10
-  const mod100 = count % 100
-  if (mod10 === 1 && mod100 !== 11) return 'строка'
-  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'строки'
-  return 'строк'
+function plural(n: number, one: string, few: string, many: string): string {
+  const mod10 = n % 10
+  const mod100 = n % 100
+  if (mod10 === 1 && mod100 !== 11) return one
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return few
+  return many
 }
 
 <Krona
@@ -120,7 +258,7 @@ function lines(count: number): string {
   labels={{
     collapseAll: 'Свернуть всё',
     expandAll: 'Развернуть всё',
-    foldedLines: (n) => `${n} ${lines(n)}`,
+    foldedItems: (n) => `${n} ${plural(n, 'элемент', 'элемента', 'элементов')}`,
   }}
 >
   <Krona.Viewer source={text} />
@@ -130,33 +268,48 @@ function lines(count: number): string {
 ## Theming
 
 Everything is driven by `--krona-*` custom properties. Override them on any
-ancestor:
+ancestor — no selector needs to be touched.
 
 ```css
 .my-viewer {
   --krona-height: 40rem;
   --krona-line-height: 22px;
+  --krona-font-family: 'JetBrains Mono', monospace;
   --krona-token-key: #b45309;
 }
 ```
 
-`theme="light" | "dark" | "auto"`; `auto` follows `prefers-color-scheme`.
+| Group | Variables |
+| --- | --- |
+| Layout | `--krona-height`, `--krona-line-height`, `--krona-font-family`, `--krona-font-size`, `--krona-gutter-width`, `--krona-padding-inline` |
+| Surfaces | `--krona-bg`, `--krona-bg-gutter`, `--krona-bg-hover`, `--krona-border`, `--krona-fg`, `--krona-fg-muted` |
+| Tokens | `--krona-token-key`, `-string`, `-number`, `-boolean`, `-null`, `-comment`, `-punctuation`, `-section` |
+| Diff | `--krona-added-bg`, `--krona-added-strong-bg`, `--krona-removed-bg`, `--krona-removed-strong-bg`, `--krona-spacer-bg`, `--krona-added-marker`, `--krona-removed-marker` |
+| Warnings | `--krona-unsafe-bg`, `--krona-unsafe-fg` |
 
-## Using the core without React
+`theme="light" \| "dark" \| "auto"`; `auto` follows `prefers-color-scheme`.
 
-```ts
-import { parseDocument, diffLines, alignDiff, intralineDiff } from '@krona/core'
-import '@krona/core/yaml'
+![The same diff in the light theme, with unchanged runs folded away](./docs/assets/diff-light.png)
 
-const doc = parseDocument(source, 'yaml')
-doc.lines            // source lines
-doc.foldingRanges    // collapsible ranges
-doc.tokensAt(12)     // tokens for one line, computed on demand and memoized
+## Safety limits
 
-const { rows, stats } = alignDiff(diffLines(before, after))
-```
+File contents are untrusted input. Every bound below has a default, is
+configurable through `limits`, and degrades with a readable diagnostic rather
+than a frozen tab.
 
-## Large files
+| Limit | Default | What happens past it |
+| --- | --- | --- |
+| `maxInputLength` | 10 MiB | Plain text, no folding or highlighting, error diagnostic |
+| `maxDepth` | 64 | Deeper folding ranges are dropped, warning diagnostic |
+| `maxFoldRanges` | 200 000 | Folding stops, warning diagnostic |
+| `maxTokenizedLineLength` | 10 000 | That line renders unstyled |
+| `maxValidatedLength` | 64 KiB | YAML skips its validation pass; folding and highlighting are unaffected |
+
+The diff has its own budget: Myers is O(ND), so a `timeout` (1500 ms by default)
+falls back to a common prefix/suffix approximation, the same trade git makes
+when its heuristics give up.
+
+## Large files and Web Workers
 
 Parsing and diffing are linear passes and both stay well inside a frame budget
 for the file this project benchmarks against — two versions of a ~60k line
@@ -170,12 +323,6 @@ for the file this project benchmarks against — two versions of a ~60k line
 | tokenize one viewport | ~29 ms |
 
 Run it yourself with `pnpm bench`.
-
-YAML is the one format that also runs an optional validation pass to report
-syntax errors, and it costs about ten times the structural scan. It therefore
-runs only up to `limits.maxValidatedLength` (64 KiB by default) — every
-hand-written config still gets diagnostics, and a 67 KB lockfile parses in
-~6 ms instead of ~51 ms. Folding and highlighting never depend on it.
 
 Above roughly a megabyte, do the work off the main thread. The model is plain
 data, so a worker can hand it back:
@@ -214,6 +361,31 @@ Krona does not instantiate the worker for you — worker URLs are
 bundler-specific — but `model`, `leftModel` and `rightModel` make that path
 first class.
 
+## Using the core without React
+
+```ts
+import { parseDocument, diffLines, alignDiff, intralineDiff } from '@krona/core'
+import '@krona/core/yaml'
+
+const doc = parseDocument(source, 'yaml')
+doc.lines            // source lines
+doc.foldingRanges    // collapsible ranges
+doc.tokensAt(12)     // tokens for one line, computed on demand and memoized
+doc.diagnostics      // parse problems, never thrown
+
+const { rows, stats } = alignDiff(diffLines(before, after))
+```
+
+| Function | Returns |
+| --- | --- |
+| `parseDocument(source, format?, options?)` | `DocumentModel` — never throws for content reasons |
+| `diffLines(left, right, options?)` | `DiffResult` — line runs, plus `approximate` when the budget ran out |
+| `alignDiff(result, options?)` | `AlignedDiff` — rows for two panels, with spacers, plus `stats` |
+| `intralineDiff(left, right, options?)` | Word-level spans for one changed row |
+| `collapseUnchanged(rows, options?)` | Runs worth hiding behind a bar |
+| `scanUnsafeCharacters(text)` | Bidi and invisible characters, with positions |
+| `toSnapshot` / `fromSnapshot` | Structured-clone-safe projection, for workers |
+
 ## Design notes
 
 **The model is lines, not a value tree.** Diffing is line based and folding is
@@ -234,10 +406,6 @@ enforced by the linter.
 
 **Aliases are never expanded.** A YAML "billion laughs" file costs no more than
 its own size.
-
-**Everything has a limit.** Input size, folding depth, folding count, line length
-and diff time are all bounded, with a readable diagnostic and a graceful
-downgrade rather than a frozen tab.
 
 ## Development
 

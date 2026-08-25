@@ -9,16 +9,32 @@ export type Lang = 'en' | 'ru'
 
 export interface Dict {
   tagline: string
+  docs: string
   mode: string
   viewer: string
   diff: string
-  samples: string
+  options: string
+  sample: string
   theme: string
   light: string
   dark: string
+  auto: string
+  off: string
   language: string
+  collapsedDepth: string
+  lineHeight: string
+  overscan: string
+  context: string
+  minimumHidden: string
+  step: string
   collapseUnchanged: string
   minimap: string
+  ignoreTrailingWhitespace: string
+  showDiagnostics: string
+  showMarkers: string
+  optionsNote: string
+  install: string
+  installNote: string
   thisView: string
   footer: string
   /** Per-sample notes, keyed by sample id; falls back to the sample's own note. */
@@ -28,16 +44,34 @@ export interface Dict {
 
 const en: Dict = {
   tagline: 'Collapsible viewer and side-by-side diff for config files',
+  docs: 'Docs',
   mode: 'Mode',
   viewer: 'Viewer',
   diff: 'Diff',
-  samples: 'Samples',
+  options: 'Options',
+  sample: 'Sample',
   theme: 'Theme',
   light: 'Light',
   dark: 'Dark',
+  auto: 'System',
+  off: 'off',
   language: 'Language',
+  collapsedDepth: 'Collapse from depth',
+  lineHeight: 'Line height',
+  overscan: 'Overscan rows',
+  context: 'Context lines',
+  minimumHidden: 'Minimum hidden',
+  step: 'Expand step',
   collapseUnchanged: 'Fold unchanged',
   minimap: 'Minimap',
+  ignoreTrailingWhitespace: 'Ignore trailing space',
+  showDiagnostics: 'Show diagnostics',
+  showMarkers: 'Gutter markers',
+  optionsNote:
+    'Every control here is a real prop. The code below updates with them, so whatever you end up with is copy-pasteable.',
+  install: 'Install',
+  installNote:
+    'YAML lives behind krona/yaml so its parser never reaches a bundle that only shows JSON.',
   thisView: 'This view, in code',
   footer: 'JSON · YAML · TOML · INI/.env — three runtime dependencies, no innerHTML.',
   notes: {},
@@ -58,16 +92,34 @@ function ruPlural(count: number, one: string, few: string, many: string): string
 
 const ru: Dict = {
   tagline: 'Сворачиваемый просмотр и построчное сравнение конфигов',
+  docs: 'Документация',
   mode: 'Режим',
   viewer: 'Просмотр',
   diff: 'Сравнение',
-  samples: 'Примеры',
+  options: 'Настройки',
+  sample: 'Пример',
   theme: 'Тема',
   light: 'Светлая',
   dark: 'Тёмная',
+  auto: 'Системная',
+  off: 'выкл',
   language: 'Язык',
+  collapsedDepth: 'Сворачивать с глубины',
+  lineHeight: 'Высота строки',
+  overscan: 'Запас строк',
+  context: 'Строк контекста',
+  minimumHidden: 'Минимум скрытых',
+  step: 'Шаг разворота',
   collapseUnchanged: 'Сворачивать неизменённое',
   minimap: 'Миникарта',
+  ignoreTrailingWhitespace: 'Без хвостовых пробелов',
+  showDiagnostics: 'Показывать диагностику',
+  showMarkers: 'Маркеры в гаттере',
+  optionsNote:
+    'Каждый контрол здесь — настоящий проп. Код ниже меняется вместе с ними, так что получившееся можно скопировать как есть.',
+  install: 'Установка',
+  installNote:
+    'YAML вынесен в krona/yaml, чтобы его парсер не попадал в бандл тем, кому нужен только JSON.',
   thisView: 'Этот экран в коде',
   footer: 'JSON · YAML · TOML · INI/.env — три зависимости, никакого innerHTML.',
   notes: {

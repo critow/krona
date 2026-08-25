@@ -14,7 +14,11 @@ export interface KronaRootProps {
   labels?: Partial<KronaLabels>
   /** BCP 47 locale used to format numbers inside the default labels. */
   locale?: string
-  /** Row height in pixels. Fixed height is what makes virtualization exact. Default 20. */
+  /**
+   * Row height in pixels. Also published as `--krona-line-height`, so the pitch
+   * the virtualizer positions rows at and the height CSS paints them at cannot
+   * disagree. Fixed height is what makes virtualization exact. Default 20.
+   */
   lineHeight?: number
   /** Overrides for the parser's safety limits. */
   limits?: Partial<ParseLimits>
@@ -77,7 +81,13 @@ export function KronaRoot({
 
   return (
     <KronaConfigContext.Provider value={config}>
-      <div className={className ? `krona ${className}` : 'krona'} data-theme={theme} style={style}>
+      <div
+        className={className ? `krona ${className}` : 'krona'}
+        data-theme={theme}
+        // The virtualizer positions rows at `lineHeight`; CSS has to paint them
+        // at the same pitch, or the two drift apart as the value moves.
+        style={{ ['--krona-line-height' as string]: `${lineHeight}px`, ...style }}
+      >
         {children}
       </div>
     </KronaConfigContext.Provider>

@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import { createContext, useContext, useId } from 'react'
 
 /**
  * A deliberately small set of controls for the demo page.
@@ -74,6 +75,98 @@ export function Switch({
       <span className="ui-switch-track" aria-hidden="true" />
       {children}
     </button>
+  )
+}
+
+/** A labelled row in the options panel. Label and control share one baseline. */
+export function Field({ label, children }: { label: ReactNode; children: ReactNode }) {
+  const id = useId()
+  return (
+    <div className="ui-field">
+      <label className="ui-field-label" htmlFor={id}>
+        {label}
+      </label>
+      <div className="ui-field-control">
+        <FieldIdContext.Provider value={id}>{children}</FieldIdContext.Provider>
+      </div>
+    </div>
+  )
+}
+
+const FieldIdContext = createContext<string | undefined>(undefined)
+
+export function Select<T extends string>({
+  value,
+  options,
+  onChange,
+}: {
+  value: T
+  options: readonly SegmentedOption<T>[]
+  onChange: (value: T) => void
+}) {
+  const id = useContext(FieldIdContext)
+  return (
+    <select
+      id={id}
+      className="ui-select"
+      value={value}
+      onChange={(event) => onChange(event.target.value as T)}
+    >
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  )
+}
+
+export function NumberField({
+  value,
+  onChange,
+  min = 0,
+  max = 999,
+  placeholder,
+}: {
+  value: number | undefined
+  onChange: (value: number | undefined) => void
+  min?: number
+  max?: number
+  placeholder?: string
+}) {
+  const id = useContext(FieldIdContext)
+  return (
+    <input
+      id={id}
+      className="ui-number"
+      type="number"
+      inputMode="numeric"
+      min={min}
+      max={max}
+      value={value ?? ''}
+      placeholder={placeholder ?? ''}
+      onChange={(event) => {
+        const next = event.target.value
+        onChange(next === '' ? undefined : Math.min(max, Math.max(min, Number(next))))
+      }}
+    />
+  )
+}
+
+export function Checkbox({
+  checked,
+  onChange,
+  children,
+}: {
+  checked: boolean
+  onChange: (checked: boolean) => void
+  children: ReactNode
+}) {
+  return (
+    <label className="ui-checkbox">
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+      <span>{children}</span>
+    </label>
   )
 }
 
