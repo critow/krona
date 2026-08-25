@@ -6,7 +6,9 @@ import {
   applyEdit,
   blockSpanAt,
   duplicateBlockEdit,
+  formattedEdit,
   lineSpanAt,
+  minimalEdit,
   removeBlockEdit,
   valueSpansAt,
 } from './edit'
@@ -179,5 +181,91 @@ describe('duplicateBlockEdit', () => {
     expect(applyEdit(yaml, copy.edit).source).toBe(
       ['name: krona', 'name: krona', 'server:', '  host: 0.0.0.0'].join('\n'),
     )
+  })
+})
+
+describe('minimalEdit', () => {
+  it('narrows to the span that actually differs', () => {
+    expect(minimalEdit('abcdef', 'abXYef')).toEqual({ start: 2, end: 4, text: 'XY' })
+    expect(minimalEdit('abc', 'abc')).toEqual({ start: 3, end: 3, text: '' })
+  })
+
+  it('round-trips through applyEdit', () => {
+    const before = '{\n  "a": 1\n}'
+    const after = '{\n  "a": 2,\n  "b": 3\n}'
+    expect(applyEdit(before, minimalEdit(before, after)).source).toBe(after)
+  })
+})
+
+describe('formattedEdit', () => {
+  it('shapes a block typed on one line into the file\u2019s own layout', () => {
+    const model = parse(JSON_DOC)
+    const span = blockSpanAt(model, 2)
+    expect(span).toBeDefined()
+    if (!span) return
+    // What the block editor opens with, minus its line breaks and spacing —
+    // the separator is part of the text it hands the reader, so it comes back.
+    const typed = '  "server": {"host":"127.0.0.1","port":8080},'
+    const edit = formattedEdit(model, { start: span.start, end: span.end, text: typed }, true)
+    const next = applyEdit(JSON_DOC, edit).source
+    expect(next.split('\n').slice(1, 6)).toEqual([
+      '  "name": "krona",',
+      '  "server": {',
+      '    "host": "127.0.0.1",',
+      '    "port": 8080',
+      '  },',
+    ])
+    expect(parse(next).diagnostics).toEqual([])
+  })
+
+  it('is one edit, so one undo takes the formatting with it', () => {
+    const model = parse(JSON_DOC)
+    const span = blockSpanAt(model, 2)
+    if (!span) return
+    const edit = formattedEdit(
+      model,
+      { start: span.start, end: span.end, text: '  "server": {"host":"x"},' },
+      true,
+    )
+    const applied = applyEdit(JSON_DOC, edit)
+    expect(applyEdit(applied.source, applied.inverse).source).toBe(JSON_DOC)
+  })
+
+  it('indents text pasted flush against the margin to where it belongs', () => {
+    const model = parse(JSON_DOC)
+    const span = blockSpanAt(model, 2)
+    expect(span).toBeDefined()
+    if (!span) return
+    const edit = formattedEdit(
+      model,
+      { start: span.start, end: span.end, text: '"server":{"host":"a","port":1},' },
+      true,
+    )
+    const next = applyEdit(JSON_DOC, edit).source
+    expect(next.split('\n').slice(2, 6)).toEqual([
+      '  "server": {',
+      '    "host": "a",',
+      '    "port": 1',
+      '  },',
+    ])
+    expect(parse(next).diagnostics).toEqual([])
+  })
+
+  it('leaves a value edited in place on its own line', () => {
+    const model = parse(JSON_DOC)
+    const spans = valueSpansAt(model, 4)
+    const first = spans[0]
+    expect(first).toBeDefined()
+    if (!first) return
+    const edit = formattedEdit(model, { start: first.start, end: first.end, text: '45' }, false)
+    const next = applyEdit(JSON_DOC, edit).source
+    expect(next.split('\n')[4]).toBe('    "timeouts": { "read": 45, "write": 60 }')
+  })
+
+  it('hands the edit back untouched for a format with no formatter', () => {
+    const yaml = ['name: krona', 'server:', '  host: 0.0.0.0'].join('\n')
+    const model = parse(yaml, 'yaml')
+    const edit = { start: 0, end: 4, text: 'title' }
+    expect(formattedEdit(model, edit, true)).toBe(edit)
   })
 })

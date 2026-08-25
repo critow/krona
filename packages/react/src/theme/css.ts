@@ -49,6 +49,8 @@ export const KRONA_CSS = `:where(.krona) {
   /* Warnings */
   --krona-unsafe-bg: #cf222e;
   --krona-unsafe-fg: #ffffff;
+  --krona-tooltip-bg: #1f2328;
+  --krona-tooltip-fg: #ffffff;
 }
 
 :where(.krona[data-theme="dark"]) {
@@ -80,6 +82,8 @@ export const KRONA_CSS = `:where(.krona) {
 
   --krona-unsafe-bg: #f85149;
   --krona-unsafe-fg: #0d1117;
+  --krona-tooltip-bg: #e6edf3;
+  --krona-tooltip-fg: #0d1117;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -112,6 +116,8 @@ export const KRONA_CSS = `:where(.krona) {
 
     --krona-unsafe-bg: #f85149;
     --krona-unsafe-fg: #0d1117;
+    --krona-tooltip-bg: #e6edf3;
+    --krona-tooltip-fg: #0d1117;
   }
 }
 
@@ -256,6 +262,67 @@ export const KRONA_CSS = `:where(.krona) {
   vertical-align: baseline;
 }
 
+/* Tooltips
+   -------------------------------------------------------------------------
+   Built from a data-tip attribute and a pseudo-element rather than a native
+   title: the native one waits about a second, cannot be themed, and cannot be
+   shown on demand, which is exactly what a copy confirmation needs. The
+   attr() function renders the attribute as text, never as markup. */
+
+.krona-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+[data-tip] {
+  position: relative;
+}
+
+[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+  background: var(--krona-tooltip-bg);
+  color: var(--krona-tooltip-fg);
+  font-size: 0.85em;
+  line-height: 1.5;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  /* Kept out of the tree until it is wanted, so it never widens a row. */
+  visibility: hidden;
+  transition: opacity 120ms ease 250ms;
+}
+
+[data-tip]:hover::after,
+[data-tip]:focus-visible::after,
+.krona-action--confirmed::after {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* A confirmation has already been asked for, so it appears at once. */
+.krona-action--confirmed::after {
+  transition-delay: 0ms;
+}
+
+.krona-action--confirmed {
+  color: var(--krona-added-marker);
+  border-color: currentColor;
+}
+
 .krona-editor-actions {
   display: inline-flex;
   gap: 0.125rem;
@@ -299,8 +366,11 @@ export const KRONA_CSS = `:where(.krona) {
      items, which would silently strip every line's indentation. */
   display: block;
   white-space: pre;
-  /* Rows are uniform and off-screen most of the time; skip their rendering work. */
-  contain: layout paint style;
+  /* Rows are uniform; skip the layout and style work they cannot affect outside
+     themselves. Not paint: that clips descendants to the row box, and a
+     tooltip on a 20px row has nowhere to go inside one. Rows are virtualized,
+     so paint containment was saving work on a handful of elements anyway. */
+  contain: layout style;
 }
 
 /* Gutter ------------------------------------------------------------------ */

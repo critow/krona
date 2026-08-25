@@ -3,6 +3,7 @@ import {
   type DocumentModel,
   duplicateBlockEdit,
   type Format,
+  formattedEdit,
   lineSpanAt,
   offsetOfLine,
   removeBlockEdit,
@@ -170,7 +171,16 @@ export function KronaViewer({
         const start = offsetOfLine(model, target.lineIndex) + target.start
         const end = offsetOfLine(model, target.endLine) + target.end
         if (text === spanText(start, end)) return
-        edit.apply({ start, end, text })
+        // A value edited in place keeps its line: re-flowing it would move text
+        // the reader was not looking at. A line or block may be re-shaped.
+        edit.apply(
+          formattedEdit(
+            model,
+            { start, end, text },
+            target.kind !== 'value',
+            config.providers ?? undefined,
+          ),
+        )
       },
       cancel: () => setTarget(null),
       remove: (lineIndex) => {
@@ -195,7 +205,7 @@ export function KronaViewer({
         })
       },
     }
-  }, [editable, target, model, edit, foldState])
+  }, [editable, target, model, edit, foldState, config.providers])
 
   const visibleLines = useMemo(
     () => computeVisibleLines(model, foldState.collapsed),
