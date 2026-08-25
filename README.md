@@ -179,7 +179,7 @@ learn which mode they are in.
 | Part | Where it belongs | Notes |
 | --- | --- | --- |
 | `Krona.Gutter` | viewer or panel | Line numbers, diff markers, fold chevrons. `showMarkers?: boolean` |
-| `Krona.Lines` | viewer or panel | The document text, highlights and collapsed placeholders |
+| `Krona.Lines` | viewer or panel | The document text, highlights and collapsed placeholders. `showCopyActions?: boolean` |
 | `Krona.Toolbar` | above the content | Fold actions, plus change counts inside a diff. Accepts `children` |
 | `Krona.Diagnostics` | above the content | Parse problems. `includeWarnings?: boolean` |
 | `Krona.Panel` | diff only | One side. `side: 'left' \| 'right'` |
@@ -191,8 +191,13 @@ learn which mode they are in.
 `<Krona.Viewer editable>` turns the document into something the reader can
 change. Double-click a value to edit it in place, or use the row actions that
 appear on hover: edit the line as raw text, edit a whole block as raw text,
-delete the entry. `Enter` commits, `Escape` cancels, and in the block editor
-`Ctrl`/`Cmd` + `Enter` commits. Undo and redo are in the toolbar.
+delete the entry, duplicate it. `Enter` commits, `Escape` cancels, and in the
+block editor `Ctrl`/`Cmd` + `Enter` commits. Undo and redo are in the toolbar.
+
+New entries are made by **duplicating** one. A copy is the only new entry
+guaranteed to be valid where it lands — already an entry of this container,
+in this format, at this indentation — so Krona never has to know what a new key
+looks like in TOML versus YAML. The copy opens for editing straight away.
 
 ```tsx
 const [text, setText] = useState(initial)
@@ -226,6 +231,10 @@ const { source, canUndo, canRedo, undo, redo } = useKronaViewer()
 
 `<Krona.Diff>` stays read-only. Comparing two versions is a different job from
 changing one of them, and a diff has no single document to write to.
+
+**Copying needs no editing.** Both modes offer copy actions on the hovered row —
+the value on its own, and the whole entry, which is the whole block when the
+line opens one. Turn them off with `<Krona.Lines showCopyActions={false} />`.
 
 ## Custom layouts
 
@@ -303,6 +312,10 @@ app where they belong. Numbers in the defaults are formatted with
 | `cancelEdit` | `string` | `Cancel` | Discards the open editor |
 | `undo` | `string` | `Undo` | Toolbar action reversing the last edit |
 | `redo` | `string` | `Redo` | Toolbar action replaying the last undone edit |
+| `duplicateEntry` | `string` | `Duplicate` | Row action repeating the entry below itself |
+| `copyEntry` | `string` | `Copy` | Row action copying the entry or block |
+| `copyValue` | `string` | `Copy value` | Row action copying just the value |
+| `copied` | `string` | `Copied` | Shown briefly on a copy action that has run |
 
 Russian needs three plural forms, which is exactly why plurals live in your app
 and not in the library:

@@ -60,6 +60,14 @@ export interface KronaLabels {
   undo: string
   /** Toolbar action that replays the last undone edit. */
   redo: string
+  /** Row action that repeats the entry below itself. */
+  duplicateEntry: string
+  /** Row action that copies the entry, or the whole block, to the clipboard. */
+  copyEntry: string
+  /** Row action that copies just the value on the line. */
+  copyValue: string
+  /** Confirmation shown on a copy action that has just run. */
+  copied: string
 }
 
 /**
@@ -96,6 +104,10 @@ export function createDefaultLabels(locale?: string): KronaLabels {
     cancelEdit: 'Cancel',
     undo: 'Undo',
     redo: 'Redo',
+    duplicateEntry: 'Duplicate',
+    copyEntry: 'Copy',
+    copyValue: 'Copy value',
+    copied: 'Copied',
   }
 }
 

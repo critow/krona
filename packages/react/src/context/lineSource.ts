@@ -105,6 +105,8 @@ export interface LineEditing {
   cancel(): void
   /** Removes the block opening on this line, or the line itself. */
   remove(lineIndex: number): void
+  /** Repeats the entry below itself and opens the copy for editing. */
+  duplicate(lineIndex: number): void
 }
 
 export const LineSourceContext = createContext<LineSource | null>(null)

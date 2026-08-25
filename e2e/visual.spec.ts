@@ -33,12 +33,18 @@ async function settle(page: Page): Promise<void> {
  */
 async function alignmentFingerprint(page: Page): Promise<string> {
   return page.evaluate(() => {
+    const TONES = ['normal', 'added', 'removed', 'changed', 'spacer', 'expand']
     const describe = (root: Element): string[] =>
       [...root.querySelectorAll('.krona-lines .krona-row')].map((row) => {
         const line = row.getAttribute('data-line')
-        const tone = row.className.replace('krona-row', '').replace('krona-row--', '').trim()
+        // Only the tone class: a row carries other modifiers (whether it offers
+        // actions, for one) that say nothing about where the row sits.
+        const tone = [...row.classList]
+          .filter((name) => name.startsWith('krona-row--'))
+          .map((name) => name.slice('krona-row--'.length))
+          .find((name) => TONES.includes(name))
         if (row.querySelector('.krona-expand-bar')) return 'bar'
-        return `${line ?? 'spacer'}:${tone || 'normal'}`
+        return `${line ?? 'spacer'}:${tone ?? 'normal'}`
       })
 
     const panels = [...document.querySelectorAll('.krona-panel')]

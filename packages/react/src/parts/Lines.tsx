@@ -1,5 +1,13 @@
-import type { FoldKind, FoldRange, Token, TokenType } from '@krona/core'
-import { type CSSProperties, Fragment, memo, type ReactNode } from 'react'
+import {
+  blockSpanAt,
+  type DocumentModel,
+  type FoldKind,
+  type FoldRange,
+  type Token,
+  type TokenType,
+  valueSpansAt,
+} from '@krona/core'
+import { type CSSProperties, Fragment, memo, type ReactNode, useState } from 'react'
 import { type LineEditing, useLineSource } from '../context/lineSource'
 import type { KronaLabels } from '../labels'
 import { buildSegments } from '../render/segments'
@@ -8,6 +16,11 @@ import { RowEditor } from './RowEditor'
 
 /** Props of `<Krona.Lines>`. */
 export interface KronaLinesProps {
+  /**
+   * Offer copy actions on the hovered row. Default true, in both modes —
+   * copying is the one thing a read-only document is still for.
+   */
+  showCopyActions?: boolean
   className?: string
   style?: CSSProperties
 }
@@ -125,6 +138,10 @@ const PENCIL =
 const BRACES =
   'M6 2.5H5A1.5 1.5 0 0 0 3.5 4v2.2c0 .7-.6 1.3-1.3 1.3.7 0 1.3.6 1.3 1.3V11A1.5 1.5 0 0 0 5 12.5h1M10 2.5h1A1.5 1.5 0 0 1 12.5 4v2.2c0 .7.6 1.3 1.3 1.3-.7 0-1.3.6-1.3 1.3V11a1.5 1.5 0 0 1-1.5 1.5h-1'
 const TRASH = 'M2.5 4h11M6 4V2.6h4V4M4.2 4l.5 9.4h6.6L11.8 4M6.6 6.4v4.6M9.4 6.4v4.6'
+const PLUS = 'M8 3.2v9.6M3.2 8h9.6'
+const COPY =
+  'M5.5 5.5V3.2c0-.4.3-.7.7-.7h6.6c.4 0 .7.3.7.7v6.6c0 .4-.3.7-.7.7h-2.3M3.2 5.5h6.6c.4 0 .7.3.7.7v6.6c0 .4-.3.7-.7.7H3.2a.7.7 0 0 1-.7-.7V6.2c0-.4.3-.7.7-.7Z'
+const TICK = 'M3 8.5 6.4 12 13 4.6'
 
 function Icon({ path, filled }: { path: string; filled?: boolean }) {
   return (
@@ -146,51 +163,121 @@ function Icon({ path, filled }: { path: string; filled?: boolean }) {
   )
 }
 
+/**
+ * Copies text, reporting whether it worked.
+ *
+ * The Clipboard API needs a secure context and a permission, and refuses
+ * outright in some embeddings; a copy button that silently claims success is
+ * worse than one that stays quiet.
+ */
+async function copyText(text: string): Promise<boolean> {
+  try {
+    await navigator.clipboard.writeText(text)
+    return true
+  } catch {
+    return false
+  }
+}
+
 function RowActions({
   lineIndex,
   range,
+  model,
   editing,
   labels,
+  showCopy,
 }: {
   lineIndex: number
   range: FoldRange | undefined
-  editing: LineEditing
+  model: DocumentModel
+  editing: LineEditing | undefined
   labels: KronaLabels
+  showCopy: boolean
 }) {
+  const [copied, setCopied] = useState<'entry' | 'value' | null>(null)
+
+  const copy = (what: 'entry' | 'value', text: string) => {
+    void copyText(text).then((ok) => {
+      if (!ok) return
+      setCopied(what)
+      setTimeout(() => setCopied(null), 1200)
+    })
+  }
+
+  const values = showCopy ? valueSpansAt(model, lineIndex) : []
+  const only = values.length === 1 ? values[0] : undefined
+  const block = showCopy ? blockSpanAt(model, lineIndex) : undefined
+
   return (
     <span className="krona-row-actions">
-      <button
-        type="button"
-        title={labels.editLine}
-        aria-label={labels.editLine}
-        onClick={() => editing.editLine(lineIndex)}
-      >
-        <Icon path={PENCIL} filled />
-      </button>
-      {range ? (
+      {only ? (
         <button
           type="button"
-          title={labels.editBlock}
-          aria-label={labels.editBlock}
-          onClick={() => editing.editBlock(lineIndex)}
+          title={copied === 'value' ? labels.copied : labels.copyValue}
+          aria-label={copied === 'value' ? labels.copied : labels.copyValue}
+          onClick={() => copy('value', model.source.slice(only.start, only.end))}
         >
-          <Icon path={BRACES} />
+          <Icon path={copied === 'value' ? TICK : COPY} />
         </button>
       ) : null}
-      <button
-        type="button"
-        className="krona-action--danger"
-        title={labels.deleteEntry}
-        aria-label={labels.deleteEntry}
-        onClick={() => editing.remove(lineIndex)}
-      >
-        <Icon path={TRASH} />
-      </button>
+      {block ? (
+        <button
+          type="button"
+          title={copied === 'entry' ? labels.copied : labels.copyEntry}
+          aria-label={copied === 'entry' ? labels.copied : labels.copyEntry}
+          onClick={() => copy('entry', model.source.slice(block.start, block.end))}
+        >
+          <Icon path={copied === 'entry' ? TICK : COPY} filled={copied !== 'entry'} />
+        </button>
+      ) : null}
+      {editing ? (
+        <>
+          <button
+            type="button"
+            title={labels.editLine}
+            aria-label={labels.editLine}
+            onClick={() => editing.editLine(lineIndex)}
+          >
+            <Icon path={PENCIL} filled />
+          </button>
+          {range ? (
+            <button
+              type="button"
+              title={labels.editBlock}
+              aria-label={labels.editBlock}
+              onClick={() => editing.editBlock(lineIndex)}
+            >
+              <Icon path={BRACES} />
+            </button>
+          ) : null}
+          <button
+            type="button"
+            title={labels.duplicateEntry}
+            aria-label={labels.duplicateEntry}
+            onClick={() => editing.duplicate(lineIndex)}
+          >
+            <Icon path={PLUS} />
+          </button>
+          <button
+            type="button"
+            className="krona-action--danger"
+            title={labels.deleteEntry}
+            aria-label={labels.deleteEntry}
+            onClick={() => editing.remove(lineIndex)}
+          >
+            <Icon path={TRASH} />
+          </button>
+        </>
+      ) : null}
     </span>
   )
 }
 
-const LinesBase = memo(function Lines({ className, style }: KronaLinesProps) {
+const LinesBase = memo(function Lines({
+  showCopyActions = true,
+  className,
+  style,
+}: KronaLinesProps) {
   const source = useLineSource()
   const { editing, labels, lineHeight, model, rows, totalSize, virtualItems } = source
   const target = editing?.target ?? null
@@ -252,7 +339,9 @@ const LinesBase = memo(function Lines({ className, style }: KronaLinesProps) {
         return (
           <div
             key={item.key}
-            className={`krona-row krona-row--${tone}${editing ? ' krona-row--editable' : ''}`}
+            className={`krona-row krona-row--${tone}${
+              editing || showCopyActions ? ' krona-row--actionable' : ''
+            }`}
             style={{ transform: `translateY(${item.start}px)` }}
             data-line={lineIndex + 1}
           >
@@ -284,8 +373,15 @@ const LinesBase = memo(function Lines({ className, style }: KronaLinesProps) {
                 onExpand={() => source.toggleFold(range.startLine)}
               />
             ) : null}
-            {editing && !valueOpen ? (
-              <RowActions lineIndex={lineIndex} range={range} editing={editing} labels={labels} />
+            {(editing || showCopyActions) && !valueOpen ? (
+              <RowActions
+                lineIndex={lineIndex}
+                range={range}
+                model={model}
+                editing={editing}
+                labels={labels}
+                showCopy={showCopyActions}
+              />
             ) : null}
           </div>
         )

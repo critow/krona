@@ -33,7 +33,10 @@ function rowsOf(container: HTMLElement, side: 'left' | 'right'): string[] {
 
 function toneOf(container: HTMLElement, side: 'left' | 'right'): string[] {
   return [...container.querySelectorAll(`.krona-panel--${side} .krona-lines .krona-row`)].map(
-    (row) => row.className.replace('krona-row ', ''),
+    (row) =>
+      [...row.classList].find(
+        (name) => name.startsWith('krona-row--') && name !== 'krona-row--actionable',
+      ) ?? '',
   )
 }
 

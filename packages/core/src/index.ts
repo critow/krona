@@ -6,10 +6,11 @@
  * bundle that only shows JSON.
  */
 
-export type { EditResult, SourceEdit } from './edit/edit'
+export type { Duplication, EditResult, SourceEdit } from './edit/edit'
 export {
   applyEdit,
   blockSpanAt,
+  duplicateBlockEdit,
   lineSpanAt,
   offsetOfLine,
   removeBlockEdit,

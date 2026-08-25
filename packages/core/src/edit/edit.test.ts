@@ -2,7 +2,14 @@ import { describe, expect, it } from 'vitest'
 import '../formats/json'
 import '../formats/yaml'
 import { parseDocument } from '../model/document'
-import { applyEdit, blockSpanAt, lineSpanAt, removeBlockEdit, valueSpansAt } from './edit'
+import {
+  applyEdit,
+  blockSpanAt,
+  duplicateBlockEdit,
+  lineSpanAt,
+  removeBlockEdit,
+  valueSpansAt,
+} from './edit'
 
 const JSON_DOC = [
   '{',
@@ -126,5 +133,51 @@ describe('removeBlockEdit', () => {
     expect(edit).toBeDefined()
     if (!edit) return
     expect(parse(applyEdit(JSON_DOC, edit).source).diagnostics).toEqual([])
+  })
+})
+
+describe('duplicateBlockEdit', () => {
+  it('repeats an entry below itself, keeping the list valid', () => {
+    const model = parse(JSON_DOC)
+    const copy = duplicateBlockEdit(model, 1)
+    expect(copy).toBeDefined()
+    if (!copy) return
+    const next = applyEdit(JSON_DOC, copy.edit).source
+    expect(next.split('\n').slice(0, 3)).toEqual(['{', '  "name": "krona",', '  "name": "krona",'])
+    expect(parse(next).diagnostics).toEqual([])
+    expect(copy.line).toBe(2)
+    expect(copy.text).toBe('  "name": "krona",')
+  })
+
+  it('gives the original the comma it now needs when the entry was last', () => {
+    const model = parse(JSON_DOC)
+    const copy = duplicateBlockEdit(model, 6)
+    expect(copy).toBeDefined()
+    if (!copy) return
+    const next = applyEdit(JSON_DOC, copy.edit).source
+    expect(next.split('\n').slice(-3)).toEqual(['  "last": true,', '  "last": true', '}'])
+    expect(parse(next).diagnostics).toEqual([])
+  })
+
+  it('repeats a whole block, not just its opening line', () => {
+    const model = parse(JSON_DOC)
+    const copy = duplicateBlockEdit(model, 2)
+    expect(copy).toBeDefined()
+    if (!copy) return
+    const next = applyEdit(JSON_DOC, copy.edit).source
+    expect(next.split('\n').filter((line) => line === '  "server": {')).toHaveLength(2)
+    expect(parse(next).diagnostics).toEqual([])
+    expect(copy.line).toBe(6)
+  })
+
+  it('adds no separator in a format that has none', () => {
+    const yaml = ['name: krona', 'server:', '  host: 0.0.0.0'].join('\n')
+    const model = parse(yaml, 'yaml')
+    const copy = duplicateBlockEdit(model, 0)
+    expect(copy).toBeDefined()
+    if (!copy) return
+    expect(applyEdit(yaml, copy.edit).source).toBe(
+      ['name: krona', 'name: krona', 'server:', '  host: 0.0.0.0'].join('\n'),
+    )
   })
 })
