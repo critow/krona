@@ -91,9 +91,13 @@ export function App() {
   const sample = useMemo(() => SAMPLES.find((s) => s.id === sampleId) ?? SAMPLES[0]!, [sampleId])
   const note = dict.notes[sample.id] ?? sample.note
 
+  // `auto` follows the reader's system setting for the component only; the page
+  // around it stays dark, so that is the chrome the mark has to sit on.
+  const uiTheme = theme === 'auto' ? 'dark' : theme
+
   useEffect(() => {
-    document.documentElement.dataset.uiTheme = theme === 'auto' ? 'dark' : theme
-  }, [theme])
+    document.documentElement.dataset.uiTheme = uiTheme
+  }, [uiTheme])
 
   const syncUrl = useCallback((next: Record<string, string>) => {
     const params = new URLSearchParams(globalThis.location.search)
@@ -149,9 +153,9 @@ export function App() {
         <div className="brand">
           <img
             className="brand-mark"
-            src={`${import.meta.env.BASE_URL}logo.svg`}
-            width={52}
-            height={52}
+            src={`${import.meta.env.BASE_URL}logo-${uiTheme}.svg`}
+            width={60}
+            height={57}
             alt=""
           />
           <div>
