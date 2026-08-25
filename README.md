@@ -7,7 +7,8 @@
 
 # Krona
 
-**Collapsible viewer and side-by-side diff for configuration files, as a React component.**
+**Fold, diff and edit configuration files — a React component that never turns your file
+into an object.**
 
 JSON/JSONC · YAML · TOML · INI/.env
 
