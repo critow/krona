@@ -394,6 +394,16 @@ export function App() {
             </div>
 
             <div className="ui-checkboxes">
+              {/* Outside the branch: searching is something both modes do. */}
+              <Checkbox
+                checked={showSearch}
+                onChange={(v) => {
+                  setShowSearch(v)
+                  syncUrl({ search: v ? 'on' : 'off' })
+                }}
+              >
+                {dict.search}
+              </Checkbox>
               {mode === 'diff' ? (
                 <>
                   <Checkbox
@@ -404,15 +414,6 @@ export function App() {
                     }}
                   >
                     {dict.collapseUnchanged}
-                  </Checkbox>
-                  <Checkbox
-                    checked={showSearch}
-                    onChange={(v) => {
-                      setShowSearch(v)
-                      syncUrl({ search: v ? 'on' : 'off' })
-                    }}
-                  >
-                    {dict.search}
                   </Checkbox>
                   <Checkbox
                     checked={showMinimap}
