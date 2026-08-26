@@ -64,6 +64,82 @@ body {
   color: var(--ui-fg-muted);
 }
 
+.brand-formats {
+  margin: 0.15rem 0 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  color: var(--ui-fg-dim);
+}
+
+/* Presets ------------------------------------------------------------------
+   Four ways into the same component, so the first thing a reader does is press
+   one rather than read about it. */
+
+.presets {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Two class names deep so it outranks `.ui-button:hover`: the pointer is over
+   the button the moment it becomes the active one. */
+.ui-button.preset--on,
+.ui-button.preset--on:hover {
+  background: var(--ui-accent);
+  border-color: var(--ui-accent);
+  color: var(--ui-accent-fg);
+}
+
+.presets-note {
+  color: var(--ui-fg-dim);
+  font-size: 0.75rem;
+}
+
+/* Paste ---------------------------------------------------------------------
+   Where a reader's own file goes. Two fields in diff mode, one otherwise. */
+
+.paste {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--ui-border);
+}
+
+.paste-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.paste-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  color: var(--ui-fg-muted);
+}
+
+.paste-input {
+  font: inherit;
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--ui-fg);
+  background: var(--ui-bg-sunken);
+  border: 1px solid var(--ui-border);
+  border-radius: 6px;
+  padding: 0.5rem;
+  min-height: 6.5rem;
+  resize: vertical;
+  white-space: pre;
+  overflow: auto;
+}
+
+.paste-input:focus-visible {
+  outline: 2px solid var(--ui-accent);
+  outline-offset: -1px;
+}
+
 .head-controls {
   display: flex;
   align-items: center;

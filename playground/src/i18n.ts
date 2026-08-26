@@ -30,6 +30,16 @@ export interface Dict {
   collapseUnchanged: string
   minimap: string
   search: string
+  /** Hero: what each preset opens. */
+  presets: { fold: string; diff: string; edit: string; large: string; own: string }
+  presetsNote: string
+  /** The reader's own file, pasted into the page. */
+  yourFile: string
+  yourFileNote: string
+  pastePlaceholder: string
+  before: string
+  after: string
+  detected: string
   layout: string
   split: string
   unified: string
@@ -71,6 +81,14 @@ const en: Dict = {
   collapseUnchanged: 'Fold unchanged',
   minimap: 'Minimap',
   search: 'Search box',
+  presets: { fold: 'Fold', diff: 'Compare', edit: 'Edit', large: '60k lines', own: 'Your file' },
+  presetsNote: 'Every one of these is the same component, with different props.',
+  yourFile: 'Your file',
+  yourFileNote: 'Paste a config. The format is detected from the text; nothing leaves the page.',
+  pastePlaceholder: 'Paste JSON, YAML, TOML, INI or .env here',
+  before: 'Before',
+  after: 'After',
+  detected: 'detected',
   layout: 'Layout',
   split: 'Split',
   unified: 'Unified',
@@ -126,6 +144,20 @@ const ru: Dict = {
   collapseUnchanged: 'Сворачивать неизменённое',
   minimap: 'Миникарта',
   search: 'Поиск',
+  presets: {
+    fold: 'Свернуть',
+    diff: 'Сравнить',
+    edit: 'Править',
+    large: '60k строк',
+    own: 'Свой файл',
+  },
+  presetsNote: 'Всё это — один и тот же компонент с разными пропсами.',
+  yourFile: 'Свой файл',
+  yourFileNote: 'Вставьте конфиг. Формат определяется по тексту; со страницы ничего не уходит.',
+  pastePlaceholder: 'Вставьте сюда JSON, YAML, TOML, INI или .env',
+  before: 'Было',
+  after: 'Стало',
+  detected: 'определён',
   layout: 'Раскладка',
   split: 'Рядом',
   unified: 'Одной колонкой',

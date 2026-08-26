@@ -1,4 +1,4 @@
-import { Krona, useKronaDiff } from 'krona'
+import { detectFormat, Krona, useKronaDiff } from 'krona'
 import 'krona/yaml'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { DICTS, type Lang } from './i18n'
@@ -26,6 +26,8 @@ function readParams() {
     collapse: params.get('collapse') !== 'off',
     minimap: params.get('minimap') !== 'off',
     search: params.get('search') === 'on',
+    editable: params.get('edit') === 'on',
+    depth: params.get('depth') === 'off' ? undefined : Number(params.get('depth') ?? 2),
     view: (['auto', 'split', 'unified'] as const).includes(
       params.get('view') as 'auto' | 'split' | 'unified',
     )
@@ -75,6 +77,50 @@ function DiffPanelsBase({
   )
 }
 
+/**
+ * The sample id that means "whatever the reader pasted".
+ *
+ * A file the reader brings is the only one that proves the thing works on their
+ * configuration rather than on ours, so it is one of the ways in rather than a
+ * feature hidden behind a menu.
+ */
+const OWN = 'own'
+
+/** Text held between reloads, when the browser allows it. */
+function readStored(key: string): string {
+  try {
+    return globalThis.localStorage?.getItem(key) ?? ''
+  } catch {
+    // A private window, or site data switched off. The demo works without it.
+    return ''
+  }
+}
+
+function store(key: string, value: string): void {
+  try {
+    globalThis.localStorage?.setItem(key, value)
+  } catch {
+    // Nothing to do: the page keeps the text in memory either way.
+  }
+}
+
+/**
+ * What each hero tab opens.
+ *
+ * A preset is not a mode of the demo: it is a handful of the same props the
+ * Options panel sets by hand, so pressing one and then reading the generated
+ * snippet shows exactly what produced it.
+ */
+const PRESETS = {
+  fold: { mode: 'viewer' as const, sample: 'json', editable: false, depth: 2 },
+  diff: { mode: 'diff' as const, sample: 'json', editable: false, depth: 2 },
+  edit: { mode: 'viewer' as const, sample: 'json', editable: true, depth: undefined },
+  large: { mode: 'viewer' as const, sample: 'big', editable: false, depth: 2 },
+  own: { mode: 'viewer' as const, sample: OWN, editable: true, depth: undefined },
+}
+
+type PresetId = keyof typeof PRESETS
+
 // Krona places a custom layout by the `kronaSlot` each component declares. A
 // component of your own that stands in for panels has to say so, or it is taken
 // for chrome and lands above the panel row rather than inside it — with no
@@ -93,12 +139,12 @@ export function App() {
   const [view, setView] = useState(initial.view)
   const [showSearch, setShowSearch] = useState(initial.search)
   const [showDiagnostics, setShowDiagnostics] = useState(true)
-  const [editable, setEditable] = useState(false)
+  const [editable, setEditable] = useState(initial.editable)
   const [showMarkers, setShowMarkers] = useState(true)
   const [ignoreTrailingWhitespace, setIgnoreTrailingWhitespace] = useState(false)
   // The demo lands partially collapsed on purpose: with everything expanded
   // there is nothing to notice, and the fold controls read as decoration.
-  const [collapsedDepth, setCollapsedDepth] = useState<number | undefined>(2)
+  const [collapsedDepth, setCollapsedDepth] = useState<number | undefined>(initial.depth)
   const [lineHeight, setLineHeight] = useState(20)
   const [overscan, setOverscan] = useState(8)
   const [context, setContext] = useState(3)
@@ -106,8 +152,26 @@ export function App() {
   const [step, setStep] = useState(20)
 
   const dict = DICTS[lang]
-  const sample = useMemo(() => SAMPLES.find((s) => s.id === sampleId) ?? SAMPLES[0]!, [sampleId])
-  const note = dict.notes[sample.id] ?? sample.note
+  const [ownLeft, setOwnLeft] = useState(() => readStored('krona:own-left'))
+  const [ownRight, setOwnRight] = useState(() => readStored('krona:own-right'))
+
+  // The pasted file is a sample like any other, so nothing downstream has to
+  // know where the text came from — including the snippet builder.
+  const sample = useMemo(() => {
+    if (sampleId !== OWN) return SAMPLES.find((s) => s.id === sampleId) ?? SAMPLES[0]!
+    const text = ownLeft || ownRight
+    return {
+      id: OWN,
+      label: dict.yourFile,
+      // Detected from the text, not from a file name the page does not have.
+      format: text ? detectFormat(text, text.split('\n')) : 'json',
+      left: ownLeft,
+      right: ownRight || ownLeft,
+      note: dict.yourFileNote,
+    }
+  }, [sampleId, ownLeft, ownRight, dict])
+
+  const note = sampleId === OWN ? dict.yourFileNote : (dict.notes[sample.id] ?? sample.note)
 
   // `auto` follows the reader's system setting for the component only; the page
   // around it stays dark, so that is the chrome the mark has to sit on.
@@ -125,11 +189,38 @@ export function App() {
     document.documentElement.lang = lang
   }, [dict.tagline, lang])
 
+  const activePreset = (Object.keys(PRESETS) as PresetId[]).find((id) => {
+    const preset = PRESETS[id]
+    return (
+      preset.mode === mode &&
+      preset.sample === sampleId &&
+      preset.editable === editable &&
+      preset.depth === collapsedDepth
+    )
+  })
+
   const syncUrl = useCallback((next: Record<string, string>) => {
     const params = new URLSearchParams(globalThis.location.search)
     for (const [key, value] of Object.entries(next)) params.set(key, value)
     history.replaceState(null, '', `?${params.toString()}`)
   }, [])
+
+  const applyPreset = useCallback(
+    (id: PresetId) => {
+      const preset = PRESETS[id]
+      setMode(preset.mode)
+      setSampleId(preset.sample)
+      setEditable(preset.editable)
+      setCollapsedDepth(preset.depth)
+      syncUrl({
+        mode: preset.mode,
+        sample: preset.sample,
+        edit: preset.editable ? 'on' : 'off',
+        depth: preset.depth === undefined ? 'off' : String(preset.depth),
+      })
+    },
+    [syncUrl],
+  )
 
   const collapseOptions = useMemo(
     () => ({ context, minimumHidden, step }),
@@ -194,6 +285,7 @@ export function App() {
                 {dict.docs}
               </a>
             </p>
+            <p className="brand-formats">JSON · YAML · TOML · INI/.env — React</p>
           </div>
         </div>
 
@@ -218,6 +310,21 @@ export function App() {
           </a>
         </div>
       </header>
+
+      <nav className="presets" aria-label={dict.mode}>
+        {(Object.keys(PRESETS) as PresetId[]).map((id) => (
+          <button
+            key={id}
+            type="button"
+            className={activePreset === id ? 'ui-button preset preset--on' : 'ui-button preset'}
+            aria-pressed={activePreset === id}
+            onClick={() => applyPreset(id)}
+          >
+            {dict.presets[id]}
+          </button>
+        ))}
+        <span className="presets-note">{dict.presetsNote}</span>
+      </nav>
 
       <div className="app-body">
         <div className="stage">
@@ -244,6 +351,40 @@ export function App() {
               />
             }
           >
+            {sampleId === OWN ? (
+              <div className="paste">
+                <label className="paste-field">
+                  <span className="paste-label">
+                    {mode === 'diff' ? dict.before : dict.yourFile}
+                  </span>
+                  <textarea
+                    className="paste-input"
+                    value={ownLeft}
+                    spellCheck={false}
+                    placeholder={dict.pastePlaceholder}
+                    onChange={(event) => {
+                      setOwnLeft(event.target.value)
+                      store('krona:own-left', event.target.value)
+                    }}
+                  />
+                </label>
+                {mode === 'diff' ? (
+                  <label className="paste-field">
+                    <span className="paste-label">{dict.after}</span>
+                    <textarea
+                      className="paste-input"
+                      value={ownRight}
+                      spellCheck={false}
+                      placeholder={dict.pastePlaceholder}
+                      onChange={(event) => {
+                        setOwnRight(event.target.value)
+                        store('krona:own-right', event.target.value)
+                      }}
+                    />
+                  </label>
+                ) : null}
+              </div>
+            ) : null}
             <Krona
               format={sample.format}
               theme={theme}
@@ -303,7 +444,10 @@ export function App() {
               <Field label={dict.sample}>
                 <Select
                   value={sample.id}
-                  options={SAMPLES.map((s) => ({ value: s.id, label: s.label }))}
+                  options={[
+                    ...SAMPLES.map((s) => ({ value: s.id, label: s.label })),
+                    { value: OWN, label: dict.yourFile },
+                  ]}
                   onChange={(value) => {
                     setSampleId(value)
                     syncUrl({ sample: value })
