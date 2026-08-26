@@ -56,20 +56,27 @@ expected.add('--krona-height')
 // Token colours and diff shades are listed by a shared prefix plus suffixes.
 const GROUPED = /^--krona-token-|^--krona-(added|removed)-/
 
-const READMES = ['README.md', 'README.ru.md']
+// One set of documents per language: the README is the tour and the reference
+// page is the index, and a name may be documented in either. Checked per
+// language so a translation cannot quietly fall behind.
+const DOCS = [
+  ['README.md', 'docs/reference.md'],
+  ['README.ru.md', 'docs/reference.ru.md'],
+]
 let failed = false
 
-for (const readme of READMES) {
-  const text = read(readme)
+for (const paths of DOCS) {
+  const text = paths.map(read).join('\n')
   const missing = [...expected]
     .filter((name) => !text.includes(name))
     .filter((name) => !(GROUPED.test(name) && text.includes(name.replace(/^--krona-[a-z]+/, ''))))
     .sort()
+  const where = paths.join(' + ')
   if (missing.length > 0) {
     failed = true
-    console.error(`${readme} does not mention: ${missing.join(', ')}`)
+    console.error(`${where} do not mention: ${missing.join(', ')}`)
   } else {
-    console.log(`${readme}: all ${expected.size} public names documented`)
+    console.log(`${where}: all ${expected.size} public names documented`)
   }
 }
 
