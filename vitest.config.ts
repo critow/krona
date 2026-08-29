@@ -14,9 +14,9 @@ const executablePath = process.env.KRONA_CHROMIUM_PATH
 export default defineConfig({
   resolve: {
     alias: [
-      { find: /^krona$/, replacement: src('./packages/react/src/index.ts') },
+      { find: /^kronajs$/, replacement: src('./packages/react/src/index.ts') },
       {
-        find: /^krona\/(json|yaml|toml|ini)$/,
+        find: /^kronajs\/(json|yaml|toml|ini)$/,
         replacement: `${src('./packages/react/src/formats/')}$1.ts`,
       },
       { find: /^@kronajs\/core$/, replacement: src('./packages/core/src/index.ts') },

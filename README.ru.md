@@ -59,7 +59,7 @@ JSON/JSONC · YAML · TOML · INI/.env
 ## Установка
 
 ```bash
-npm install krona
+npm install kronajs
 ```
 
 React 18 или 19 — peer-зависимость.
@@ -67,7 +67,7 @@ React 18 или 19 — peer-зависимость.
 ## Быстрый старт
 
 ```tsx
-import { Krona } from 'krona'
+import { Krona } from 'kronajs'
 
 // Просмотр
 <Krona format="yaml" theme="dark">
@@ -81,18 +81,18 @@ import { Krona } from 'krona'
 ```
 
 Стили подключаются сами. Для SSR или собственного CSS-пайплайна передайте
-`injectStyles={false}` и подключите `import 'krona/styles.css'` вручную.
+`injectStyles={false}` и подключите `import 'kronajs/styles.css'` вручную.
 
 ![Просмотр YAML-файла со свёрнутыми блоками](./docs/assets/viewer-dark.png)
 
 ## Форматы
 
-Импорт `krona` регистрирует **JSON/JSONC**, **TOML** и **INI/.env**. YAML вынесен
+Импорт `kronajs` регистрирует **JSON/JSONC**, **TOML** и **INI/.env**. YAML вынесен
 в отдельную точку входа: парсер `yaml` весит десятки килобайт и не должен
 попадать в бандл тем, кому нужен только JSON:
 
 ```tsx
-import 'krona/yaml'
+import 'kronajs/yaml'
 ```
 
 `format="auto"` определяет формат по содержимому, но только среди реально
@@ -102,11 +102,11 @@ plain text с диагностикой, а не в исключение.
 
 | Формат | Точка входа | Что сворачивается |
 | --- | --- | --- |
-| JSON / JSONC | `krona` | Объекты и массивы; комментарии и висящие запятые допустимы |
-| YAML | `krona/yaml` | Отступы, блочные скаляры (`\|`, `>`), многострочные flow-коллекции |
-| TOML | `krona` | `[table]` и `[[array of tables]]`, вложенность по составному имени; многострочные строки и массивы |
-| INI | `krona` | `[section]`, вложенность по составному имени |
-| .env | `krona` | Ничего — в плоском файле нечего сворачивать, только подсветка |
+| JSON / JSONC | `kronajs` | Объекты и массивы; комментарии и висящие запятые допустимы |
+| YAML | `kronajs/yaml` | Отступы, блочные скаляры (`\|`, `>`), многострочные flow-коллекции |
+| TOML | `kronajs` | `[table]` и `[[array of tables]]`, вложенность по составному имени; многострочные строки и массивы |
+| INI | `kronajs` | `[section]`, вложенность по составному имени |
+| .env | `kronajs` | Ничего — в плоском файле нечего сворачивать, только подсветка |
 
 ## Справочник
 

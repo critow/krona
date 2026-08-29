@@ -28,7 +28,7 @@ what changed.
 
 ## What the repository needs once
 
-- **`NPM_TOKEN`** — a granular automation token with publish rights on `krona`
+- **`NPM_TOKEN`** — a granular automation token with publish rights on `kronajs`
   and the `@kronajs` scope, stored as a repository secret. Provenance needs the
   workflow's OIDC token as well, which `permissions: id-token: write` grants;
   the secret only proves who is publishing.

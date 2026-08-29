@@ -8,8 +8,8 @@
     "paths": {
       "@kronajs/core": ["./packages/core/src/index.ts"],
       "@kronajs/core/*": ["./packages/core/src/formats/*.ts"],
-      "krona": ["./packages/react/src/index.ts"],
-      "krona/*": ["./packages/react/src/*"]
+      "kronajs": ["./packages/react/src/index.ts"],
+      "kronajs/*": ["./packages/react/src/*"]
     },
     "types": ["node", "vite/client"]
   },
