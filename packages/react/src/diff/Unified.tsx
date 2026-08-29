@@ -7,7 +7,7 @@ import { Gutter } from '../parts/Gutter'
 import { Lines } from '../parts/Lines'
 import { contentColumnsOf } from '../render/width'
 import { usePanelLayout } from './PanelLayoutContext'
-import { unifiedEntries } from './unified'
+import { unifiedEntries } from './unifiedRows'
 
 /** Props of `<Krona.Unified>`. */
 export interface KronaUnifiedProps {
