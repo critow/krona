@@ -60,8 +60,8 @@ jobs:
           version="${VERSION#v}"
           # Core first: the React package's dependency on it is now a real
           # version range, and a dependency that does not exist yet fails install.
-          npm publish "packs/kronajs-core-${version}.tgz" --provenance --access public
-          npm publish "packs/krona-${version}.tgz" --provenance --access public
+          npm publish "./packs/kronajs-core-${version}.tgz" --provenance --access public
+          npm publish "./packs/krona-${version}.tgz" --provenance --access public
 
       - name: Create the GitHub Release
         env:
