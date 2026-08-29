@@ -8,7 +8,7 @@ const ALLOWED = new Set([
   'yaml',
   '@tanstack/react-virtual',
   '@tanstack/virtual-core',
-  '@krona/core',
+  '@kronajs/core',
   // peer dependencies, provided by the consumer
   'react',
   'react-dom',
@@ -33,7 +33,7 @@ function collect(filter) {
 }
 
 let failed = false
-for (const pkg of ['@krona/core', 'krona']) {
+for (const pkg of ['@kronajs/core', 'krona']) {
   const found = collect(pkg)
   const unexpected = [...found].filter((name) => !ALLOWED.has(name)).sort()
   if (unexpected.length > 0) {

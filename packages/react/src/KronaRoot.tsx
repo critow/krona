@@ -1,4 +1,4 @@
-import type { Format, FormatRegistry, ParseLimits } from '@krona/core'
+import type { Format, FormatRegistry, ParseLimits } from '@kronajs/core'
 import { type CSSProperties, type ReactNode, useInsertionEffect, useMemo, useRef } from 'react'
 import { KronaConfigContext, type KronaTheme } from './context/config'
 import { useNarrow } from './hooks/useNarrow'

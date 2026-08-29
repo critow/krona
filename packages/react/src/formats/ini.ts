@@ -1,1 +1,1 @@
-export { iniProvider } from '@krona/core/ini'
+export { iniProvider } from '@kronajs/core/ini'

@@ -141,7 +141,7 @@ importers:
 
   packages/react:
     dependencies:
-      '@krona/core':
+      '@kronajs/core':
         specifier: workspace:*
         version: link:../core
       '@tanstack/react-virtual':

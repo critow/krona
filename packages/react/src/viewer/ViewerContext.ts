@@ -1,4 +1,4 @@
-import type { DocumentModel } from '@krona/core'
+import type { DocumentModel } from '@kronajs/core'
 import { createContext, useContext } from 'react'
 import type { FoldState } from '../hooks/useFoldState'
 import type { KronaLabels } from '../labels'

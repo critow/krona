@@ -1,4 +1,4 @@
-import { alignDiff, diffLines, intralineDiff, parseDocument } from '@krona/core'
+import { alignDiff, diffLines, intralineDiff, parseDocument } from '@kronajs/core'
 import { bench, describe } from 'vitest'
 import '../index'
 

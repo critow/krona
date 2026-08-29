@@ -1,1 +1,1 @@
-export { tomlProvider } from '@krona/core/toml'
+export { tomlProvider } from '@kronajs/core/toml'

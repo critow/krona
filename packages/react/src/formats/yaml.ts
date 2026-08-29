@@ -1,1 +1,1 @@
-export { yamlProvider } from '@krona/core/yaml'
+export { yamlProvider } from '@kronajs/core/yaml'

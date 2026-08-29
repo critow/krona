@@ -1,4 +1,4 @@
-import type { DocumentModel } from '@krona/core'
+import type { DocumentModel } from '@kronajs/core'
 
 /**
  * The widest line, in characters, across the given documents.

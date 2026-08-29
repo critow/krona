@@ -6,7 +6,7 @@ import {
   type Token,
   type TokenType,
   valueSpansAt,
-} from '@krona/core'
+} from '@kronajs/core'
 import { type CSSProperties, Fragment, memo, type ReactNode, useState } from 'react'
 import { type LineEditing, type LineSearch, useLineSource } from '../context/lineSource'
 import type { KronaLabels } from '../labels'

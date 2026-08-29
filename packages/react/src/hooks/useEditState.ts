@@ -1,4 +1,4 @@
-import { applyEdit, type SourceEdit } from '@krona/core'
+import { applyEdit, type SourceEdit } from '@kronajs/core'
 import { useCallback, useMemo, useRef, useState } from 'react'
 
 /** Editing history and current text, as `Krona.Viewer` keeps them. */

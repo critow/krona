@@ -4,7 +4,7 @@ import {
   type FormatRegistry,
   type ParseLimits,
   parseDocument,
-} from '@krona/core'
+} from '@kronajs/core'
 import { useMemo } from 'react'
 
 const EMPTY = ''

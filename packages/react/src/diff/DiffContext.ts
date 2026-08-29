@@ -4,7 +4,7 @@ import type {
   DiffStats,
   DocumentModel,
   ExpandDirection,
-} from '@krona/core'
+} from '@kronajs/core'
 import { createContext, useContext } from 'react'
 import type { KronaLabels } from '../labels'
 

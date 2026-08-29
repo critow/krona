@@ -6,8 +6,8 @@
     "declarationMap": false,
     "sourceMap": false,
     "paths": {
-      "@krona/core": ["./packages/core/src/index.ts"],
-      "@krona/core/*": ["./packages/core/src/formats/*.ts"],
+      "@kronajs/core": ["./packages/core/src/index.ts"],
+      "@kronajs/core/*": ["./packages/core/src/formats/*.ts"],
       "krona": ["./packages/react/src/index.ts"],
       "krona/*": ["./packages/react/src/*"]
     },

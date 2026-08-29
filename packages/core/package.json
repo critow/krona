@@ -1,5 +1,5 @@
 {
-  "name": "@krona/core",
+  "name": "@kronajs/core",
   "version": "0.1.0",
   "description": "Framework-agnostic core for Krona: a line-based document model for config files, format providers and line diff.",
   "license": "MIT",

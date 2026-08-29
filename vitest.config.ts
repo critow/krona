@@ -19,9 +19,9 @@ export default defineConfig({
         find: /^krona\/(json|yaml|toml|ini)$/,
         replacement: `${src('./packages/react/src/formats/')}$1.ts`,
       },
-      { find: /^@krona\/core$/, replacement: src('./packages/core/src/index.ts') },
+      { find: /^@kronajs\/core$/, replacement: src('./packages/core/src/index.ts') },
       {
-        find: /^@krona\/core\/(json|yaml|toml|ini)$/,
+        find: /^@kronajs\/core\/(json|yaml|toml|ini)$/,
         replacement: `${src('./packages/core/src/formats/')}$1.ts`,
       },
     ],
