@@ -17,7 +17,7 @@ export default defineConfig({
   unbundle: true,
   external: ['react', 'react-dom', 'react/jsx-runtime'],
   hooks: {
-    // Consumers who own their CSS pipeline import `krona/styles.css`; the same
+    // Consumers who own their CSS pipeline import `kronajs/styles.css`; the same
     // bytes are also available as a constant for runtime injection.
     'build:done': () => {
       copyFileSync('src/theme/krona.css', 'dist/styles.css')

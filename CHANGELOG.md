@@ -6,6 +6,25 @@ Notable changes to Krona. The format follows
 
 ## Unreleased
 
+## 0.1.1 — 2026-08-30
+
+### Changed
+
+- The React package is published as `kronajs`. npm refused to register `krona`,
+  holding it too close to `klona`, `koa`, `cron`, `irone` and `konva`; the name
+  belongs to nobody, but its policy is not something a release can argue with.
+  The import is `kronajs`, the subpaths are `kronajs/yaml` and
+  `kronajs/styles.css`, and the core keeps the name it published under,
+  `@kronajs/core`. Nothing about the API moved.
+
+### Fixed
+
+- The publish step passed a tarball as `packs/name.tgz`, which npm read as the
+  GitHub shorthand `owner/repo` and tried to clone; the path is `./packs/` now.
+  Publishing is also idempotent — a version already on the registry is skipped
+  rather than failing the run, so a release that stops halfway can be finished
+  instead of abandoned to the next version.
+
 ## 0.1.0 — 2026-08-29
 
 The first release. Try it in the [demo](https://critow.github.io/krona/).
@@ -87,7 +106,7 @@ The first release. Try it in the [demo](https://critow.github.io/krona/).
   server, the unit tests and the screenshot suite all stayed green. The entry
   point now registers the built-in formats through bindings it holds, the
   `sideEffects` fields name the modules that really do have side effects (so
-  `import 'krona/yaml'` survives too), and the screenshot suite runs against a
+  `import 'kronajs/yaml'` survives too), and the screenshot suite runs against a
   built and previewed bundle rather than the dev server.
 
 ### Performance

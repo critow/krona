@@ -39,9 +39,9 @@ jobs:
       - run: pnpm verify
       - run: pnpm check-deps
       - run: pnpm --filter @kronajs/core exec publint
-      - run: pnpm --filter krona exec publint
+      - run: pnpm --filter kronajs exec publint
       - run: pnpm --filter @kronajs/core exec attw --pack . --profile node16
-      - run: pnpm --filter krona exec attw --pack . --profile node16 --exclude-entrypoints styles.css
+      - run: pnpm --filter kronajs exec attw --pack . --profile node16 --exclude-entrypoints styles.css
 
       # Packed by pnpm and published by npm. pnpm resolves `workspace:*` and
       # `catalog:` into real versions while packing, which npm alone cannot do;
@@ -49,7 +49,7 @@ jobs:
       - name: Pack
         run: |
           pnpm --filter @kronajs/core pack --pack-destination packs
-          pnpm --filter krona pack --pack-destination packs
+          pnpm --filter kronajs pack --pack-destination packs
 
       - name: Publish to npm
         env:
@@ -58,10 +58,21 @@ jobs:
         run: |
           set -euo pipefail
           version="${VERSION#v}"
+          # A run that stops between the two publishes used to cost a version:
+          # npm keeps what it accepted and refuses to overwrite it, so the only
+          # way forward was a new number. Skipping what the registry already has
+          # lets a rerun of the same tag finish the release instead.
+          publish() {
+            if npm view "$1@${version}" version >/dev/null 2>&1; then
+              echo "$1@${version} is already published, skipping"
+              return
+            fi
+            npm publish "./packs/$2-${version}.tgz" --provenance --access public
+          }
           # Core first: the React package's dependency on it is now a real
           # version range, and a dependency that does not exist yet fails install.
-          npm publish "./packs/kronajs-core-${version}.tgz" --provenance --access public
-          npm publish "./packs/krona-${version}.tgz" --provenance --access public
+          publish @kronajs/core kronajs-core
+          publish kronajs kronajs
 
       - name: Create the GitHub Release
         env:

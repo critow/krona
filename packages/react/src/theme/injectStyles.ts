@@ -9,7 +9,7 @@ const STYLE_ID = 'krona-styles'
  * it is applied by setting `textContent` on a `<style>` element, so no HTML is
  * ever parsed from a string.
  *
- * Server-rendered pages should import `krona/styles.css` instead (or as well:
+ * Server-rendered pages should import `kronajs/styles.css` instead (or as well:
  * the injection is a no-op once the id is present).
  */
 export function injectStyles(target: Document | undefined = globalThis.document): void {

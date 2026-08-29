@@ -1,4 +1,4 @@
-import { Krona, useKronaViewer } from 'krona'
+import { Krona, useKronaViewer } from 'kronajs'
 import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'

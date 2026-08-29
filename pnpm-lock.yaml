@@ -169,7 +169,7 @@ importers:
 
   playground:
     dependencies:
-      krona:
+      kronajs:
         specifier: workspace:*
         version: link:../packages/react
       react:

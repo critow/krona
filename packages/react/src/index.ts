@@ -3,7 +3,7 @@
  * INI/.env configuration files.
  *
  * Importing this entry point registers the JSON, TOML and INI providers. YAML
- * lives behind `krona/yaml` so the `yaml` parser never reaches a bundle that
+ * lives behind `kronajs/yaml` so the `yaml` parser never reaches a bundle that
  * only shows JSON.
  */
 

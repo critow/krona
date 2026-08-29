@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "krona": "workspace:*",
+    "kronajs": "workspace:*",
     "react": "catalog:",
     "react-dom": "catalog:"
   },

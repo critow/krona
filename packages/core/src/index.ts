@@ -72,7 +72,7 @@ import { tomlProvider } from './formats/toml'
 import { registerFormat } from './model/registry'
 
 // Each provider module also registers itself, which is what makes
-// `import 'krona/yaml'` work. That alone is not enough here: a bundler told the
+// `import 'kronajs/yaml'` work. That alone is not enough here: a bundler told the
 // package is side-effect-free drops a re-export whose binding nobody reads, and
 // the registration goes with it — the document then renders as plain text, with
 // no highlighting and nothing to fold. Registering through bindings this module

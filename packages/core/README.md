@@ -1,7 +1,7 @@
 # @kronajs/core
 
 **Framework-agnostic document model, format providers and line diff for
-configuration files.** The engine behind [`krona`](https://www.npmjs.com/package/krona);
+configuration files.** The engine behind [`kronajs`](https://www.npmjs.com/package/kronajs);
 no React, no DOM.
 
 [**Demo**](https://critow.github.io/krona/) · [**Full documentation**](https://github.com/critow/krona#readme)
