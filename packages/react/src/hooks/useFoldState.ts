@@ -1,4 +1,4 @@
-import type { DocumentModel } from '@krona/core'
+import type { DocumentModel } from '@kronajs/core'
 import { useCallback, useMemo, useRef, useState } from 'react'
 
 /** Imperative handle over the set of collapsed folding ranges. */

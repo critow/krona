@@ -33,7 +33,7 @@ import { Krona } from 'krona'
 
 YAML lives behind `krona/yaml` so its parser never reaches a bundle that only
 shows JSON. The headless model and diff are published separately as
-[`@krona/core`](https://www.npmjs.com/package/@krona/core).
+[`@kronajs/core`](https://www.npmjs.com/package/@kronajs/core).
 
 The [full README](https://github.com/critow/krona#readme) covers every prop,
 label, CSS variable and safety limit.

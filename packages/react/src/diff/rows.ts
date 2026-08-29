@@ -1,4 +1,4 @@
-import type { AlignedRow, CollapsedRegion, DocumentModel } from '@krona/core'
+import type { AlignedRow, CollapsedRegion, DocumentModel } from '@kronajs/core'
 import { useMemo } from 'react'
 
 /** One entry of the rendered row list, shared by both diff panels. */

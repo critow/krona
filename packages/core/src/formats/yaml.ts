@@ -451,7 +451,7 @@ function detect(_source: string, lines: readonly string[]): number {
  *
  * @example
  * ```ts
- * import '@krona/core/yaml'
+ * import '@kronajs/core/yaml'
  * parseDocument(source, 'yaml')
  * ```
  */

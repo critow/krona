@@ -108,7 +108,7 @@ export interface ParseOptions {
   readonly limits?: Partial<ParseLimits>
   /**
    * Provider lookup. Defaults to the module-level registry, which is what
-   * `import '@krona/core/yaml'` populates.
+   * `import '@kronajs/core/yaml'` populates.
    */
   readonly providers?: FormatRegistry
 }

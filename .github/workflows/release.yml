@@ -38,9 +38,9 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm verify
       - run: pnpm check-deps
-      - run: pnpm --filter @krona/core exec publint
+      - run: pnpm --filter @kronajs/core exec publint
       - run: pnpm --filter krona exec publint
-      - run: pnpm --filter @krona/core exec attw --pack . --profile node16
+      - run: pnpm --filter @kronajs/core exec attw --pack . --profile node16
       - run: pnpm --filter krona exec attw --pack . --profile node16 --exclude-entrypoints styles.css
 
       # Packed by pnpm and published by npm. pnpm resolves `workspace:*` and
@@ -48,7 +48,7 @@ jobs:
       # npm attaches the provenance attestation, which pnpm has no flag for.
       - name: Pack
         run: |
-          pnpm --filter @krona/core pack --pack-destination packs
+          pnpm --filter @kronajs/core pack --pack-destination packs
           pnpm --filter krona pack --pack-destination packs
 
       - name: Publish to npm
@@ -60,7 +60,7 @@ jobs:
           version="${VERSION#v}"
           # Core first: the React package's dependency on it is now a real
           # version range, and a dependency that does not exist yet fails install.
-          npm publish "packs/krona-core-${version}.tgz" --provenance --access public
+          npm publish "packs/kronajs-core-${version}.tgz" --provenance --access public
           npm publish "packs/krona-${version}.tgz" --provenance --access public
 
       - name: Create the GitHub Release

@@ -7,7 +7,7 @@ import {
   lineSpanAt,
   offsetOfLine,
   removeBlockEdit,
-} from '@krona/core'
+} from '@kronajs/core'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import {
   type CSSProperties,

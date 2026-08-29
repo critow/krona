@@ -21,9 +21,9 @@ const repoRoot = new URL('../../../', import.meta.url).pathname
 const src = (path: string) => join(repoRoot, path)
 
 const alias = [
-  { find: /^@krona\/core$/, replacement: src('packages/core/src/index.ts') },
+  { find: /^@kronajs\/core$/, replacement: src('packages/core/src/index.ts') },
   {
-    find: /^@krona\/core\/(json|yaml|toml|ini)$/,
+    find: /^@kronajs\/core\/(json|yaml|toml|ini)$/,
     replacement: `${src('packages/core/src/formats/')}$1.ts`,
   },
 ]
@@ -65,7 +65,7 @@ async function bundleAndRun(entrySource: string): Promise<Bundle> {
 describe('bundled entry points', () => {
   it('keeps the built-in providers registered through a production build', async () => {
     const { ids } = await bundleAndRun(
-      `import { listFormats } from '@krona/core'
+      `import { listFormats } from '@kronajs/core'
        export const ids = listFormats().map((provider) => provider.id)`,
     )
 
@@ -74,8 +74,8 @@ describe('bundled entry points', () => {
 
   it('registers YAML when the consumer imports it for its side effect alone', async () => {
     const { ids } = await bundleAndRun(
-      `import { listFormats } from '@krona/core'
-       import '@krona/core/yaml'
+      `import { listFormats } from '@kronajs/core'
+       import '@kronajs/core/yaml'
        export const ids = listFormats().map((provider) => provider.id)`,
     )
 
@@ -84,7 +84,7 @@ describe('bundled entry points', () => {
 
   it('leaves the YAML parser out of a bundle that never imports it', async () => {
     const { code } = await bundleAndRun(
-      `import { listFormats } from '@krona/core'
+      `import { listFormats } from '@kronajs/core'
        export const ids = listFormats().map((provider) => provider.id)`,
     )
 

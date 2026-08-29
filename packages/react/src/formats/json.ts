@@ -1,1 +1,1 @@
-export { jsonProvider } from '@krona/core/json'
+export { jsonProvider } from '@kronajs/core/json'

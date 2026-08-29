@@ -1,4 +1,4 @@
-import type { AlignedRow, FoldRange } from '@krona/core'
+import type { AlignedRow, FoldRange } from '@kronajs/core'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { type CSSProperties, type ReactNode, useCallback, useEffect, useMemo, useRef } from 'react'
 import { LineSourceContext, type RenderRow, type RowTone } from '../context/lineSource'

@@ -31,9 +31,9 @@ jobs:
       # The published dependency graph is part of the contract: a new transitive
       # package should be a decision, not a surprise in someone's lockfile.
       - run: pnpm check-deps
-      - run: pnpm --filter @krona/core exec publint
+      - run: pnpm --filter @kronajs/core exec publint
       - run: pnpm --filter krona exec publint
-      - run: pnpm --filter @krona/core exec attw --pack . --profile node16
+      - run: pnpm --filter @kronajs/core exec attw --pack . --profile node16
       # styles.css is excluded because attw judges every entrypoint by whether it
       # resolves to JS or type declarations, which a stylesheet never can.
       - run: pnpm --filter krona exec attw --pack . --profile node16 --exclude-entrypoints styles.css

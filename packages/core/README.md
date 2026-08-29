@@ -1,4 +1,4 @@
-# @krona/core
+# @kronajs/core
 
 **Framework-agnostic document model, format providers and line diff for
 configuration files.** The engine behind [`krona`](https://www.npmjs.com/package/krona);
@@ -7,12 +7,12 @@ no React, no DOM.
 [**Demo**](https://critow.github.io/krona/) · [**Full documentation**](https://github.com/critow/krona#readme)
 
 ```bash
-npm install @krona/core
+npm install @kronajs/core
 ```
 
 ```ts
-import { parseDocument, diffLines, alignDiff } from '@krona/core'
-import '@krona/core/yaml'
+import { parseDocument, diffLines, alignDiff } from '@kronajs/core'
+import '@kronajs/core/yaml'
 
 const doc = parseDocument(source, 'yaml')
 doc.lines            // source lines
@@ -39,7 +39,7 @@ pollution through a `__proto__` key by construction.
 | `toSnapshot` / `fromSnapshot` | Structured-clone-safe projection, for Web Workers |
 
 Formats: JSON/JSONC, TOML and INI/.env register from the main entry point; YAML
-lives behind `@krona/core/yaml` because its parser is tens of kilobytes.
+lives behind `@kronajs/core/yaml` because its parser is tens of kilobytes.
 
 ## License
 

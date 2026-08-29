@@ -74,7 +74,7 @@
     "prepublishOnly": "pnpm build && publint && attw --pack . --profile node16 --exclude-entrypoints styles.css"
   },
   "dependencies": {
-    "@krona/core": "workspace:*",
+    "@kronajs/core": "workspace:*",
     "@tanstack/react-virtual": "catalog:"
   },
   "peerDependencies": {

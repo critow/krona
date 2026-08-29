@@ -22,7 +22,7 @@ export type {
   SearchResult,
   Token,
   TokenType,
-} from '@krona/core'
+} from '@kronajs/core'
 // Re-exported so consumers need only one dependency for the common cases.
 export {
   alignDiff,
@@ -35,7 +35,7 @@ export {
   parseDocument,
   registerFormat,
   scanUnsafeCharacters,
-} from '@krona/core'
+} from '@kronajs/core'
 export type { KronaConfig, KronaTheme } from './context/config'
 export { useKronaConfig } from './context/config'
 export type { LineSearch, LineSide, LineSource, RenderRow, RowTone } from './context/lineSource'

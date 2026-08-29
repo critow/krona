@@ -4,7 +4,7 @@ import type {
   DocumentModel,
   ExpandDirection,
   IntralineResult,
-} from '@krona/core'
+} from '@kronajs/core'
 import { createContext, useContext } from 'react'
 import type { LineSearch } from '../context/lineSource'
 import type { ScrollSync } from '../hooks/useScrollSync'

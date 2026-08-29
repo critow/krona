@@ -33,7 +33,7 @@ JSON/JSONC · YAML · TOML · INI/.env
 - **Быстрый на реальных файлах.** Лок-файл на 60 тысяч строк разбирается за ~30 мс и диффится за ~62 мс; отрисовка виртуализирована, токенизация ленивая.
 - **Пять пакетов в дереве установки.** `jsonc-parser`, `yaml` и `diff` разбирают и сравнивают;
   `@tanstack/react-virtual` и его `@tanstack/virtual-core` виртуализируют. Проверка в CI
-  роняет сборку, если появится шестой. `@krona/core` — наш, React — peer.
+  роняет сборку, если появится шестой. `@kronajs/core` — наш, React — peer.
 - **Безопасен к недоверенному содержимому.** Нигде нет `innerHTML`, из файла не строится ни одного JavaScript-объекта, bidi- и невидимые символы рисуются видимыми плашками.
 
 ![Построчное сравнение двух JSON-файлов](./docs/assets/diff-dark.png)
@@ -333,8 +333,8 @@ const { narrow, unified, side, showSide } = useKronaDiff()
 
 ```ts
 // worker.ts
-import { parseDocument, toSnapshot } from '@krona/core'
-import '@krona/core/yaml'
+import { parseDocument, toSnapshot } from '@kronajs/core'
+import '@kronajs/core/yaml'
 
 self.onmessage = ({ data }) => {
   const model = parseDocument(data.source, data.format)
@@ -344,7 +344,7 @@ self.onmessage = ({ data }) => {
 
 ```tsx
 // app.tsx
-import { fromSnapshot } from '@krona/core'
+import { fromSnapshot } from '@kronajs/core'
 
 const [model, setModel] = useState<DocumentModel>()
 useEffect(() => {
@@ -367,8 +367,8 @@ return model ? (
 ## Ядро без React
 
 ```ts
-import { parseDocument, diffLines, alignDiff, intralineDiff } from '@krona/core'
-import '@krona/core/yaml'
+import { parseDocument, diffLines, alignDiff, intralineDiff } from '@kronajs/core'
+import '@kronajs/core/yaml'
 
 const doc = parseDocument(source, 'yaml')
 doc.lines            // строки исходника

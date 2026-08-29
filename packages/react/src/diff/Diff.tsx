@@ -8,7 +8,7 @@ import {
   type Format,
   type IntralineResult,
   intralineDiff,
-} from '@krona/core'
+} from '@kronajs/core'
 import { type CSSProperties, type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
 import { useKronaConfig } from '../context/config'
 import { SearchContext } from '../context/search'

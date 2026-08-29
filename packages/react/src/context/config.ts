@@ -1,4 +1,4 @@
-import type { Format, FormatRegistry, ParseLimits } from '@krona/core'
+import type { Format, FormatRegistry, ParseLimits } from '@kronajs/core'
 import { createContext, useContext } from 'react'
 import type { KronaLabels } from '../labels'
 

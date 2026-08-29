@@ -1,5 +1,5 @@
-import type { AlignedRow, DocumentModel, SearchMatch, Span } from '@krona/core'
-import { findMatches } from '@krona/core'
+import type { AlignedRow, DocumentModel, SearchMatch, Span } from '@kronajs/core'
+import { findMatches } from '@kronajs/core'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { KronaLabels } from '../labels'
 

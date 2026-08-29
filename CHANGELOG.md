@@ -4,7 +4,9 @@ Notable changes to Krona. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the project follows
 [semantic versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased — `0.1.0`
+## Unreleased
+
+## 0.1.0 — 2026-08-29
 
 The first release. Try it in the [demo](https://critow.github.io/krona/).
 
@@ -25,7 +27,7 @@ The first release. Try it in the [demo](https://critow.github.io/krona/).
 - Light and dark themes driven entirely by `--krona-*` custom properties.
 - English default labels, all replaceable through the `labels` prop; the
   library ships no i18n runtime and formats numbers with `Intl.NumberFormat`.
-- Framework-free core (`krona/core`) with structured-clone-safe snapshots for
+- Framework-free core (`@kronajs/core`) with structured-clone-safe snapshots for
   parsing inside a Web Worker.
 - Parse limits (`maxInputLength`, `maxDepth`, `maxFoldRanges`,
   `maxTokenizedLineLength`, `maxValidatedLength`) with readable errors instead

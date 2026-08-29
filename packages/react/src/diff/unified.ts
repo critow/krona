@@ -1,4 +1,4 @@
-import type { AlignedRow } from '@krona/core'
+import type { AlignedRow } from '@kronajs/core'
 import type { DisplayItem } from './rows'
 
 /** One row of a unified diff: an aligned row read from one of the two sides. */

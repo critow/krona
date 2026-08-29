@@ -1,4 +1,4 @@
-import type { CollapsedRegion } from '@krona/core'
+import type { CollapsedRegion } from '@kronajs/core'
 import { useLineSource } from '../context/lineSource'
 
 /** Props of `<Krona.ExpandBar>`. */

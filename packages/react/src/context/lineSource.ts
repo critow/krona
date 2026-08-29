@@ -1,4 +1,10 @@
-import type { CollapsedRegion, DocumentModel, ExpandDirection, FoldRange, Span } from '@krona/core'
+import type {
+  CollapsedRegion,
+  DocumentModel,
+  ExpandDirection,
+  FoldRange,
+  Span,
+} from '@kronajs/core'
 import type { VirtualItem, Virtualizer } from '@tanstack/react-virtual'
 import { createContext, type RefObject, useContext } from 'react'
 import type { KronaLabels } from '../labels'

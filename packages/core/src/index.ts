@@ -2,7 +2,7 @@
  * Krona core — framework-agnostic document model, format providers and diff.
  *
  * Importing this entry point registers the JSON, TOML and INI providers.
- * YAML is behind `@krona/core/yaml` so the `yaml` parser never lands in a
+ * YAML is behind `@kronajs/core/yaml` so the `yaml` parser never lands in a
  * bundle that only shows JSON.
  */
 
@@ -63,7 +63,7 @@ export { hasUnsafeCharacters, scanUnsafeCharacters } from './model/unicode'
 export type { SearchMatch, SearchOptions, SearchResult } from './search/search'
 export { findMatches, matchAfter } from './search/search'
 
-// yamlProvider is intentionally NOT re-exported here: see '@krona/core/yaml'.
+// yamlProvider is intentionally NOT re-exported here: see '@kronajs/core/yaml'.
 
 import { iniProvider } from './formats/ini'
 import { jsonProvider } from './formats/json'

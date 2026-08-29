@@ -12,7 +12,7 @@ what changed.
 
 1. Set the version in `packages/core/package.json` and
    `packages/react/package.json`. They release together and share a version, so
-   `@krona/core` can be depended on exactly.
+   `@kronajs/core` can be depended on exactly.
 2. In `CHANGELOG.md`, turn the `Unreleased` heading into the version and the
    date, and open a fresh `Unreleased` above it. The heading only has to contain
    the version — `## 0.1.0 — 2026-08-25` is the form used here.
@@ -29,11 +29,11 @@ what changed.
 ## What the repository needs once
 
 - **`NPM_TOKEN`** — a granular automation token with publish rights on `krona`
-  and the `@krona` scope, stored as a repository secret. Provenance needs the
+  and the `@kronajs` scope, stored as a repository secret. Provenance needs the
   workflow's OIDC token as well, which `permissions: id-token: write` grants;
   the secret only proves who is publishing.
-- **The `@krona` scope** must exist on npm and the token's account must own it,
-  or the first `@krona/core` publish is rejected.
+- **The `@kronajs` scope** must exist on npm and the token's account must own it,
+  or the first `@kronajs/core` publish is rejected.
 
 ## Why packing and publishing are two tools
 

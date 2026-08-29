@@ -1,5 +1,5 @@
-import type { Token } from '@krona/core'
-import { type Span, scanUnsafeCharacters, type UnsafeSpan } from '@krona/core'
+import type { Token } from '@kronajs/core'
+import { type Span, scanUnsafeCharacters, type UnsafeSpan } from '@kronajs/core'
 
 /** A run of characters that share the same styling. */
 export interface Segment {
