@@ -21,6 +21,9 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
+      # This runner's filesystem is the only one that tolerates two names
+      # differing by case, so it is the one that has to refuse them.
+      - run: pnpm check-names
       - run: pnpm check-css
       # The README reference tables are checked against the actual public
       # surface, so a new prop cannot land undocumented.
