@@ -1,7 +1,7 @@
 import { Krona } from 'krona'
 import { describe, expect, it } from 'vitest'
 import { render } from 'vitest-browser-react'
-import { unifiedEntries } from './unified'
+import { unifiedEntries } from './unifiedRows'
 
 const BEFORE = [
   '{',
