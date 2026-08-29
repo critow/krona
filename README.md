@@ -471,6 +471,12 @@ name stops being mentioned in a language's documents — the README and its
 [reference page](./docs/reference.md) together — so a prop cannot land
 undocumented in either language.
 
+`pnpm check-names` fails on two files a case-insensitive filesystem cannot tell
+apart. Linux CI is the one machine where such a pair is harmless, so it is the
+one that has to look: `unified.ts` beside `Unified.tsx` built here and nowhere
+else, because rolldown probes `.tsx` before `.ts` and macOS answers with the
+component.
+
 `pnpm build:social` regenerates `playground/public/social-preview.png` — the card
 GitHub shows for the repository (upload it under Settings → Social preview) and
 the one the demo hands to a chat client. The diff on it is a screenshot of the
