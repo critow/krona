@@ -8,7 +8,8 @@ Notable changes to Krona. The format follows
 
 ## 0.1.0 — 2026-08-29
 
-The first release. Try it in the [demo](https://critow.github.io/krona/).
+The first release, published as `kronajs`. Try it in the
+[demo](https://critow.github.io/krona/).
 
 ### Added
 
@@ -87,7 +88,7 @@ The first release. Try it in the [demo](https://critow.github.io/krona/).
   server, the unit tests and the screenshot suite all stayed green. The entry
   point now registers the built-in formats through bindings it holds, the
   `sideEffects` fields name the modules that really do have side effects (so
-  `import 'krona/yaml'` survives too), and the screenshot suite runs against a
+  `import 'kronajs/yaml'` survives too), and the screenshot suite runs against a
   built and previewed bundle rather than the dev server.
 
 ### Performance

@@ -5,6 +5,10 @@ check that guards the published artifact, packs both packages, publishes them to
 npm with provenance, and opens a GitHub Release with the changelog section for
 that version attached to the tarballs.
 
+The publish step is retry-safe. If npm accepted one or both immutable versions
+before a later step failed, the next run skips those uploads and downloads the
+exact registry tarballs for the GitHub Release assets.
+
 Nothing about a release is manual except deciding the version and writing down
 what changed.
 
@@ -28,7 +32,7 @@ what changed.
 
 ## What the repository needs once
 
-- **`NPM_TOKEN`** — a granular automation token with publish rights on `krona`
+- **`NPM_TOKEN`** — a granular automation token with publish rights on `kronajs`
   and the `@kronajs` scope, stored as a repository secret. Provenance needs the
   workflow's OIDC token as well, which `permissions: id-token: write` grants;
   the secret only proves who is publishing.

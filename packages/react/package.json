@@ -1,5 +1,5 @@
 {
-  "name": "krona",
+  "name": "kronajs",
   "version": "0.1.0",
   "description": "Fold, diff and edit config files in React \u2014 JSON/JSONC, YAML, TOML and INI/.env.",
   "license": "MIT",

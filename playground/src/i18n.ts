@@ -1,4 +1,4 @@
-import type { KronaLabels } from 'krona'
+import type { KronaLabels } from 'kronajs'
 
 /**
  * The playground demonstrates that Krona itself ships no i18n runtime:
@@ -102,7 +102,7 @@ const en: Dict = {
     'Every control here is a real prop. The code below updates with them, so whatever you end up with is copy-pasteable.',
   install: 'Install',
   installNote:
-    'YAML lives behind krona/yaml so its parser never reaches a bundle that only shows JSON.',
+    'YAML lives behind kronajs/yaml so its parser never reaches a bundle that only shows JSON.',
   thisView: 'This view, in code',
   footer: 'JSON · YAML · TOML · INI/.env — three runtime dependencies, no innerHTML.',
   notes: {},
@@ -171,7 +171,7 @@ const ru: Dict = {
     'Каждый контрол здесь — настоящий проп. Код ниже меняется вместе с ними, так что получившееся можно скопировать как есть.',
   install: 'Установка',
   installNote:
-    'YAML вынесен в krona/yaml, чтобы его парсер не попадал в бандл тем, кому нужен только JSON.',
+    'YAML вынесен в kronajs/yaml, чтобы его парсер не попадал в бандл тем, кому нужен только JSON.',
   thisView: 'Этот экран в коде',
   footer: 'JSON · YAML · TOML · INI/.env — три зависимости, никакого innerHTML.',
   notes: {

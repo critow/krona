@@ -35,7 +35,7 @@ export interface KronaRootProps {
   providers?: FormatRegistry
   /**
    * Adds Krona's stylesheet to `document.head` on mount. Set to false and
-   * import `krona/styles.css` yourself when you control the CSS pipeline (or
+   * import `kronajs/styles.css` yourself when you control the CSS pipeline (or
    * render on the server). Default true.
    */
   injectStyles?: boolean

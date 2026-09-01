@@ -54,8 +54,8 @@ export function buildSnippet(input: SnippetInput): CodeToken[] {
     punct('}'),
   ]
 
-  line(punct('import'), plain(' { Krona } '), punct('from'), plain(' '), str("'krona'"))
-  if (input.yaml) line(punct('import'), plain(' '), str("'krona/yaml'"))
+  line(punct('import'), plain(' { Krona } '), punct('from'), plain(' '), str("'kronajs'"))
+  if (input.yaml) line(punct('import'), plain(' '), str("'kronajs/yaml'"))
   line()
 
   const rootProps: CodeToken[] = [

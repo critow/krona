@@ -39,9 +39,9 @@ jobs:
       - run: pnpm verify
       - run: pnpm check-deps
       - run: pnpm --filter @kronajs/core exec publint
-      - run: pnpm --filter krona exec publint
+      - run: pnpm --filter kronajs exec publint
       - run: pnpm --filter @kronajs/core exec attw --pack . --profile node16
-      - run: pnpm --filter krona exec attw --pack . --profile node16 --exclude-entrypoints styles.css
+      - run: pnpm --filter kronajs exec attw --pack . --profile node16 --exclude-entrypoints styles.css
 
       # Packed by pnpm and published by npm. pnpm resolves `workspace:*` and
       # `catalog:` into real versions while packing, which npm alone cannot do;
@@ -49,7 +49,7 @@ jobs:
       - name: Pack
         run: |
           pnpm --filter @kronajs/core pack --pack-destination packs
-          pnpm --filter krona pack --pack-destination packs
+          pnpm --filter kronajs pack --pack-destination packs
 
       - name: Publish to npm
         env:
@@ -58,10 +58,25 @@ jobs:
         run: |
           set -euo pipefail
           version="${VERSION#v}"
-          # Core first: the React package's dependency on it is now a real
-          # version range, and a dependency that does not exist yet fails install.
-          npm publish "./packs/kronajs-core-${version}.tgz" --provenance --access public
-          npm publish "./packs/krona-${version}.tgz" --provenance --access public
+
+          publish_or_fetch() {
+            package="$1"
+            tarball="$2"
+
+            # A retry after a partial release must not attempt to overwrite an
+            # immutable version that already landed. Fetch that exact artifact
+            # back so the GitHub Release still carries the npm-published bytes.
+            if npm view "${package}@${version}" version >/dev/null 2>&1; then
+              echo "${package}@${version} already exists; skipping publish"
+              rm "$tarball"
+              npm pack "${package}@${version}" --pack-destination packs
+            else
+              npm publish "$tarball" --provenance --access public
+            fi
+          }
+
+          publish_or_fetch @kronajs/core "./packs/kronajs-core-${version}.tgz"
+          publish_or_fetch kronajs "./packs/kronajs-${version}.tgz"
 
       - name: Create the GitHub Release
         env:

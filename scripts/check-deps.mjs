@@ -33,7 +33,7 @@ function collect(filter) {
 }
 
 let failed = false
-for (const pkg of ['@kronajs/core', 'krona']) {
+for (const pkg of ['@kronajs/core', 'kronajs']) {
   const found = collect(pkg)
   const unexpected = [...found].filter((name) => !ALLOWED.has(name)).sort()
   if (unexpected.length > 0) {

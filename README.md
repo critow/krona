@@ -59,7 +59,7 @@ JSON/JSONC · YAML · TOML · INI/.env
 ## Installation
 
 ```bash
-npm install krona
+npm install kronajs
 ```
 
 React 18 or 19 is a peer dependency.
@@ -67,7 +67,7 @@ React 18 or 19 is a peer dependency.
 ## Quick start
 
 ```tsx
-import { Krona } from 'krona'
+import { Krona } from 'kronajs'
 
 // Viewer
 <Krona format="yaml" theme="dark">
@@ -81,18 +81,18 @@ import { Krona } from 'krona'
 ```
 
 Styles are injected automatically. If you render on the server or own your CSS
-pipeline, pass `injectStyles={false}` and `import 'krona/styles.css'` yourself.
+pipeline, pass `injectStyles={false}` and `import 'kronajs/styles.css'` yourself.
 
 ![Viewer showing a YAML file with folded blocks](./docs/assets/viewer-dark.png)
 
 ## Formats
 
-Importing `krona` registers **JSON/JSONC**, **TOML** and **INI/.env**. YAML sits
+Importing `kronajs` registers **JSON/JSONC**, **TOML** and **INI/.env**. YAML sits
 behind its own entry point, because the `yaml` parser is tens of kilobytes and
 should not land in a bundle that only ever shows JSON:
 
 ```tsx
-import 'krona/yaml'
+import 'kronajs/yaml'
 ```
 
 `format="auto"` sniffs the content, but only among providers you actually
@@ -102,11 +102,11 @@ diagnostic instead of throwing.
 
 | Format | Entry point | What folds |
 | --- | --- | --- |
-| JSON / JSONC | `krona` | Objects and arrays; comments and trailing commas allowed |
-| YAML | `krona/yaml` | Indentation, block scalars (`\|`, `>`), multi-line flow collections |
-| TOML | `krona` | `[table]` and `[[array of tables]]`, nested by dotted path; multi-line strings and arrays |
-| INI | `krona` | `[section]`, nested by dotted name |
-| .env | `krona` | Nothing — a flat file has nothing to fold, only highlighting |
+| JSON / JSONC | `kronajs` | Objects and arrays; comments and trailing commas allowed |
+| YAML | `kronajs/yaml` | Indentation, block scalars (`\|`, `>`), multi-line flow collections |
+| TOML | `kronajs` | `[table]` and `[[array of tables]]`, nested by dotted path; multi-line strings and arrays |
+| INI | `kronajs` | `[section]`, nested by dotted name |
+| .env | `kronajs` | Nothing — a flat file has nothing to fold, only highlighting |
 
 ## Reference
 

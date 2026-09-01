@@ -6,7 +6,7 @@ const providers = new Map<string, FormatProvider>()
  * Registers a format provider in the module-level registry.
  *
  * Krona's entry point registers JSON, TOML and INI. YAML lives behind
- * `@kronajs/core/yaml` (`krona/yaml`) because the `yaml` parser is tens of
+ * `@kronajs/core/yaml` (`kronajs/yaml`) because the `yaml` parser is tens of
  * kilobytes and must not reach bundles that only ever show JSON.
  *
  * @example

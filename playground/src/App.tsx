@@ -1,5 +1,5 @@
-import { detectFormat, Krona, useKronaDiff } from 'krona'
-import 'krona/yaml'
+import { detectFormat, Krona, useKronaDiff } from 'kronajs'
+import 'kronajs/yaml'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { DICTS, type Lang } from './i18n'
 import { SAMPLES } from './samples'
@@ -305,7 +305,7 @@ export function App() {
           <a className="ui-button" href="https://github.com/critow/krona">
             GitHub
           </a>
-          <a className="ui-button" href="https://www.npmjs.com/package/krona">
+          <a className="ui-button" href="https://www.npmjs.com/package/kronajs">
             npm
           </a>
         </div>
@@ -597,7 +597,7 @@ export function App() {
 
           <Panel title={dict.install}>
             <pre className="ui-install">
-              <code>{'npm i krona\nyarn add krona\npnpm add krona'}</code>
+              <code>{'npm i kronajs\nyarn add kronajs\npnpm add kronajs'}</code>
             </pre>
             <p className="ui-note">{dict.installNote}</p>
           </Panel>

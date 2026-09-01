@@ -2,7 +2,7 @@
  * GENERATED FILE — edit src/theme/krona.css and run `pnpm build:css`.
  *
  * Krona's stylesheet is mirrored here so it can be injected at runtime for
- * zero-config usage, while `krona/styles.css` ships the same bytes for
+ * zero-config usage, while `kronajs/styles.css` ships the same bytes for
  * consumers who own their CSS pipeline.
  *
  * Everything is driven by `--krona-*` custom properties: override them on any
