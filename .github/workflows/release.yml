@@ -58,21 +58,26 @@ jobs:
         run: |
           set -euo pipefail
           version="${VERSION#v}"
-          # A run that stops between the two publishes used to cost a version:
-          # npm keeps what it accepted and refuses to overwrite it, so the only
-          # way forward was a new number. Skipping what the registry already has
-          # lets a rerun of the same tag finish the release instead.
-          publish() {
-            if npm view "$1@${version}" version >/dev/null 2>&1; then
-              echo "$1@${version} is already published, skipping"
-              return
+          publish_or_fetch() {
+            package="$1"
+            tarball="$2"
+
+            # A retry must not overwrite an immutable version. Download the
+            # exact npm artifact so the eventual GitHub Release carries the
+            # same bytes even when the first run stopped after publishing.
+            if npm view "${package}@${version}" version >/dev/null 2>&1; then
+              echo "${package}@${version} is already published, skipping"
+              rm "$tarball"
+              npm pack "${package}@${version}" --pack-destination packs
+            else
+              npm publish "$tarball" --provenance --access public
             fi
-            npm publish "./packs/$2-${version}.tgz" --provenance --access public
           }
+
           # Core first: the React package's dependency on it is now a real
           # version range, and a dependency that does not exist yet fails install.
-          publish @kronajs/core kronajs-core
-          publish kronajs kronajs
+          publish_or_fetch @kronajs/core "./packs/kronajs-core-${version}.tgz"
+          publish_or_fetch kronajs "./packs/kronajs-${version}.tgz"
 
       - name: Create the GitHub Release
         env:

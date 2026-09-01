@@ -305,7 +305,7 @@ export function App() {
           <a className="ui-button" href="https://github.com/critow/krona">
             GitHub
           </a>
-          <a className="ui-button" href="https://www.npmjs.com/package/krona">
+          <a className="ui-button" href="https://www.npmjs.com/package/kronajs">
             npm
           </a>
         </div>
