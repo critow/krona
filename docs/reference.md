@@ -201,3 +201,121 @@ than a frozen tab.
 The diff has its own budget: Myers is O(ND), so a `timeout` (1500 ms by default)
 falls back to a common prefix/suffix approximation, the same trade git makes
 when its heuristics give up.
+
+## Core API
+
+Everything `@kronajs/core` exports. It has no React and no DOM, so it also runs
+in a Worker, in Node, or behind a binding of your own — the React package is a
+thin layer over this.
+
+The README shows [the handful you reach for first](../README.md#using-the-core-without-react);
+this is the whole list.
+
+### Parsing and the model
+
+| Export | What it does |
+| --- | --- |
+| `parseDocument(source, format?, options?)` | `DocumentModel` — never throws for content reasons |
+| `toSnapshot` / `fromSnapshot` | Structured-clone-safe projection, for handing a model out of a Worker |
+| `splitLines(source)` | Lines, accepting LF, CRLF and CR; a trailing newline adds no phantom line |
+| `OffsetIndex` | Character offset to line number, for providers that work from a parser's offsets |
+| `contentColumnsOf(...models)` | Width to reserve, in characters, so the horizontal extent does not shift while scrolling |
+| `DEFAULT_LIMITS` | The parse budget: a hostile 200 MB file fails fast with a diagnostic instead of freezing the tab |
+
+### Formats
+
+| Export | What it does |
+| --- | --- |
+| `jsonProvider` | JSON and JSONC. Folding comes from a streaming visitor, so no object is ever built from the document |
+| `tomlProvider` | TOML: `[table]` and `[[array of tables]]`, nested by dotted path |
+| `iniProvider` | INI and dotenv. `[section]` headers fold; a flat `.env` has nothing to fold |
+| `textProvider` | The fallback: every line plain, nothing folds. Used whenever a provider is missing, throws, or a limit is hit |
+| `registerFormat(provider)` / `unregisterFormat(id)` | Add or remove a provider in the module-level registry |
+| `getFormat(id)` / `listFormats()` | Look one up, or list what is registered |
+| `defaultRegistry` | The module-level registry itself, for passing explicitly |
+| `detectFormat(source, lines, registry?)` | Most likely format among *registered* providers; `'text'` when nothing is convincing |
+
+### Folding
+
+| Export | What it does |
+| --- | --- |
+| `collapsedToDepth(model, depth?)` | Start lines to fold for an opening depth |
+| `allCollapsed(model)` | Start lines of every range — the document fully folded |
+| `visibleLines(model, collapsed)` | Line indices still on screen, in order |
+| `nestingLevelAt(model, line)` | How deep a line sits, 1 at the top |
+
+### Paths
+
+| Export | What it does |
+| --- | --- |
+| `pathSegmentOf(parts)` | The fragment one line contributes to a path |
+| `joinPath(fragments)` | Those fragments joined into `server.tls.ciphers[0]` |
+
+### Diff
+
+| Export | What it does |
+| --- | --- |
+| `diffLines(left, right, options?)` | `DiffResult` — line runs, plus `approximate` when the budget ran out |
+| `diffLineArrays(left, right, options?)` | The same for documents already split into lines |
+| `alignDiff(result, options?)` | `AlignedDiff` — rows for two panels, with spacers, plus `stats` |
+| `similarityOf(a, b)` | Cheap `0..1` likeness from shared prefix and suffix, telling a rewrite from a coincidence |
+| `nextChangedRow(rows, from)` / `previousChangedRow(rows, from)` | The next or previous row that is not `equal` |
+| `intralineDiff(left, right, options?)` | Word-level spans for one changed row |
+| `tokenizeWords(text)` | The word split that word-level diffing runs on |
+
+### Collapsing unchanged runs
+
+| Export | What it does |
+| --- | --- |
+| `collapseUnchanged(rows, options?)` | Runs worth hiding behind a bar |
+| `expandRegion(region, direction, step?)` | What stays hidden after expanding up, down or all — `null` once nothing does |
+| `hiddenCount(region)` | How many rows a region hides |
+| `hiddenRowSet(regions)` | Row-to-region lookup, so a renderer skips hidden rows in O(1) |
+
+### What a diff shows
+
+| Export | What it does |
+| --- | --- |
+| `buildRowIndex(rows, left, right)` | `RowIndex` — which row shows each line of either version |
+| `hasFoldAt(row, rows, left, right)` | Whether either version opens a block on that row |
+| `foldEndRow(row, rows, left, right, index)` | Last row a fold there covers, across both sides |
+| `displayItems(rows, left, right, index, collapsed, regions)` | `DisplayItem[]` — the rows a diff shows once folding and collapsing are applied |
+| `unifiedEntries(items, rows)` | `UnifiedEntry[]` — the same alignment read as one column |
+
+### Painting a line
+
+| Export | What it does |
+| --- | --- |
+| `buildSegments(text, tokens, intraline, whole, matches?, current?)` | `Segment[]` — the runs a line splits into once tokens, word-level highlights, search matches and unsafe characters are merged |
+| `scanUnsafeCharacters(text)` | Bidi and invisible characters, with positions |
+| `hasUnsafeCharacters(text)` | Whether the line holds any, allocation free |
+
+### Search
+
+| Export | What it does |
+| --- | --- |
+| `findMatches(model, query, options?)` | Literal matches, capped, with `truncated` when the cap was hit |
+| `matchAfter(matches, line, column, direction?)` | The match jumped to from a position, wrapping at the ends |
+| `indexByLine(matches)` | `MatchIndex` — matches grouped by the line they sit on |
+| `hitsInRowOrder(rows, left, right)` | A diff's hits in the order they appear on screen |
+| `hitFrom(hits, position, direction)` | Index of the first hit past a position, wrapping at the ends |
+
+### Editing
+
+Editing is editing text: an edit produces a new source string, which is parsed
+into a new model. Nothing mutates in place.
+
+| Export | What it does |
+| --- | --- |
+| `applyEdit(source, edit)` | `EditResult` — the new source and the edit that undoes it |
+| `minimalEdit(before, after)` | The smallest single edit between two strings, so an edit and its formatting undo as one |
+| `formattedEdit(model, edit, expand, registry?)` | The edit with the format's own formatting applied to what it inserts |
+| `lineSpanAt(model, line)` | The line's text as a span of the source, without its terminator |
+| `blockSpanAt(model, line)` | The whole block opening on that line, or just the line |
+| `valueSpansAt(model, line)` | Every value on the line, left to right |
+| `offsetOfLine(model, line)` | Source offset where the line begins |
+| `removeBlockEdit(model, line)` | An edit removing that block or line, terminator and dangling separator included |
+| `duplicateBlockEdit(model, line)` | An edit copying it, with where the copy lands |
+| `emptyHistory(source)` | `EditHistory` — text with nothing to undo yet |
+| `withEdit(history, edit)` | The history after one more edit; ends the redo branch |
+| `withUndo(history)` / `withRedo(history)` | One step back or forward, or the same history when there is nowhere to go |
