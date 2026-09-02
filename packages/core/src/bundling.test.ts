@@ -62,7 +62,12 @@ async function bundleAndRun(entrySource: string): Promise<Bundle> {
   return { code, ids: module.ids }
 }
 
-describe('bundled entry points', () => {
+// Each of these runs a real production build, which is the point and is not
+// fast; under coverage instrumentation it crosses vitest's default five
+// seconds. Raised for the suite rather than for whichever test noticed first.
+const BUILD_TIMEOUT = 60_000
+
+describe('bundled entry points', { timeout: BUILD_TIMEOUT }, () => {
   it('keeps the built-in providers registered through a production build', async () => {
     const { ids } = await bundleAndRun(
       `import { listFormats } from '@kronajs/core'
