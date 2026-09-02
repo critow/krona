@@ -19,13 +19,15 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
-          node-version: 22
-          cache: pnpm
+          # Trusted publishing requires npm >= 11.5.1 and Node >= 22.14.
+          # The current npm reference workflow uses Node 24.
+          node-version: 24
           registry-url: https://registry.npmjs.org
+          package-manager-cache: false
       - run: pnpm install --frozen-lockfile
 
       - name: Check the tag against the repository
@@ -53,7 +55,6 @@ jobs:
 
       - name: Publish to npm
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           VERSION: ${{ github.ref_name }}
         run: |
           set -euo pipefail
@@ -70,7 +71,9 @@ jobs:
               rm "$tarball"
               npm pack "${package}@${version}" --pack-destination packs
             else
-              npm publish "$tarball" --provenance --access public
+              # npm exchanges GitHub's OIDC token for a short-lived publish
+              # credential. Trusted publishing adds provenance automatically.
+              npm publish "$tarball" --access public
             fi
           }
 
