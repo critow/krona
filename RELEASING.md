@@ -32,16 +32,20 @@ what changed.
 
 ## What the repository needs once
 
-- **`NPM_TOKEN`** — a granular automation token with publish rights on `kronajs`
-  and the `@kronajs` scope, stored as a repository secret. Provenance needs the
-  workflow's OIDC token as well, which `permissions: id-token: write` grants;
-  the secret only proves who is publishing.
-- **The `@kronajs` scope** must exist on npm and the token's account must own it,
-  or the first `@kronajs/core` publish is rejected.
+- **A trusted publisher on both npm packages** — `kronajs` and `@kronajs/core`
+  each authorize GitHub Actions from `critow/krona`, workflow filename
+  `release.yml`, for `npm publish`. The workflow's `id-token: write` permission
+  lets npm exchange GitHub's OIDC identity for a short-lived publish credential;
+  no `NPM_TOKEN` repository secret is used.
+- **Publishing access set to disallow bypass-2FA tokens** on both packages.
+  Trusted publishing continues to work because it authenticates with OIDC, not
+  a traditional npm token.
+- **The `@kronajs` scope** must exist on npm and the publishing account must own
+  it, or the first `@kronajs/core` publish is rejected.
 
 ## Why packing and publishing are two tools
 
 `pnpm pack` resolves `workspace:*` and `catalog:` into the versions a consumer
-will actually install; npm cannot do that. `npm publish` attaches the provenance
-attestation; pnpm has no flag for it. So the tarball comes from one and the
-upload from the other.
+will actually install; npm cannot do that. `npm publish` authenticates through
+OIDC and automatically attaches the provenance attestation; pnpm has no trusted
+publishing flow. So the tarball comes from one and the upload from the other.
