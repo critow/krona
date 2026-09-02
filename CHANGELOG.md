@@ -8,6 +8,17 @@ Notable changes to Krona. The format follows
 
 ### Added
 
+- `unifiedPatch` writes the diff out as a patch — the text `diff -u` prints and
+  `git apply` reads. It is built from the aligned rows rather than from a fresh
+  diff, so it is a patch of what the reader is looking at, and folding or
+  collapsed runs do not change it: those hide lines from the eye, not from the
+  file.
+
+  Krona pairs a removed line with the one that replaced it, because that is how
+  two panels are read. A patch is read down one column, where every tool writes
+  a run's removals before its additions, so the pairs are unzipped again on the
+  way out.
+
 - Linking to a line. `selectedLine` singles one out — opening a folded block to
   reach it, scrolling to it and marking it — and `onSelectLine` reports the line
   a reader picks, which also puts a link action on the row. Both count from 1,
