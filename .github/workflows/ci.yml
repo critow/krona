@@ -52,7 +52,19 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm test:browser
+      # The whole suite, not just the browser half: coverage is one number for
+      # one library, and half of Krona is exercised from node while the other
+      # half needs a real browser. Splitting the report would call the core's
+      # React callers uncovered and the React package's core imports uncovered,
+      # when between them they are not. This is the job that has a browser, so
+      # this is the job that can report it.
+      - run: pnpm test:coverage
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage
+          path: coverage/
+          retention-days: 7
 
   visual:
     runs-on: ubuntu-latest

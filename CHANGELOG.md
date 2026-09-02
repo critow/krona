@@ -46,6 +46,30 @@ Notable changes to Krona. The format follows
   can only be pushed from a machine with a git remote; a button is reachable
   from a phone.
 
+- Coverage is measured, over both test suites at once: `pnpm test:coverage`,
+  and `pnpm verify` now runs it. Half of Krona is exercised from node and half
+  from a real browser, so a per-suite figure would call the core's React callers
+  uncovered and the React package's core imports uncovered, when between them
+  they are not.
+
+  The thresholds are a floor set just under where the suite stands today —
+  statements 90, branches 82, functions 90, lines 93 against 92.4, 84.9, 92.7
+  and 95.3. They exist to catch a feature landing untested, not to be polished.
+
+  The first thing the report found was worth having: every public hook documents
+  where it may be called and throws a named error anywhere else, and not one of
+  those messages was tested. They are now — that message is the first thing a
+  consumer composing their own parts sees, so it is part of the API.
+
+### Fixed
+
+- Two slow tests no longer fail for being watched. The deep-nesting fuzz test
+  parses nine megabytes of pathologically nested YAML, and the bundling tests
+  each run a real production build; under coverage instrumentation both crossed
+  vitest's default five-second timeout. The timeouts are raised. Neither test
+  does less work than before — a test made cheaper to keep it green stops being
+  the test that was written.
+
 ## 0.2.0 — 2026-09-02
 
 Krona can be operated from the keyboard, and most of what it knows now lives in

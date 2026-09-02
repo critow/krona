@@ -27,6 +27,32 @@ export default defineConfig({
     ],
   },
   test: {
+    coverage: {
+      provider: 'v8',
+      // Both projects report into one set of numbers: half this library is
+      // exercised from node and half from a real browser, and a per-project
+      // figure would call the core's React-side callers uncovered and the
+      // React package's core imports uncovered, when between them they are not.
+      reporter: ['text', 'html', 'json-summary'],
+      reportsDirectory: 'coverage',
+      include: ['packages/*/src/**/*.{ts,tsx}'],
+      exclude: [
+        // Types erase at build time, so a percentage of them means nothing.
+        'packages/*/src/**/types.ts',
+        // Entry points that only re-export. Note this is the React package's
+        // format shims, one line each; the core's providers under the same
+        // path are the most important code in the repo and are measured.
+        'packages/*/src/index.ts',
+        'packages/react/src/formats/*.ts',
+        // Generated: the stylesheet, embedded as a string by build-css.
+        'packages/react/src/theme/css.ts',
+        '**/*.bench.ts',
+      ],
+      // A floor, not a target. It is set just under what the suite reports
+      // today, so it catches a feature landing untested rather than nagging
+      // about a line nobody was ever going to reach.
+      thresholds: { statements: 90, branches: 82, functions: 90, lines: 93 },
+    },
     projects: [
       {
         extends: true,

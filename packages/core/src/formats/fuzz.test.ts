@@ -115,11 +115,22 @@ describe.each(FORMATS)('%s provider fuzzing', (format) => {
     }
   })
 
-  it('handles deeply nested input without overflowing the stack', () => {
-    const source =
-      format === 'yaml'
-        ? Array.from({ length: 3000 }, (_, i) => `${'  '.repeat(i)}k: 1`).join('\n')
-        : `${'{"a":'.repeat(3000)}1${'}'.repeat(3000)}`
-    expect(() => parseDocument(source, format)).not.toThrow()
-  })
+  // The timeout is raised, not the work reduced. The YAML case builds nine
+  // megabytes of source and parses every line of it — that is the point — which
+  // takes a few hundred milliseconds on its own and long enough under coverage
+  // instrumentation to cross the default five seconds. A test that fails for
+  // being watched teaches nothing. The number is a ceiling, not a budget.
+  const DEEP_TIMEOUT = 30_000
+
+  it(
+    'handles deeply nested input without overflowing the stack',
+    () => {
+      const source =
+        format === 'yaml'
+          ? Array.from({ length: 3000 }, (_, i) => `${'  '.repeat(i)}k: 1`).join('\n')
+          : `${'{"a":'.repeat(3000)}1${'}'.repeat(3000)}`
+      expect(() => parseDocument(source, format)).not.toThrow()
+    },
+    DEEP_TIMEOUT,
+  )
 })

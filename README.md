@@ -516,14 +516,20 @@ pnpm dev            # playground at http://localhost:5173
 pnpm test           # unit tests (node)
 pnpm test:browser   # component tests in real Chromium — never jsdom
 pnpm test:visual    # Playwright screenshot comparison
+pnpm test:coverage  # both suites, one coverage report
 pnpm bench
-pnpm verify         # lint, typecheck, all tests, build
+pnpm verify         # lint, typecheck, all tests with coverage, build
 ```
 
 Component tests run in a real browser on purpose: virtualization and synced
 scrolling depend on layout and scrolling, which jsdom does not implement.
 Reference screenshots are updated only in a deliberate commit
 (`pnpm test:visual:update`).
+
+Coverage is reported over both suites at once — half of Krona is exercised from
+node and half from a browser, and either number alone is a lie about the other.
+The thresholds are a floor set just under where the suite stands, there to catch
+a feature landing untested, not a target to decorate.
 
 The published packages ask for Node 18.18 or newer — they hold no Node-only code
 and that floor is about the tooling that installs them. Working on Krona itself
