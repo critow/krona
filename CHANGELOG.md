@@ -6,6 +6,28 @@ Notable changes to Krona. The format follows
 
 ## Unreleased
 
+### Added
+
+- The deployed demo carries its own markup. It is a client-rendered app, so what
+  a crawler fetched was an empty `<div id="root">` and a script tag — Google runs
+  the script eventually, but Bing, the social scrapers and the crawlers behind
+  LLM search read what they were handed and move on. `pnpm build:demo` renders
+  the built page once in Chromium and writes it back, turning 42 bytes of body
+  into ~2.5k characters of text, and refuses to write a page that came back
+  empty. Krona's own stylesheet is captured with it, so the static markup
+  arrives styled rather than flashing.
+
+  The screenshot suite now runs against that same artifact rather than a plain
+  build. React mounts over markup that is already there, and nothing else would
+  notice if that stopped working.
+
+### Fixed
+
+- The demo overwrote its own `<title>` on boot: the tab and every search result
+  showed the page headline, not the title in `index.html`. The tab and the
+  headline are separate strings now — a heading can be a claim, but a title is
+  read in a list of results, so it names the formats someone was searching for.
+
 ### Changed
 
 - The package descriptions and keywords name what people search for. `kronajs`

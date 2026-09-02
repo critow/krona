@@ -9,6 +9,13 @@ export type Lang = 'en' | 'ru'
 
 export interface Dict {
   tagline: string
+  /**
+   * What the browser tab and a search result say. Kept apart from `tagline`,
+   * which is the headline on the page: a heading can be a claim, but the title
+   * is read by people scanning a result list, so it names the formats they
+   * were searching for.
+   */
+  documentTitle: string
   docs: string
   mode: string
   viewer: string
@@ -60,6 +67,7 @@ export interface Dict {
 
 const en: Dict = {
   tagline: 'Fold, diff and edit config files',
+  documentTitle: 'Krona — JSON, YAML, TOML and INI viewer and diff for React',
   docs: 'Docs',
   mode: 'Mode',
   viewer: 'Viewer',
@@ -123,6 +131,7 @@ function ruPlural(count: number, one: string, few: string, many: string): string
 
 const ru: Dict = {
   tagline: 'Свернуть, сравнить и отредактировать конфиг',
+  documentTitle: 'Krona — просмотр и diff JSON, YAML, TOML и INI для React',
   docs: 'Документация',
   mode: 'Режим',
   viewer: 'Просмотр',

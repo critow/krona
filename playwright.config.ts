@@ -31,11 +31,14 @@ export default defineConfig({
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
-    // Built and previewed, not served by the dev server. Tree-shaking only runs
-    // in a production build, and a suite pointed at `vite dev` happily passed
-    // while every shipped bundle rendered plain text with no folding at all.
+    // Built, prerendered and previewed — the artifact Pages deploys, not an
+    // approximation of it. Tree-shaking only runs in a production build, and a
+    // suite pointed at `vite dev` happily passed while every shipped bundle
+    // rendered plain text with no folding at all. Prerendering is in for the
+    // same reason: React mounts over markup that is already there, and nothing
+    // else would notice if that stopped working.
     command:
-      'pnpm --filter krona-playground exec vite build && pnpm --filter krona-playground exec vite preview --port 5174 --strictPort --host 127.0.0.1',
+      'pnpm build:demo && pnpm --filter krona-playground exec vite preview --port 5174 --strictPort --host 127.0.0.1',
     url: 'http://127.0.0.1:5174',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
