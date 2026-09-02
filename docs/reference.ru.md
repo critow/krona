@@ -267,6 +267,7 @@ function plural(n: number, one: string, few: string, many: string): string {
 | `nextChangedRow(rows, from)` / `previousChangedRow(rows, from)` | Следующий или предыдущий ряд, который не `equal` |
 | `intralineDiff(left, right, options?)` | Словесные отрезки для одного изменённого ряда |
 | `tokenizeWords(text)` | Разбиение на слова, на котором работает словесный дифф |
+| `unifiedPatch(rows, left, right, options?)` | Дифф как unified-патч — текст, который печатает `diff -u` и читает `git apply` |
 
 ### Схлопывание неизменного
 
