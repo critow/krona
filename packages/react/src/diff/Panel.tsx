@@ -1,11 +1,10 @@
-import type { AlignedRow, FoldRange } from '@kronajs/core'
+import { type AlignedRow, contentColumnsOf, type FoldRange } from '@kronajs/core'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { type CSSProperties, type ReactNode, useEffect, useMemo, useRef } from 'react'
 import { LineSourceContext, type RenderRow, type RowTone } from '../context/lineSource'
 import { splitSlots } from '../context/slots'
 import { Gutter } from '../parts/Gutter'
 import { Lines } from '../parts/Lines'
-import { contentColumnsOf } from '../render/width'
 import { usePanelLayout } from './PanelLayoutContext'
 
 /** Props of `<Krona.Panel>`. */

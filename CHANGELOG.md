@@ -8,6 +8,16 @@ Notable changes to Krona. The format follows
 
 ### Added
 
+- Painting a line is framework-free: `buildSegments` splits a line into the
+  smallest runs that are uniform across all four overlays — syntax tokens,
+  word-level diff highlights, search matches and characters that must never
+  reach the page as themselves — and `contentColumnsOf` gives the width to
+  reserve so the horizontal extent does not shift while scrolling. Doing the
+  merge as data is also why a renderer only ever emits plain text: there is no
+  place where document content could become markup.
+
+  With these, `packages/react/src/render/` is gone entirely.
+
 - The diff's view logic is framework-free too: `buildRowIndex`, `hasFoldAt`,
   `foldEndRow`, `displayItems` and `unifiedEntries`, with `DisplayItem`,
   `RowIndex` and `UnifiedEntry`. This is the answer to what a diff shows once

@@ -32,7 +32,7 @@ export {
   visibleLines,
 } from './model/folding'
 export { DEFAULT_LIMITS } from './model/limits'
-export { OffsetIndex, splitLines } from './model/lines'
+export { contentColumnsOf, OffsetIndex, splitLines } from './model/lines'
 export type { PathPart } from './model/path'
 export { joinPath, pathSegmentOf } from './model/path'
 export {
@@ -43,6 +43,8 @@ export {
   registerFormat,
   unregisterFormat,
 } from './model/registry'
+export type { Segment } from './model/segments'
+export { buildSegments } from './model/segments'
 export type {
   AnalysisResult,
   BuiltinFormat,

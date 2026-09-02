@@ -419,6 +419,8 @@ const { rows, stats } = alignDiff(diffLines(before, after))
 | `foldEndRow(row, rows, left, right, index)` | Last row a fold there covers, across both sides |
 | `displayItems(rows, left, right, index, collapsed, regions)` | `DisplayItem[]` — the rows a diff shows once folding and collapsing are applied |
 | `unifiedEntries(items, rows)` | `UnifiedEntry[]` — the same alignment read as one column |
+| `buildSegments(text, tokens, intraline, whole, matches?, current?)` | `Segment[]` — the runs a line splits into once tokens, word-level highlights, search matches and unsafe characters are merged |
+| `contentColumnsOf(...models)` | Width to reserve, in characters, so the horizontal extent does not shift while scrolling |
 | `scanUnsafeCharacters(text)` | Bidi and invisible characters, with positions |
 | `toSnapshot` / `fromSnapshot` | Structured-clone-safe projection, for workers |
 
