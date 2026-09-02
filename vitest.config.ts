@@ -39,13 +39,19 @@ export default defineConfig({
       exclude: [
         // Types erase at build time, so a percentage of them means nothing.
         'packages/*/src/**/types.ts',
-        // Entry points that only re-export. Note this is the React package's
-        // format shims, one line each; the core's providers under the same
-        // path are the most important code in the repo and are measured.
+        // Files that only re-export. A line that forwards a name is covered by
+        // whether the name exists, which the type checker already answers, and
+        // counting them drags the figure around for no reason.
+        //
+        // Note this is the two adapters' format shims, one line each. The core's
+        // providers sit under the same path and are the most important code in
+        // the repository; they are measured.
         'packages/*/src/index.ts',
         'packages/react/src/formats/*.ts',
+        'packages/element/src/formats/*.ts',
+        'packages/react/src/labels.ts',
         // Generated: the stylesheet, embedded as a string by build-css.
-        'packages/react/src/theme/css.ts',
+        'packages/*/src/theme/css.ts',
         '**/*.bench.ts',
       ],
       // A floor, not a target. It is set just under what the suite reports

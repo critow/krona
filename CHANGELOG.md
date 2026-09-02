@@ -6,6 +6,21 @@ Notable changes to Krona. The format follows
 
 ## Unreleased
 
+### Changed
+
+- The roadmap says where the project actually stands. It still described 0.1 —
+  one file or two, editing and search — and knew nothing of the element, the
+  patch export or line links. It is the first thing someone reads when deciding
+  whether to take the library, so it is worth keeping honest: what is missing
+  from the custom elements is now listed there rather than only in their own
+  README.
+
+- Coverage stops measuring files that only re-export a name. Whether a
+  forwarding line "runs" says nothing the type checker has not already answered.
+  The effect on the figures is 0.01 of a point — this is for consistency, not
+  because the numbers were wrong: the React package's format shims were already
+  excluded and the element's were not.
+
 ## 0.3.0 — 2026-09-02
 
 Krona has a second renderer. Everything it knows about a configuration file
