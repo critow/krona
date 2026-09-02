@@ -1,7 +1,7 @@
 {
   "name": "@kronajs/core",
   "version": "0.1.2",
-  "description": "Framework-agnostic core for Krona: a line-based document model for config files, format providers and line diff.",
+  "description": "Framework-agnostic core behind kronajs: a line-based document model for JSON, YAML, TOML and INI/.env, with folding ranges and a line diff.",
   "license": "MIT",
   "type": "module",
   "sideEffects": [

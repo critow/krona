@@ -6,6 +6,25 @@ Notable changes to Krona. The format follows
 
 ## Unreleased
 
+### Changed
+
+- The package descriptions and keywords name what people search for. `kronajs`
+  described itself with `Fold, diff and edit…` and carried neither `json` nor
+  `viewer` as a keyword, while `@kronajs/core` — the package nobody looks for on
+  its own — carried both. The React package now leads with the nouns (collapsible
+  tree view, side-by-side diff, in-place editing) and lists the formats, and the
+  core names the sibling it belongs to, which `Framework-agnostic core for Krona`
+  could not: there is no package called `Krona` on npm.
+
+  The README taglines are unchanged. They are read by people, not by an index,
+  and the line they already had is the better one.
+
+- The demo page carries a canonical URL, `og:site_name`, the social card's
+  dimensions and alt text, a `robots.txt` and a one-URL `sitemap.xml`. Its title
+  and meta description lead with what the thing is rather than with the brand —
+  the first words of a snippet are the valuable ones, and nobody searches for
+  `Krona`.
+
 ## 0.1.2 — 2026-09-02
 
 ### Fixed
