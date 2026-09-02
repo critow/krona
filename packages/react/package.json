@@ -1,6 +1,6 @@
 {
   "name": "kronajs",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Fold, diff and edit config files in React \u2014 JSON/JSONC, YAML, TOML and INI/.env.",
   "license": "MIT",
   "type": "module",

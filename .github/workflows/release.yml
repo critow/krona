@@ -82,12 +82,25 @@ jobs:
           publish_or_fetch @kronajs/core "./packs/kronajs-core-${version}.tgz"
           publish_or_fetch kronajs "./packs/kronajs-${version}.tgz"
 
-      - name: Create the GitHub Release
+      - name: Create or update the GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "$GITHUB_REF_NAME" \
-            --title "$GITHUB_REF_NAME" \
-            --notes-file release-notes.md \
-            --verify-tag \
-            packs/*.tgz
+          set -euo pipefail
+          # The release can already exist by the time this step runs: a re-run
+          # of a tag that got this far, or a tag cut from GitHub's own release
+          # UI, which publishes the release and only then fires the workflow.
+          # Creating it blindly fails both, which is the one thing a retry-safe
+          # publish should not be undone by.
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release edit "$GITHUB_REF_NAME" \
+              --title "$GITHUB_REF_NAME" \
+              --notes-file release-notes.md
+            gh release upload "$GITHUB_REF_NAME" packs/*.tgz --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" \
+              --title "$GITHUB_REF_NAME" \
+              --notes-file release-notes.md \
+              --verify-tag \
+              packs/*.tgz
+          fi

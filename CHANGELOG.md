@@ -6,6 +6,20 @@ Notable changes to Krona. The format follows
 
 ## Unreleased
 
+## 0.1.2 — 2026-09-02
+
+### Fixed
+
+- A release run could not be retried past its last step. Publishing already
+  refuses to reissue a version and downloads the published tarball instead, but
+  the GitHub Release was created blindly, so a re-run of a tag that had got
+  that far died on `release already exists` — and so did a tag cut from
+  GitHub's own release UI, which publishes the release before the workflow
+  starts. The step now updates an existing release instead of failing.
+
+  The published packages are byte-identical to `0.1.1`; only the release
+  pipeline changed.
+
 ## 0.1.1 — 2026-08-30
 
 ### Changed
