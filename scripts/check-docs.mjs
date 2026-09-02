@@ -41,11 +41,73 @@ const SOURCES = [
 // Documented as a group rather than one row each, or intentionally internal.
 const EXEMPT = new Set(['children', 'className', 'style'])
 
+// The core's exported functions are part of the contract too, and the walk
+// above never looked at them: it reads props interfaces and CSS variables, so
+// a core export could always land undocumented without anyone noticing. These
+// are the ones that already had. The list is a baseline, not a permission —
+// its job is to stop the next one being added, and it may only ever shrink.
+const CORE_DEBT = new Set([
+  'DEFAULT_LIMITS',
+  'OffsetIndex',
+  'applyEdit',
+  'blockSpanAt',
+  'defaultRegistry',
+  'detectFormat',
+  'diffLineArrays',
+  'duplicateBlockEdit',
+  'expandRegion',
+  'formattedEdit',
+  'getFormat',
+  'hasUnsafeCharacters',
+  'hiddenCount',
+  'hiddenRowSet',
+  'iniProvider',
+  'joinPath',
+  'jsonProvider',
+  'lineSpanAt',
+  'listFormats',
+  'matchAfter',
+  'minimalEdit',
+  'nextChangedRow',
+  'offsetOfLine',
+  'pathSegmentOf',
+  'previousChangedRow',
+  'registerFormat',
+  'removeBlockEdit',
+  'similarityOf',
+  'splitLines',
+  'textProvider',
+  'tokenizeWords',
+  'tomlProvider',
+  'unregisterFormat',
+  'valueSpansAt',
+])
+
+/** Value exports of the core's entry point. `export type` blocks are skipped. */
+function coreExports(source) {
+  const names = new Set()
+  for (const block of source.matchAll(/export \{([\s\S]*?)\} from/g)) {
+    for (const entry of block[1].split(',')) {
+      const name = entry
+        .trim()
+        .split(/\s+as\s+/)
+        .pop()
+        ?.trim()
+      if (name) names.add(name)
+    }
+  }
+  return names
+}
+
 const expected = new Set()
 for (const [path, name] of SOURCES) {
   for (const member of membersOf(read(path), name)) {
     if (!EXEMPT.has(member)) expected.add(member)
   }
+}
+
+for (const name of coreExports(read('packages/core/src/index.ts'))) {
+  if (!CORE_DEBT.has(name)) expected.add(name)
 }
 
 for (const variable of read('packages/react/src/theme/krona.css').matchAll(/--krona-[a-z-]+/g)) {
