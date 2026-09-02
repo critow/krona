@@ -453,9 +453,14 @@ wants in its markup — though `source`, `left` and `right` work as attributes t
 for short ones. The rest is attributes: `format`, `theme`, `locale`,
 `line-height`, `collapsed-depth`, `overscan`, `selected-line`,
 `show-diagnostics`, and for the diff `collapse-unchanged`, `context`,
-`minimum-hidden`, `step`, `ignore-trailing-whitespace`, `show-toolbar` and
-`show-markers`. `expandAll()`, `collapseAll()` and `revealLine(n)` are methods,
-and folding a block fires `krona-fold`.
+`minimum-hidden`, `step`, `ignore-trailing-whitespace`, `show-toolbar`,
+`show-markers` and `narrow-width`. `expandAll()`, `collapseAll()`,
+`revealLine(n)` and `showSide(side)` are methods, and folding a block fires
+`krona-fold`.
+
+Below `narrow-width` the diff shows one version at a time, with a switch between
+them — the width of the element itself, not the window's, so a diff in a sidebar
+is treated like one on a phone.
 
 Arrow keys walk the document the same way they do in React: Tab enters the tree
 once, ↑ / ↓ move by row, → opens a folded block and then steps into it, ← closes

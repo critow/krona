@@ -72,6 +72,7 @@ than by a ratio.
 | `ignore-trailing-whitespace` | off | Treat lines differing only in trailing space as equal |
 | `show-toolbar` | `true` | The fold actions and the change counts |
 | `show-markers` | `true` | `+` / `-` / `~` in the gutter |
+| `narrow-width` | `640` | Width below which one version is shown at a time. `0` keeps both always |
 
 | Member | What it is |
 | --- | --- |
@@ -79,6 +80,11 @@ than by a ratio.
 | `aligned` | The alignment and its statistics, once there is a diff |
 | `labels` | Overrides for the built-in English strings |
 | `expandAll()` / `collapseAll()` | Open or close every folding range and hidden run |
+| `showSide('left' \| 'right')` | Which version a narrow layout shows |
+
+The width watched is the element's own, not the window's: a diff in a sidebar on
+a wide screen is just as cramped as one on a phone, and a media query cannot
+tell the difference.
 
 ## Events
 

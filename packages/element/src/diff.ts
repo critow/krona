@@ -69,6 +69,7 @@ export class KronaDiffElement extends KronaBase {
     'minimum-hidden',
     'step',
     'ignore-trailing-whitespace',
+    'narrow-width',
   ]
 
   #left = ''
@@ -85,10 +86,18 @@ export class KronaDiffElement extends KronaBase {
   #intraline = new Map<number, IntralineResult>()
 
   #toolbar: HTMLDivElement
+  #switch: HTMLFieldSetElement
   #panels: HTMLDivElement
+  #leftPanel: HTMLElement
+  #rightPanel: HTMLElement
   #leftColumn: Column
   #rightColumn: Column
   #sync = new ScrollSync()
+  /**
+   * Which version a narrow layout shows. The current one by default: a diff is
+   * usually read to find out what a change did.
+   */
+  #side: 'left' | 'right' = 'right'
 
   constructor() {
     super('krona-diff')
@@ -96,11 +105,11 @@ export class KronaDiffElement extends KronaBase {
     this.#toolbar.setAttribute('role', 'toolbar')
     this.#leftColumn = new Column(this.#hostFor('left'))
     this.#rightColumn = new Column(this.#hostFor('right'))
-    this.#panels = el('div', 'krona-panels', [
-      this.#panel('left', this.#leftColumn),
-      this.#panel('right', this.#rightColumn),
-    ])
-    this.section.append(this.#toolbar, this.#panels)
+    this.#leftPanel = this.#panel('left', this.#leftColumn)
+    this.#rightPanel = this.#panel('right', this.#rightColumn)
+    this.#panels = el('div', 'krona-panels', [this.#leftPanel, this.#rightPanel])
+    this.#switch = this.#sideSwitch()
+    this.section.append(this.#toolbar, this.#switch, this.#panels)
   }
 
   /** The previous version. A property, because a document is not markup. */
@@ -316,8 +325,55 @@ export class KronaDiffElement extends KronaBase {
   }
 
   #panel(side: 'left' | 'right', column: Column): HTMLElement {
-    const panel = el('section', `krona-panel krona-panel--${side}`, [column.scroll])
-    return panel
+    return el('section', `krona-panel krona-panel--${side}`, [column.scroll])
+  }
+
+  /**
+   * Which version a narrow diff shows.
+   *
+   * A fieldset rather than a labelled group: two buttons that pick one of two
+   * things are a set of choices, and the element for that already exists.
+   */
+  #sideSwitch(): HTMLFieldSetElement {
+    const group = document.createElement('fieldset')
+    group.className = 'krona-side-switch'
+    group.append(el('legend', 'krona-sr-only'))
+    for (const side of ['left', 'right'] as const) {
+      const button = el('button')
+      button.type = 'button'
+      button.addEventListener('click', () => this.showSide(side))
+      group.append(button)
+    }
+    return group
+  }
+
+  /** Chooses the version a narrow layout shows. */
+  showSide(side: 'left' | 'right'): void {
+    if (side === this.#side) return
+    this.#side = side
+    this.schedule()
+  }
+
+  #paintLayout(): void {
+    const narrow = this.narrow
+    // Splitting the width of a phone between two panels gives about ten
+    // characters each, which shows neither version.
+    this.#leftPanel.hidden = narrow && this.#side !== 'left'
+    this.#rightPanel.hidden = narrow && this.#side !== 'right'
+
+    this.#switch.hidden = !narrow
+    const labels = this.currentLabels
+    const legend = this.#switch.querySelector('legend')
+    if (legend) legend.textContent = labels.document
+    const [left, right] = this.#switch.querySelectorAll('button')
+    if (left) {
+      left.textContent = labels.leftPanel
+      left.setAttribute('aria-pressed', String(this.#side === 'left'))
+    }
+    if (right) {
+      right.textContent = labels.rightPanel
+      right.setAttribute('aria-pressed', String(this.#side === 'right'))
+    }
   }
 
   #hostFor(side: 'left' | 'right') {
@@ -429,6 +485,7 @@ export class KronaDiffElement extends KronaBase {
       this.#collapsed,
       this.#regions,
     )
+    this.#paintLayout()
     this.#leftColumn.update(this.#rowsFor('left'))
     this.#rightColumn.update(this.#rowsFor('right'))
   }
