@@ -8,6 +8,18 @@ Notable changes to Krona. The format follows
 
 ### Added
 
+- The core's whole public surface is documented, in both languages. Thirty-four
+  exports had never been written down — `applyEdit`, `detectFormat`,
+  `registerFormat`, `splitLines` and thirty more — which mattered little while
+  the core was an implementation detail and matters a great deal now that it is
+  where the view logic lives. `docs/reference.md` gains a Core API section
+  grouped by what each part is for; the README keeps the short list you reach
+  for first.
+
+  With the backlog paid, `check-docs` no longer carries a baseline to ignore: it
+  checks every core export, and nothing new can land undocumented. 133 names
+  checked before, 167 now.
+
 - Painting a line is framework-free: `buildSegments` splits a line into the
   smallest runs that are uniform across all four overlays — syntax tokens,
   word-level diff highlights, search matches and characters that must never
