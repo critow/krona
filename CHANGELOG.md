@@ -28,8 +28,22 @@ Notable changes to Krona. The format follows
   the theme variables were already declared on `.krona` rather than on `:root`,
   which is the one thing that would have kept them out of a shadow tree.
 
-  Diffing, searching, editing, row actions and the minimap stay `kronajs` only
-  for now. The element is the viewer.
+  `<krona-diff>` compares two versions with the same alignment, word-level
+  highlighting and hidden-run collapsing. Both panels render one shared row list
+  at one fixed row height, so folding a block hides it on both sides and the two
+  scroll in exact lockstep rather than by a ratio.
+
+  The arrow keys walk the document the same way they do in React: Tab enters the
+  tree once, ↑ / ↓ move by row, → opens a folded block and then steps into it, ←
+  closes one and then walks out to its parent.
+
+  Searching, editing, row actions, the minimap and the unified one-column diff
+  stay `kronajs` only for now.
+
+  The demo has [a page with no framework on
+  it](https://critow.github.io/krona/element.html), which is the proof rather
+  than the claim: the React playground would pass while the elements were broken
+  in every way that matters. Its bundle is 41 kB to the React page's 278 kB.
 
 - Two things moved to make room for a second renderer. `KronaLabels`,
   `createDefaultLabels` and `resolveLabels` are core exports now — plain strings

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Krona as a custom element: the same folding tree and side-by-side diff for JSON, YAML, TOML and INI, on a page with no framework at all."
+    />
+    <meta name="color-scheme" content="dark light" />
+    <link rel="canonical" href="https://critow.github.io/krona/element.html" />
+    <link rel="icon" type="image/svg+xml" href="%BASE_URL%logo.svg?v=3" />
+    <title>Krona without a framework — &lt;krona-viewer&gt; and &lt;krona-diff&gt;</title>
+  </head>
+  <body>
+    <main class="plain-page">
+      <h1>Krona without a framework</h1>
+      <p>
+        This page loads no framework. Everything below is
+        <code>&lt;krona-viewer&gt;</code> and <code>&lt;krona-diff&gt;</code> from
+        <code>@kronajs/element</code> — the same document model, folding and diff as the React
+        package, in two custom elements. Which means the same works in Vue, Svelte, Angular,
+        Astro or an HTML file like this one.
+      </p>
+
+      <h2>A file to fold</h2>
+      <krona-viewer id="viewer" format="yaml" theme="dark" collapsed-depth="2"></krona-viewer>
+
+      <h2>Two versions to compare</h2>
+      <krona-diff id="diff" format="json" theme="dark" collapse-unchanged></krona-diff>
+
+      <p><a href="./">Back to the React playground</a></p>
+    </main>
+    <script type="module" src="/src/element.ts"></script>
+  </body>
+</html>

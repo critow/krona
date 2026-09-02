@@ -52,7 +52,7 @@ JSON/JSONC · YAML · TOML · INI/.env
 - [Ссылка на строку](#ссылка-на-строку)
 - [Маленькие экраны](#маленькие-экраны)
 - [Большие файлы и Web Workers](#большие-файлы-и-web-workers)
-- [Без React: `<krona-viewer>`](#без-react-krona-viewer)
+- [Без React: `<krona-viewer>` и `<krona-diff>`](#без-react-krona-viewer-и-krona-diff)
 - [Ядро без React](#ядро-без-react)
 - [Проектные решения](#проектные-решения)
 - [Планы](#планы)
@@ -415,11 +415,13 @@ return model ? (
 Сам воркер Krona не создаёт — URL воркера зависит от сборщика, — но пропсы
 `model`, `leftModel` и `rightModel` делают этот путь полноценным.
 
-## Без React: `<krona-viewer>`
+## Без React: `<krona-viewer>` и `<krona-diff>`
 
 Всё, что Krona знает о конфиге, лежит в `@kronajs/core`, где фреймворка нет
-вовсе. `@kronajs/element` рисует это кастомным элементом — значит, просмотр
-работает во Vue, Svelte, Angular, Astro или в HTML-файле со script-тегом.
+вовсе. `@kronajs/element` рисует это кастомными элементами — значит, просмотр и
+сравнение работают во Vue, Svelte, Angular, Astro или в HTML-файле со
+script-тегом. Есть [страница демо, на которой фреймворка нет
+вообще](https://critow.github.io/krona/element.html).
 
 ```bash
 npm install @kronajs/element
@@ -437,21 +439,43 @@ npm install @kronajs/element
 </script>
 ```
 
-Документ передаётся свойством, а не атрибутом: файл — не то, что страница хочет
-держать в разметке (для коротких документов `source` работает и атрибутом).
-Атрибутами задаются `format`, `theme`, `locale`, `line-height`,
-`collapsed-depth`, `overscan`, `selected-line` и `show-diagnostics`;
-`expandAll()`, `collapseAll()` и `revealLine(n)` — методы, а сворачивание блока
-шлёт событие `krona-fold`.
+Сравнение двух версий — `<krona-diff>`, с тем же выравниванием, пословной
+подсветкой и схлопыванием неизменённых прогонов:
 
-Стили элемент приносит с собой, в собственный shadow root: снаружи в него ничего
-не дотянется и наружу ничего не протечёт. Темизация не меняется — CSS-переменные
-`--krona-*` границу shadow DOM пересекают, так что задать их на любом предке
-по-прежнему можно.
+```html
+<krona-diff id="changes" format="json" collapse-unchanged></krona-diff>
+<script type="module">
+  const diff = document.getElementById('changes')
+  diff.left = before
+  diff.right = after
+</script>
+```
 
-**Сравнение, поиск, редактирование, действия на строке и миникарта пока только в
-`kronajs`.** Элемент — это просмотр; если нужно остальное и React доступен,
-берите тот пакет.
+Документы передаются свойствами, а не атрибутами: файл — не то, что страница
+хочет держать в разметке (для коротких документов `source`, `left` и `right`
+работают и атрибутами). Остальное — атрибуты: `format`, `theme`, `locale`,
+`line-height`, `collapsed-depth`, `overscan`, `selected-line`,
+`show-diagnostics`, а для диффа ещё `collapse-unchanged`, `context`,
+`minimum-hidden`, `step`, `ignore-trailing-whitespace`, `show-toolbar` и
+`show-markers`. `expandAll()`, `collapseAll()` и `revealLine(n)` — методы, а
+сворачивание блока шлёт событие `krona-fold`.
+
+Стрелки ходят по документу так же, как в React: Tab входит в дерево один раз,
+↑ / ↓ двигают по строкам, → раскрывает свёрнутый блок и только потом заходит
+внутрь, ← закрывает открытый и потом выходит к родителю.
+
+Стили каждый элемент приносит с собой, в собственный shadow root: снаружи в него
+ничего не дотянется и наружу ничего не протечёт. Темизация не меняется —
+CSS-переменные `--krona-*` границу shadow DOM пересекают, так что задать их на
+любом предке по-прежнему можно.
+
+Заметки по фреймворкам — строка `isCustomElement` для Vue, `CUSTOM_ELEMENTS_SCHEMA`
+для Angular и что меняется на React 18 — в
+[README пакета](./packages/element/README.md).
+
+**Поиск, редактирование, действия на строке, миникарта и одноколоночный вид
+диффа пока только в `kronajs`.** Если нужно это и React доступен, берите тот
+пакет.
 
 ## Ядро без React
 
