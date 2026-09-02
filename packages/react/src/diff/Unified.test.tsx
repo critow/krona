@@ -1,7 +1,6 @@
 import { Krona } from 'kronajs'
 import { describe, expect, it } from 'vitest'
 import { render } from 'vitest-browser-react'
-import { unifiedEntries } from './unifiedRows'
 
 const BEFORE = [
   '{',
@@ -37,36 +36,6 @@ function unifiedRows(container: HTMLElement): { line: string; tone: string; text
     }),
   )
 }
-
-describe('unifiedEntries', () => {
-  const rows = [
-    { left: 0, right: 0, kind: 'equal' as const },
-    { left: 1, right: 1, kind: 'changed' as const },
-    { left: 2, right: null, kind: 'removed' as const },
-    { left: null, right: 2, kind: 'added' as const },
-    // A spacer keeps two panels level; one column has nothing to stay level with.
-    { left: null, right: null, kind: 'equal' as const },
-  ]
-
-  it('reads a changed row twice, old line above new', () => {
-    const entries = unifiedEntries(
-      rows.map((_, rowIndex) => ({ rowIndex })),
-      rows,
-    )
-    expect(entries).toEqual([
-      { rowIndex: 0, side: 'right' },
-      { rowIndex: 1, side: 'left' },
-      { rowIndex: 1, side: 'right' },
-      { rowIndex: 2, side: 'left' },
-      { rowIndex: 3, side: 'right' },
-    ])
-  })
-
-  it('keeps expand bars, which belong to neither version', () => {
-    const entries = unifiedEntries([{ rowIndex: -1, regionIndex: 2 }], rows)
-    expect(entries).toEqual([{ rowIndex: -1, regionIndex: 2 }])
-  })
-})
 
 describe('Krona.Diff view="unified"', () => {
   it('puts both versions in one column, the removed line above the added one', async () => {

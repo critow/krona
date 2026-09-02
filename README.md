@@ -414,6 +414,11 @@ const { rows, stats } = alignDiff(diffLines(before, after))
 | `indexByLine(matches)` | `MatchIndex` — matches grouped by the line they sit on |
 | `hitsInRowOrder(rows, left, right)` | A diff's hits in the order they appear on screen |
 | `hitFrom(hits, position, direction)` | Index of the first hit past a position, wrapping at the ends |
+| `buildRowIndex(rows, left, right)` | `RowIndex` — which row shows each line of either version |
+| `hasFoldAt(row, rows, left, right)` | Whether either version opens a block on that row |
+| `foldEndRow(row, rows, left, right, index)` | Last row a fold there covers, across both sides |
+| `displayItems(rows, left, right, index, collapsed, regions)` | `DisplayItem[]` — the rows a diff shows once folding and collapsing are applied |
+| `unifiedEntries(items, rows)` | `UnifiedEntry[]` — the same alignment read as one column |
 | `scanUnsafeCharacters(text)` | Bidi and invisible characters, with positions |
 | `toSnapshot` / `fromSnapshot` | Structured-clone-safe projection, for workers |
 
