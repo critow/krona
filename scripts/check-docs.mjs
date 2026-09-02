@@ -34,7 +34,7 @@ const SOURCES = [
   ['packages/react/src/viewer/Viewer.tsx', 'KronaViewerProps'],
   ['packages/react/src/diff/Diff.tsx', 'KronaDiffProps'],
   ['packages/react/src/diff/Diff.tsx', 'CollapseUnchangedOptions'],
-  ['packages/react/src/labels.ts', 'KronaLabels'],
+  ['packages/core/src/labels.ts', 'KronaLabels'],
   ['packages/core/src/model/types.ts', 'ParseLimits'],
 ]
 
@@ -73,7 +73,7 @@ for (const name of coreExports(read('packages/core/src/index.ts'))) {
   expected.add(name)
 }
 
-for (const variable of read('packages/react/src/theme/krona.css').matchAll(/--krona-[a-z-]+/g)) {
+for (const variable of read('styles/krona.css').matchAll(/--krona-[a-z-]+/g)) {
   expected.add(variable[0])
 }
 expected.add('--krona-height')

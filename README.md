@@ -52,6 +52,7 @@ JSON/JSONC · YAML · TOML · INI/.env
 - [Linking to a line](#linking-to-a-line)
 - [Small screens](#small-screens)
 - [Large files and Web Workers](#large-files-and-web-workers)
+- [Without React: `<krona-viewer>`](#without-react-krona-viewer)
 - [Using the core without React](#using-the-core-without-react)
 - [Design notes](#design-notes)
 - [Roadmap](#roadmap)
@@ -410,6 +411,44 @@ return model ? (
 Krona does not instantiate the worker for you — worker URLs are
 bundler-specific — but `model`, `leftModel` and `rightModel` make that path
 first class.
+
+## Without React: `<krona-viewer>`
+
+Everything Krona knows about a configuration file lives in `@kronajs/core`,
+which has no framework in it. `@kronajs/element` renders that as a custom
+element, so the viewer works in Vue, Svelte, Angular, Astro, or an HTML file
+with a script tag.
+
+```bash
+npm install @kronajs/element
+```
+
+```html
+<krona-viewer id="config" format="yaml" collapsed-depth="2"></krona-viewer>
+
+<script type="module">
+  import { defineKrona } from '@kronajs/element'
+  import '@kronajs/element/yaml'
+
+  defineKrona()
+  document.getElementById('config').source = await fetch('compose.yaml').then((r) => r.text())
+</script>
+```
+
+The document is a property rather than an attribute — a file is not something a
+page wants in its markup — though `source` works as an attribute too for short
+ones. Attributes cover `format`, `theme`, `locale`, `line-height`,
+`collapsed-depth`, `overscan`, `selected-line` and `show-diagnostics`;
+`expandAll()`, `collapseAll()` and `revealLine(n)` are methods, and folding a
+block fires `krona-fold`.
+
+The element brings the stylesheet into its own shadow root, so nothing on the
+page reaches in and nothing leaks out. Theming is unchanged: `--krona-*` custom
+properties cross a shadow boundary, so setting them on any ancestor still works.
+
+**Diffing, searching, editing, row actions and the minimap are `kronajs` only
+for now.** The element is the viewer; if you need the rest and can run React,
+use that package.
 
 ## Using the core without React
 

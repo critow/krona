@@ -3,7 +3,7 @@
 //
 //   node scripts/release-check.mjs 0.1.0 [--notes-out <file>]
 //
-// Both published packages must carry the version, and the changelog must have a
+// Every published package must carry the version, and the changelog must have a
 // section for it — which is also where the release notes come from, so the
 // notes cannot drift from what shipped.
 import { readFileSync, writeFileSync } from 'node:fs'
@@ -17,7 +17,11 @@ if (!version || !/^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/.test(version)) {
 const notesOut = rest[0] === '--notes-out' ? rest[1] : undefined
 const problems = []
 
-for (const path of ['packages/core/package.json', 'packages/react/package.json']) {
+for (const path of [
+  'packages/core/package.json',
+  'packages/react/package.json',
+  'packages/element/package.json',
+]) {
   const pkg = JSON.parse(readFileSync(path, 'utf8'))
   if (pkg.version !== version) {
     problems.push(`${path} is ${pkg.version}, tag says ${version}`)

@@ -18,6 +18,9 @@ catalogs:
     '@tanstack/react-virtual':
       specifier: 3.14.10
       version: 3.14.10
+    '@tanstack/virtual-core':
+      specifier: 3.17.8
+      version: 3.17.8
     '@types/react':
       specifier: 19.2.18
       version: 19.2.18
@@ -137,6 +140,22 @@ importers:
       yaml:
         specifier: 'catalog:'
         version: 2.9.0
+    devDependencies:
+      tsdown:
+        specifier: 'catalog:'
+        version: 0.22.14(@arethetypeswrong/core@0.18.5)(publint@0.3.24)(typescript@5.9.3)
+      typescript:
+        specifier: 'catalog:'
+        version: 5.9.3
+
+  packages/element:
+    dependencies:
+      '@kronajs/core':
+        specifier: workspace:*
+        version: link:../core
+      '@tanstack/virtual-core':
+        specifier: 'catalog:'
+        version: 3.17.8
     devDependencies:
       tsdown:
         specifier: 'catalog:'

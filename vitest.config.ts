@@ -67,7 +67,10 @@ export default defineConfig({
         plugins: [react()],
         test: {
           name: 'browser',
-          include: ['packages/react/src/**/*.test.tsx'],
+          // The custom element belongs here too: it is DOM from end to end, and
+          // it virtualizes, which needs layout and scrolling that jsdom has not
+          // got.
+          include: ['packages/react/src/**/*.test.tsx', 'packages/element/src/**/*.test.ts'],
           browser: {
             enabled: true,
             provider: playwright({

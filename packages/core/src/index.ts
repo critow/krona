@@ -24,6 +24,8 @@ export { iniProvider } from './formats/ini'
 export { jsonProvider } from './formats/json'
 export { textProvider } from './formats/text'
 export { tomlProvider } from './formats/toml'
+export type { KronaLabels } from './labels'
+export { createDefaultLabels, resolveLabels } from './labels'
 export { fromSnapshot, parseDocument, toSnapshot } from './model/document'
 export {
   allCollapsed,

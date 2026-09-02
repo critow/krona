@@ -1,0 +1,121 @@
+{
+  "name": "@kronajs/element",
+  "version": "0.2.0",
+  "description": "Collapsible tree view for JSON, YAML, TOML and INI/.env config files — a custom element, usable from any framework or none.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": [
+    "**/*.css",
+    "**/formats/*",
+    "**/index.*"
+  ],
+  "files": [
+    "dist"
+  ],
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./json": {
+      "import": {
+        "types": "./dist/formats/json.d.mts",
+        "default": "./dist/formats/json.mjs"
+      },
+      "require": {
+        "types": "./dist/formats/json.d.cts",
+        "default": "./dist/formats/json.cjs"
+      }
+    },
+    "./yaml": {
+      "import": {
+        "types": "./dist/formats/yaml.d.mts",
+        "default": "./dist/formats/yaml.mjs"
+      },
+      "require": {
+        "types": "./dist/formats/yaml.d.cts",
+        "default": "./dist/formats/yaml.cjs"
+      }
+    },
+    "./toml": {
+      "import": {
+        "types": "./dist/formats/toml.d.mts",
+        "default": "./dist/formats/toml.mjs"
+      },
+      "require": {
+        "types": "./dist/formats/toml.d.cts",
+        "default": "./dist/formats/toml.cjs"
+      }
+    },
+    "./ini": {
+      "import": {
+        "types": "./dist/formats/ini.d.mts",
+        "default": "./dist/formats/ini.mjs"
+      },
+      "require": {
+        "types": "./dist/formats/ini.d.cts",
+        "default": "./dist/formats/ini.cjs"
+      }
+    },
+    "./styles.css": "./dist/styles.css",
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.cts",
+  "scripts": {
+    "build": "node ../../scripts/build-css.mjs && tsdown",
+    "prepublishOnly": "pnpm build && publint && attw --pack . --profile node16 --exclude-entrypoints styles.css"
+  },
+  "dependencies": {
+    "@kronajs/core": "workspace:*",
+    "@tanstack/virtual-core": "catalog:"
+  },
+  "devDependencies": {
+    "tsdown": "catalog:",
+    "typescript": "catalog:"
+  },
+  "homepage": "https://critow.github.io/krona/",
+  "bugs": {
+    "url": "https://github.com/critow/krona/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/critow/krona.git",
+    "directory": "packages/element"
+  },
+  "keywords": [
+    "web-component",
+    "custom-element",
+    "json-viewer",
+    "yaml",
+    "toml",
+    "ini",
+    "code-folding",
+    "config",
+    "configuration",
+    "jsonc",
+    "dotenv",
+    "tree-view",
+    "typescript",
+    "json",
+    "viewer",
+    "vue",
+    "svelte",
+    "angular",
+    "collapsible"
+  ],
+  "engines": {
+    "node": ">=18.18"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

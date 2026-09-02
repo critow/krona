@@ -52,6 +52,7 @@ JSON/JSONC · YAML · TOML · INI/.env
 - [Ссылка на строку](#ссылка-на-строку)
 - [Маленькие экраны](#маленькие-экраны)
 - [Большие файлы и Web Workers](#большие-файлы-и-web-workers)
+- [Без React: `<krona-viewer>`](#без-react-krona-viewer)
 - [Ядро без React](#ядро-без-react)
 - [Проектные решения](#проектные-решения)
 - [Планы](#планы)
@@ -413,6 +414,44 @@ return model ? (
 
 Сам воркер Krona не создаёт — URL воркера зависит от сборщика, — но пропсы
 `model`, `leftModel` и `rightModel` делают этот путь полноценным.
+
+## Без React: `<krona-viewer>`
+
+Всё, что Krona знает о конфиге, лежит в `@kronajs/core`, где фреймворка нет
+вовсе. `@kronajs/element` рисует это кастомным элементом — значит, просмотр
+работает во Vue, Svelte, Angular, Astro или в HTML-файле со script-тегом.
+
+```bash
+npm install @kronajs/element
+```
+
+```html
+<krona-viewer id="config" format="yaml" collapsed-depth="2"></krona-viewer>
+
+<script type="module">
+  import { defineKrona } from '@kronajs/element'
+  import '@kronajs/element/yaml'
+
+  defineKrona()
+  document.getElementById('config').source = await fetch('compose.yaml').then((r) => r.text())
+</script>
+```
+
+Документ передаётся свойством, а не атрибутом: файл — не то, что страница хочет
+держать в разметке (для коротких документов `source` работает и атрибутом).
+Атрибутами задаются `format`, `theme`, `locale`, `line-height`,
+`collapsed-depth`, `overscan`, `selected-line` и `show-diagnostics`;
+`expandAll()`, `collapseAll()` и `revealLine(n)` — методы, а сворачивание блока
+шлёт событие `krona-fold`.
+
+Стили элемент приносит с собой, в собственный shadow root: снаружи в него ничего
+не дотянется и наружу ничего не протечёт. Темизация не меняется — CSS-переменные
+`--krona-*` границу shadow DOM пересекают, так что задать их на любом предке
+по-прежнему можно.
+
+**Сравнение, поиск, редактирование, действия на строке и миникарта пока только в
+`kronajs`.** Элемент — это просмотр; если нужно остальное и React доступен,
+берите тот пакет.
 
 ## Ядро без React
 

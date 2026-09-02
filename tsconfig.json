@@ -9,7 +9,9 @@
       "@kronajs/core": ["./packages/core/src/index.ts"],
       "@kronajs/core/*": ["./packages/core/src/formats/*.ts"],
       "kronajs": ["./packages/react/src/index.ts"],
-      "kronajs/*": ["./packages/react/src/*"]
+      "kronajs/*": ["./packages/react/src/*"],
+      "@kronajs/element": ["./packages/element/src/index.ts"],
+      "@kronajs/element/*": ["./packages/element/src/formats/*.ts"]
     },
     "types": ["node", "vite/client"]
   },

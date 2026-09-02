@@ -1,11 +1,11 @@
 # Releasing
 
 A tag publishes. `.github/workflows/release.yml` runs on `v*`, re-runs every
-check that guards the published artifact, packs both packages, publishes them to
+check that guards the published artifact, packs every package, publishes them to
 npm with provenance, and opens a GitHub Release with the changelog section for
 that version attached to the tarballs.
 
-The publish step is retry-safe. If npm accepted one or both immutable versions
+The publish step is retry-safe. If npm accepted some of the immutable versions
 before a later step failed, the next run skips those uploads and downloads the
 exact registry tarballs for the GitHub Release assets.
 
@@ -14,9 +14,10 @@ what changed.
 
 ## Steps
 
-1. Set the version in `packages/core/package.json` and
-   `packages/react/package.json`. They release together and share a version, so
-   `@kronajs/core` can be depended on exactly.
+1. Set the version in `packages/core/package.json`,
+   `packages/react/package.json` and `packages/element/package.json`. All three
+   release together and share a version, so both adapters can depend on an exact
+   `@kronajs/core`.
 2. In `CHANGELOG.md`, turn the `Unreleased` heading into the version and the
    date, and open a fresh `Unreleased` above it. The heading only has to contain
    the version — `## 0.1.0 — 2026-08-25` is the form used here.
@@ -42,16 +43,18 @@ what changed.
 
 ## What the repository needs once
 
-- **A trusted publisher on both npm packages** — `kronajs` and `@kronajs/core`
-  each authorize GitHub Actions from `critow/krona`, workflow filename
-  `release.yml`, for `npm publish`. The workflow's `id-token: write` permission
+- **A trusted publisher on every npm package** — `kronajs`, `@kronajs/core` and
+  `@kronajs/element` each authorize GitHub Actions from `critow/krona`, workflow
+  filename `release.yml`, for `npm publish`. A package that has never been
+  published has no trusted publisher yet, so its first release needs one
+  configured, or a first manual publish to create it. The workflow's `id-token: write` permission
   lets npm exchange GitHub's OIDC identity for a short-lived publish credential;
   no `NPM_TOKEN` repository secret is used.
-- **Publishing access set to disallow bypass-2FA tokens** on both packages.
+- **Publishing access set to disallow bypass-2FA tokens** on every package.
   Trusted publishing continues to work because it authenticates with OIDC, not
   a traditional npm token.
 - **The `@kronajs` scope** must exist on npm and the publishing account must own
-  it, or the first `@kronajs/core` publish is rejected.
+  it, or the first `@kronajs/core` or `@kronajs/element` publish is rejected.
 
 ## Why packing and publishing are two tools
 

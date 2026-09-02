@@ -8,6 +8,36 @@ Notable changes to Krona. The format follows
 
 ### Added
 
+- **`@kronajs/element` — Krona as a custom element.** `<krona-viewer>` renders
+  the same document model, folding, tokenizing and virtualization as the React
+  package, with no framework in it: it works in Vue, Svelte, Angular, Astro, or
+  an HTML file with a script tag.
+
+  ```html
+  <krona-viewer format="yaml" collapsed-depth="2"></krona-viewer>
+  ```
+
+  The document is a property rather than an attribute — a file is not something
+  a page wants in its markup — though `source` works as an attribute too.
+  Attributes cover `format`, `theme`, `locale`, `line-height`,
+  `collapsed-depth`, `overscan`, `selected-line` and `show-diagnostics`;
+  `expandAll()`, `collapseAll()` and `revealLine(n)` are methods, and folding a
+  block fires `krona-fold`.
+
+  It carries the stylesheet into its own shadow root. That needed no new CSS:
+  the theme variables were already declared on `.krona` rather than on `:root`,
+  which is the one thing that would have kept them out of a shadow tree.
+
+  Diffing, searching, editing, row actions and the minimap stay `kronajs` only
+  for now. The element is the viewer.
+
+- Two things moved to make room for a second renderer. `KronaLabels`,
+  `createDefaultLabels` and `resolveLabels` are core exports now — plain strings
+  with no DOM in them, and a second adapter should not keep its own copy of the
+  same English. The stylesheet moved to `styles/krona.css` at the repository
+  root: whichever package owned it would have been lending it to the others.
+  `kronajs` re-exports the labels, so nothing changes for a React consumer.
+
 - `unifiedPatch` writes the diff out as a patch — the text `diff -u` prints and
   `git apply` reads. It is built from the aligned rows rather than from a fresh
   diff, so it is a patch of what the reader is looking at, and folding or
