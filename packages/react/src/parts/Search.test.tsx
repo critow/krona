@@ -153,3 +153,101 @@ describe('Krona.Search in a diff', () => {
     expect(first).toBeDefined()
   })
 })
+
+/**
+ * A diff has two ways to hide a line and can use both on the same line: the
+ * block around it is folded, and the unchanged run it sits in is collapsed
+ * behind an expand bar. Jumping to a match has to undo whichever applies.
+ */
+describe('Krona.Search reaching a match a diff is hiding', () => {
+  const NEEDLE = '"marker": "deep"'
+
+  /** A change at the top, then a long unchanged block with the needle buried in it. */
+  function nested(head: number): string {
+    const filler = (from: number, count: number) =>
+      Array.from({ length: count }, (_, i) => `    "same${from + i}": ${from + i},`)
+    return [
+      '{',
+      `  "head": ${head},`,
+      '  "nested": {',
+      ...filler(0, 40),
+      `    ${NEEDLE},`,
+      ...filler(40, 40),
+      '    "last": 1',
+      '  },',
+      '  "tail": 1',
+      '}',
+    ].join('\n')
+  }
+
+  async function open(props: Record<string, unknown>) {
+    const screen = await render(
+      <Krona format="json" narrowWidth={0}>
+        <Krona.Diff left={nested(1)} right={nested(2)} {...props}>
+          <Krona.Search />
+          <Krona.Panel side="left">
+            <Krona.Gutter />
+            <Krona.Lines />
+          </Krona.Panel>
+          <Krona.Panel side="right">
+            <Krona.Gutter />
+            <Krona.Lines />
+          </Krona.Panel>
+        </Krona.Diff>
+      </Krona>,
+    )
+    await expect
+      .poll(() => screen.container.querySelectorAll('.krona-lines .krona-row').length)
+      .toBeGreaterThan(0)
+    return screen
+  }
+
+  /** Types the query and steps onto the first match. */
+  async function stepTo(container: HTMLElement, query: string) {
+    await type(container, query)
+    const next = container.querySelectorAll<HTMLElement>('.krona-search-step')[1]
+    expect(next).toBeDefined()
+    next?.click()
+  }
+
+  it('opens the collapsed run the match is hidden in', async () => {
+    const screen = await open({ collapseUnchanged: true })
+    // The needle is deep inside the unchanged middle, which is behind a bar.
+    expect(screen.container.querySelectorAll('.krona-expand-bar').length).toBeGreaterThan(0)
+    expect(screen.container.textContent).not.toContain('marker')
+
+    await stepTo(screen.container, 'marker')
+    await expect.poll(() => screen.container.textContent?.includes('marker')).toBe(true)
+    expect(current(screen.container)).toBe('marker')
+  })
+
+  it('opens the folded block the match is hidden in', async () => {
+    const screen = await open({ defaultCollapsedDepth: 1 })
+    expect(screen.container.textContent).not.toContain('marker')
+
+    await stepTo(screen.container, 'marker')
+    await expect.poll(() => screen.container.textContent?.includes('marker')).toBe(true)
+    expect(current(screen.container)).toBe('marker')
+  })
+
+  it('opens both at once, which is the case neither alone would catch', async () => {
+    const screen = await open({ collapseUnchanged: true, defaultCollapsedDepth: 1 })
+    expect(screen.container.textContent).not.toContain('marker')
+
+    await stepTo(screen.container, 'marker')
+    await expect.poll(() => screen.container.textContent?.includes('marker')).toBe(true)
+    expect(current(screen.container)).toBe('marker')
+    // Both panels scroll in lockstep, so the row is revealed in both.
+    await expect.poll(() => matches(screen.container).length).toBe(2)
+  })
+
+  it('leaves alone what is not in the way', async () => {
+    const screen = await open({ collapseUnchanged: true })
+    const bars = screen.container.querySelectorAll('.krona-expand-bar').length
+    // "head" is the changed line, which is never hidden; reaching it should not
+    // open anything.
+    await stepTo(screen.container, 'head')
+    await expect.poll(() => current(screen.container)).toBe('head')
+    expect(screen.container.querySelectorAll('.krona-expand-bar').length).toBe(bars)
+  })
+})

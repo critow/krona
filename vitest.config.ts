@@ -51,7 +51,7 @@ export default defineConfig({
       // A floor, not a target. It is set just under what the suite reports
       // today, so it catches a feature landing untested rather than nagging
       // about a line nobody was ever going to reach.
-      thresholds: { statements: 90, branches: 82, functions: 90, lines: 93 },
+      thresholds: { statements: 91, branches: 84, functions: 92, lines: 94 },
     },
     projects: [
       {
