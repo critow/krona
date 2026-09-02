@@ -1,4 +1,3 @@
-import type { DocumentModel } from '../model/types'
 import type { AlignedRow } from './align'
 
 /** How to write the patch out. */
@@ -21,8 +20,8 @@ interface Op {
 /** One line of the patch body, in the order the two versions are read. */
 function opsOf(
   rows: readonly AlignedRow[],
-  left: DocumentModel,
-  right: DocumentModel,
+  left: readonly string[],
+  right: readonly string[],
 ): { ops: Op[]; leftAt: number[]; rightAt: number[] } {
   const ops: Op[] = []
   // How many lines of each side precede every op, so a hunk header can be
@@ -58,8 +57,8 @@ function opsOf(
     // A spacer exists so two panels stay level. One column of text has nothing
     // to stay level with, and a patch is one column of text.
     if (row.left === null && row.right === null) continue
-    const from = row.left === null ? undefined : left.lines[row.left]?.text
-    const to = row.right === null ? undefined : right.lines[row.right]?.text
+    const from = row.left === null ? undefined : left[row.left]
+    const to = row.right === null ? undefined : right[row.right]
     if (row.kind === 'equal' && from !== undefined && to !== undefined) {
       flush()
       push('context', to)
@@ -92,14 +91,19 @@ function span(start: number, count: number): string {
  * thing as an empty patch, and a header with no hunks would be a lie about
  * having something to apply.
  *
- * Line terminators are not described. Krona's model is a list of lines and does
- * not record whether the last one ended with a newline, so the patch never
- * carries `\\ No newline at end of file`.
+ * Takes the two sides as lines rather than as parsed documents, because a patch
+ * is text: it has no use for folding ranges, tokens or diagnostics, and asking
+ * for a whole model would make a caller parse documents to reach a field. The
+ * lines are what `diffLines` already carries — `result.left` and `result.right`.
+ *
+ * Line terminators are not described. A list of lines does not record whether
+ * the last one ended with a newline, so the patch never carries
+ * `\\ No newline at end of file`.
  */
 export function unifiedPatch(
   rows: readonly AlignedRow[],
-  left: DocumentModel,
-  right: DocumentModel,
+  left: readonly string[],
+  right: readonly string[],
   options?: PatchOptions,
 ): string {
   const context = Math.max(0, options?.context ?? 3)

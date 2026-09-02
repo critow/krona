@@ -434,7 +434,7 @@ doc.diagnostics      // проблемы разбора, наружу не бр�
 | `alignDiff(result, options?)` | `AlignedDiff` — строки для двух панелей со спейсерами и `stats` |
 | `intralineDiff(left, right, options?)` | Пословные диапазоны для одной изменённой строки |
 | `collapseUnchanged(rows, options?)` | Участки, которые стоит спрятать за полосу |
-| `unifiedPatch(rows, left, right, options?)` | Дифф как unified-патч, готовый для `git apply` |
+| `unifiedPatch(rows, leftLines, rightLines, options?)` | Дифф как unified-патч, готовый для `git apply` |
 | `collapsedToDepth(model, depth?)` | Начальные строки, которые нужно свернуть для стартовой глубины |
 | `allCollapsed(model)` | Начальные строки всех диапазонов — документ, свёрнутый целиком |
 | `visibleLines(model, collapsed)` | Индексы строк, остающихся на экране, по порядку |

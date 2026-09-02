@@ -1,10 +1,20 @@
-import { detectFormat, Krona, useKronaDiff } from 'kronajs'
+import { alignDiff, detectFormat, diffLines, Krona, unifiedPatch, useKronaDiff } from 'kronajs'
 import 'kronajs/yaml'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { DICTS, type Lang } from './i18n'
 import { SAMPLES } from './samples'
 import { buildSnippet } from './snippet'
-import { Badge, Checkbox, CodeBlock, Field, NumberField, Panel, Segmented, Select } from './ui/kit'
+import {
+  Badge,
+  Button,
+  Checkbox,
+  CodeBlock,
+  Field,
+  NumberField,
+  Panel,
+  Segmented,
+  Select,
+} from './ui/kit'
 
 type Mode = 'viewer' | 'diff'
 type Theme = 'light' | 'dark' | 'auto'
@@ -89,6 +99,19 @@ function DiffPanelsBase({
  * feature hidden behind a menu.
  */
 const OWN = 'own'
+
+/**
+ * A file name for the patch headers.
+ *
+ * `git apply` strips one leading path component, so the names have to carry one
+ * — a bare `a` and `b` would leave it with nothing. Samples are labelled with
+ * their file name where they have one; the rest are described rather than
+ * named, and get a name from their format instead.
+ */
+function patchName(label: string, format: string): string {
+  const first = label.split(' ')[0] ?? ''
+  return first.includes('.') ? first : `config.${format}`
+}
 
 /** Text held between reloads, when the browser allows it. */
 function readStored(key: string): string {
@@ -212,6 +235,40 @@ export function App() {
     setSelectedLine(value)
     history.replaceState(null, '', `${globalThis.location.search}#L${value}`)
   }, [])
+
+  // What came of the last copy, shown next to the button rather than in an
+  // alert: a copy that quietly failed is the one thing a copy button must not
+  // do, and a browser is allowed to refuse the clipboard outright.
+  const [patchNote, setPatchNote] = useState('')
+
+  const copyPatch = useCallback(async () => {
+    const result = diffLines(sample.left, sample.right, { ignoreTrailingWhitespace })
+    const { rows } = alignDiff(result)
+    const name = patchName(sample.label, sample.format)
+    // The same lines the panels are showing, written as one column. Folding and
+    // collapsed runs are left out of it on purpose: they hide lines from the
+    // eye, not from the file.
+    const patch = unifiedPatch(rows, result.left, result.right, {
+      from: `a/${name}`,
+      to: `b/${name}`,
+    })
+    if (!patch) {
+      setPatchNote(dict.patchEmpty)
+      return
+    }
+    try {
+      await navigator.clipboard.writeText(patch)
+      setPatchNote(dict.patchCopied)
+    } catch {
+      setPatchNote(dict.patchRefused)
+    }
+  }, [sample, ignoreTrailingWhitespace, dict])
+
+  // A note about a copy is about that copy; anything that changes what would be
+  // copied makes it stale.
+  useEffect(() => {
+    setPatchNote('')
+  }, [sample, ignoreTrailingWhitespace, mode, lang])
 
   const syncUrl = useCallback((next: Record<string, string>) => {
     const params = new URLSearchParams(globalThis.location.search)
@@ -351,18 +408,36 @@ export function App() {
               </>
             }
             actions={
-              <Segmented
-                label={dict.mode}
-                value={mode}
-                options={[
-                  { value: 'viewer', label: dict.viewer },
-                  { value: 'diff', label: dict.diff },
-                ]}
-                onChange={(value) => {
-                  setMode(value)
-                  syncUrl({ mode: value })
-                }}
-              />
+              <>
+                {mode === 'diff' ? (
+                  <>
+                    {patchNote ? (
+                      <span className="stage-note" role="status">
+                        {patchNote}
+                      </span>
+                    ) : null}
+                    <Button
+                      onClick={() => {
+                        void copyPatch()
+                      }}
+                    >
+                      {dict.copyPatch}
+                    </Button>
+                  </>
+                ) : null}
+                <Segmented
+                  label={dict.mode}
+                  value={mode}
+                  options={[
+                    { value: 'viewer', label: dict.viewer },
+                    { value: 'diff', label: dict.diff },
+                  ]}
+                  onChange={(value) => {
+                    setMode(value)
+                    syncUrl({ mode: value })
+                  }}
+                />
+              </>
             }
           >
             {sampleId === OWN ? (
