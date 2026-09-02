@@ -1,11 +1,11 @@
 # @kronajs/element
 
-**A configuration file as a collapsible, virtualized tree — as a custom
-element.** The same engine as [`kronajs`](https://www.npmjs.com/package/kronajs)
-without the React: usable from Vue, Svelte, Angular, Astro, or an HTML file with
-a script tag.
+**Config files as a folding tree and a side-by-side diff — as custom elements.**
+The same engine as [`kronajs`](https://www.npmjs.com/package/kronajs) without the
+React: usable from Vue, Svelte, Angular, Astro, or an HTML file with a script
+tag.
 
-[**Demo**](https://critow.github.io/krona/) · [**Full documentation**](https://github.com/critow/krona#readme)
+[**Live, on a page with no framework on it**](https://critow.github.io/krona/element.html) · [**Full documentation**](https://github.com/critow/krona#readme)
 
 ```bash
 npm install @kronajs/element
@@ -23,11 +23,11 @@ npm install @kronajs/element
 </script>
 ```
 
-The document is a **property, not an attribute**: a file is not something a page
-wants to put in its markup. (`source` works as an attribute too, for short
-documents.)
+Documents are **properties, not attributes**: a file is not something a page
+wants to put in its markup. (`source`, `left` and `right` work as attributes too,
+for short documents.)
 
-## Attributes
+## `<krona-viewer>`
 
 | Attribute | Default | What it does |
 | --- | --- | --- |
@@ -40,8 +40,6 @@ documents.)
 | `selected-line` | — | Single a line out and scroll to it, counting from 1 |
 | `show-diagnostics` | `true` | Set `false` to hide parse problems |
 
-## Properties, methods and events
-
 | Member | What it is |
 | --- | --- |
 | `source` | The file to show |
@@ -49,18 +47,103 @@ documents.)
 | `labels` | Overrides for the built-in English strings |
 | `expandAll()` / `collapseAll()` | Open or close every folding range |
 | `revealLine(line)` | Open whatever hides a line and scroll to it, counting from 1 |
-| `krona-fold` | Fired when a block is folded or unfolded: `{ line, folded }` |
 
-Styles travel with the element — it puts the stylesheet in its own shadow root,
-so nothing on the page can reach in and nothing leaks out. Theming is the same
-`--krona-*` custom properties as the React package, and custom properties do
-cross a shadow boundary, so setting them on any ancestor still works.
+## `<krona-diff>`
+
+```html
+<krona-diff id="changes" format="json" collapse-unchanged></krona-diff>
+
+<script type="module">
+  const diff = document.getElementById('changes')
+  diff.left = before
+  diff.right = after
+</script>
+```
+
+Both panels render one shared row list at one fixed row height, so folding a
+block hides it on **both** sides and the two scroll in exact lockstep rather
+than by a ratio.
+
+| Attribute | Default | What it does |
+| --- | --- | --- |
+| `format`, `theme`, `locale`, `line-height`, `overscan`, `collapsed-depth`, `show-diagnostics` | | As above |
+| `collapse-unchanged` | off | Hide long unchanged runs behind an expand bar |
+| `context` / `minimum-hidden` / `step` | `3` / `10` / `20` | Rows kept around a change, the shortest run worth hiding, and how much one click reveals |
+| `ignore-trailing-whitespace` | off | Treat lines differing only in trailing space as equal |
+| `show-toolbar` | `true` | The fold actions and the change counts |
+| `show-markers` | `true` | `+` / `-` / `~` in the gutter |
+
+| Member | What it is |
+| --- | --- |
+| `left` / `right` | The two versions |
+| `aligned` | The alignment and its statistics, once there is a diff |
+| `labels` | Overrides for the built-in English strings |
+| `expandAll()` / `collapseAll()` | Open or close every folding range and hidden run |
+
+## Events
+
+Both elements fire `krona-fold` when a block is folded or unfolded, with
+`{ line, folded }` — the line counting from 1. It bubbles and crosses the shadow
+boundary, so a listener on any ancestor sees it.
+
+## Keyboard
+
+A document is a tree, and a tree is walked with the arrows: Tab enters it once
+and leaves it once. ↑ / ↓ move by row, Home / End jump to the ends, → opens a
+folded block and then steps into it, ← closes an open one and then walks out to
+its parent, and Enter or Space toggles the block on the current row.
+
+## Styles
+
+The stylesheet travels inside each element's own shadow root, so nothing on the
+page can reach in and nothing leaks out. Theming is the same `--krona-*` custom
+properties as the React package, and custom properties *do* cross a shadow
+boundary, so setting them on any ancestor still works:
+
+```css
+krona-viewer {
+  --krona-height: 30rem;
+  --krona-font-size: 13px;
+}
+```
+
+`@kronajs/element/styles.css` ships the same bytes for a page that would rather
+own one stylesheet, though nothing needs it.
+
+## In each framework
+
+**Vue** — tell the compiler the tags are not components, or it warns about every
+one of them:
+
+```js
+// vite.config.js
+vue({ template: { compilerOptions: { isCustomElement: (tag) => tag.startsWith('krona-') } } })
+```
+
+Then bind documents with `.prop`, since they are properties:
+`<krona-viewer :source.prop="text" format="yaml" />`.
+
+**Svelte** — nothing to configure; `<krona-viewer source={text} />` sets the
+property when one exists, which it does.
+
+**Angular** — add `CUSTOM_ELEMENTS_SCHEMA` to the module or component, then
+`<krona-viewer [source]="text">`.
+
+**React 19** — works as written: `<krona-viewer source={text} />`. On React 18
+and earlier, set the property through a ref instead, or just use `kronajs`.
+
+**Astro, Rails, Django, a plain page** — a script tag and the markup above.
+
+Call `defineKrona()` once, after the page has loaded the module. Registering a
+name twice throws, so calling it again is a no-op rather than an error; there is
+also `defineKronaViewer(name?)` and `defineKronaDiff(name?)` if you would rather
+register one, or register under a name of your own.
 
 ## What it does not do
 
-Diffing, searching, editing, row actions and the minimap are `kronajs` only for
-now. If you need those and can run React, use that package; the model, folding
-and diff underneath both live in
+Searching, editing, row actions, the minimap, and the diff's unified one-column
+view are `kronajs` only for now. If you need those and can run React, use that
+package; the model, folding and diff underneath both live in
 [`@kronajs/core`](https://www.npmjs.com/package/@kronajs/core).
 
 Formats: JSON/JSONC, TOML and INI/.env register from the main entry point; YAML

@@ -52,7 +52,7 @@ JSON/JSONC · YAML · TOML · INI/.env
 - [Linking to a line](#linking-to-a-line)
 - [Small screens](#small-screens)
 - [Large files and Web Workers](#large-files-and-web-workers)
-- [Without React: `<krona-viewer>`](#without-react-krona-viewer)
+- [Without React: `<krona-viewer>` and `<krona-diff>`](#without-react-krona-viewer-and-krona-diff)
 - [Using the core without React](#using-the-core-without-react)
 - [Design notes](#design-notes)
 - [Roadmap](#roadmap)
@@ -412,12 +412,13 @@ Krona does not instantiate the worker for you — worker URLs are
 bundler-specific — but `model`, `leftModel` and `rightModel` make that path
 first class.
 
-## Without React: `<krona-viewer>`
+## Without React: `<krona-viewer>` and `<krona-diff>`
 
 Everything Krona knows about a configuration file lives in `@kronajs/core`,
-which has no framework in it. `@kronajs/element` renders that as a custom
-element, so the viewer works in Vue, Svelte, Angular, Astro, or an HTML file
-with a script tag.
+which has no framework in it. `@kronajs/element` renders that as custom
+elements, so the viewer and the diff work in Vue, Svelte, Angular, Astro, or an
+HTML file with a script tag. There is [a page of the demo with no framework on
+it at all](https://critow.github.io/krona/element.html).
 
 ```bash
 npm install @kronajs/element
@@ -435,20 +436,42 @@ npm install @kronajs/element
 </script>
 ```
 
-The document is a property rather than an attribute — a file is not something a
-page wants in its markup — though `source` works as an attribute too for short
-ones. Attributes cover `format`, `theme`, `locale`, `line-height`,
-`collapsed-depth`, `overscan`, `selected-line` and `show-diagnostics`;
-`expandAll()`, `collapseAll()` and `revealLine(n)` are methods, and folding a
-block fires `krona-fold`.
+Comparing two versions is `<krona-diff>`, with the same alignment, word-level
+highlighting and hidden-run collapsing:
 
-The element brings the stylesheet into its own shadow root, so nothing on the
+```html
+<krona-diff id="changes" format="json" collapse-unchanged></krona-diff>
+<script type="module">
+  const diff = document.getElementById('changes')
+  diff.left = before
+  diff.right = after
+</script>
+```
+
+Documents are properties rather than attributes — a file is not something a page
+wants in its markup — though `source`, `left` and `right` work as attributes too
+for short ones. The rest is attributes: `format`, `theme`, `locale`,
+`line-height`, `collapsed-depth`, `overscan`, `selected-line`,
+`show-diagnostics`, and for the diff `collapse-unchanged`, `context`,
+`minimum-hidden`, `step`, `ignore-trailing-whitespace`, `show-toolbar` and
+`show-markers`. `expandAll()`, `collapseAll()` and `revealLine(n)` are methods,
+and folding a block fires `krona-fold`.
+
+Arrow keys walk the document the same way they do in React: Tab enters the tree
+once, ↑ / ↓ move by row, → opens a folded block and then steps into it, ← closes
+one and then walks out to its parent.
+
+Each element brings the stylesheet into its own shadow root, so nothing on the
 page reaches in and nothing leaks out. Theming is unchanged: `--krona-*` custom
 properties cross a shadow boundary, so setting them on any ancestor still works.
 
-**Diffing, searching, editing, row actions and the minimap are `kronajs` only
-for now.** The element is the viewer; if you need the rest and can run React,
-use that package.
+Per-framework notes — the `isCustomElement` line Vue needs, Angular's
+`CUSTOM_ELEMENTS_SCHEMA`, and what changes on React 18 — are in the
+[package README](./packages/element/README.md).
+
+**Searching, editing, row actions, the minimap and the unified diff view are
+`kronajs` only for now.** If you need those and can run React, use that
+package.
 
 ## Using the core without React
 
