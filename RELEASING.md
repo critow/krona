@@ -23,12 +23,22 @@ what changed.
 3. `node scripts/release-check.mjs <version>` — the same check the workflow runs
    first. It fails if a package version disagrees with the tag or the changelog
    has nothing to say about it.
-4. Commit, then tag and push:
+4. Commit, then start the release either way — both run the same job:
+
+   **Push a tag**, if you have a checkout with a remote:
 
    ```bash
    git tag v0.1.0
    git push origin v0.1.0
    ```
+
+   **Or press the button**: Actions → Release → Run workflow, and give it the
+   version without the `v`. This is the path from a phone, or from anything
+   holding an API token; the workflow creates the tag on the commit it tested,
+   so a release started this way is recorded exactly like one started by a tag.
+
+   Either way `release-check` runs first, so a version the packages and the
+   changelog do not both agree on stops the run before anything is published.
 
 ## What the repository needs once
 

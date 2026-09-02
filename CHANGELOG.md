@@ -6,6 +6,14 @@ Notable changes to Krona. The format follows
 
 ## Unreleased
 
+### Added
+
+- A release can be started by hand: Actions → Release → Run workflow, with the
+  version. The job is the one a tag push runs, and it creates the tag on the
+  commit it tested, so a release cut this way is recorded like any other. A tag
+  can only be pushed from a machine with a git remote; a button is reachable
+  from a phone.
+
 ## 0.2.0 — 2026-09-02
 
 Krona can be operated from the keyboard, and most of what it knows now lives in
