@@ -1,7 +1,7 @@
 {
   "name": "kronajs",
   "version": "0.1.2",
-  "description": "Fold, diff and edit config files in React \u2014 JSON/JSONC, YAML, TOML and INI/.env.",
+  "description": "Collapsible tree view, side-by-side diff and in-place editing for JSON, YAML, TOML and INI/.env config files — a React component.",
   "license": "MIT",
   "type": "module",
   "sideEffects": [
@@ -113,7 +113,13 @@
     "dotenv",
     "tree-view",
     "editor",
-    "typescript"
+    "typescript",
+    "json",
+    "viewer",
+    "diff-viewer",
+    "json-diff",
+    "yaml-diff",
+    "collapsible"
   ],
   "engines": {
     "node": ">=18.18"
