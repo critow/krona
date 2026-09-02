@@ -1,4 +1,4 @@
-import type { AlignedRow, FoldRange } from '@kronajs/core'
+import { type AlignedRow, type FoldRange, unifiedEntries } from '@kronajs/core'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { type CSSProperties, type ReactNode, useCallback, useEffect, useMemo, useRef } from 'react'
 import { LineSourceContext, type RenderRow, type RowTone } from '../context/lineSource'
@@ -7,7 +7,6 @@ import { Gutter } from '../parts/Gutter'
 import { Lines } from '../parts/Lines'
 import { contentColumnsOf } from '../render/width'
 import { usePanelLayout } from './PanelLayoutContext'
-import { unifiedEntries } from './unifiedRows'
 
 /** Props of `<Krona.Unified>`. */
 export interface KronaUnifiedProps {

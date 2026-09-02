@@ -1,11 +1,15 @@
 import {
   alignDiff,
+  buildRowIndex,
   type CollapsedRegion,
   collapseUnchanged,
   type DocumentModel,
   diffLines,
+  displayItems as displayItemsOf,
   type ExpandDirection,
   type Format,
+  foldEndRow,
+  hasFoldAt,
   type IntralineResult,
   intralineDiff,
 } from '@kronajs/core'
@@ -23,7 +27,6 @@ import { SideSwitch } from '../parts/SideSwitch'
 import { DiffContext } from './DiffContext'
 import { Panel } from './Panel'
 import { PanelLayoutContext } from './PanelLayoutContext'
-import { buildRowIndex, foldEndRow, hasFoldAt, useDisplayItems } from './rows'
 import { Unified } from './Unified'
 
 /** How much of an unchanged run stays visible around a change. */
@@ -194,13 +197,9 @@ export function KronaDiff({
     setCollapsedRows(initialCollapsedRows)
   }
 
-  const displayItems = useDisplayItems(
-    aligned.rows,
-    leftModel,
-    rightModel,
-    rowIndex,
-    collapsedRows,
-    regions,
+  const displayItems = useMemo(
+    () => displayItemsOf(aligned.rows, leftModel, rightModel, rowIndex, collapsedRows, regions),
+    [aligned.rows, leftModel, rightModel, rowIndex, collapsedRows, regions],
   )
 
   // Word-level diffs are computed for the rows a panel actually paints and kept

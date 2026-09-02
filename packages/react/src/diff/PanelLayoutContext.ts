@@ -1,15 +1,16 @@
 import type {
   AlignedRow,
   CollapsedRegion,
+  DisplayItem,
   DocumentModel,
   ExpandDirection,
   IntralineResult,
+  RowIndex,
 } from '@kronajs/core'
 import { createContext, useContext } from 'react'
 import type { LineSearch } from '../context/lineSource'
 import type { ScrollSync } from '../hooks/useScrollSync'
 import type { KronaLabels } from '../labels'
-import type { DisplayItem, RowIndex } from './rows'
 
 /**
  * Everything a `Krona.Panel` needs to render one side. Kept apart from the

@@ -101,3 +101,11 @@ export type { IntralineOptions, IntralineResult, Span } from './diff/intraline'
 export { intralineDiff, tokenizeWords } from './diff/intraline'
 export type { DiffChange, DiffOp, DiffResult, LineDiffOptions } from './diff/myers'
 export { diffLineArrays, diffLines } from './diff/myers'
+export type { DisplayItem, RowIndex, UnifiedEntry } from './diff/view'
+export {
+  buildRowIndex,
+  displayItems,
+  foldEndRow,
+  hasFoldAt,
+  unifiedEntries,
+} from './diff/view'

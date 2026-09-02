@@ -8,6 +8,15 @@ Notable changes to Krona. The format follows
 
 ### Added
 
+- The diff's view logic is framework-free too: `buildRowIndex`, `hasFoldAt`,
+  `foldEndRow`, `displayItems` and `unifiedEntries`, with `DisplayItem`,
+  `RowIndex` and `UnifiedEntry`. This is the answer to what a diff shows once
+  folding and collapsing are applied — including why folding one side hides the
+  matching rows on the other — and none of it was ever about components.
+
+  Two of these were tested through a browser only because that is where they
+  happened to live. They are Node tests now, and faster for it.
+
 - More of the view state is framework-free. The undo history — `EditHistory`,
   `emptyHistory`, `withEdit`, `withUndo`, `withRedo` — and the search ordering —
   `indexByLine`, `hitsInRowOrder`, `hitFrom` — are in `@kronajs/core` now. Both

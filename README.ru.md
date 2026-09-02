@@ -414,6 +414,11 @@ doc.diagnostics      // проблемы разбора, наружу не бр�
 | `indexByLine(matches)` | `MatchIndex` — совпадения, сгруппированные по строкам |
 | `hitsInRowOrder(rows, left, right)` | Совпадения диффа в том порядке, в каком они на экране |
 | `hitFrom(hits, position, direction)` | Индекс первого совпадения после позиции, с заворотом на краях |
+| `buildRowIndex(rows, left, right)` | `RowIndex` — какой ряд показывает каждую строку каждой из версий |
+| `hasFoldAt(row, rows, left, right)` | Открывает ли хоть одна версия блок на этом ряду |
+| `foldEndRow(row, rows, left, right, index)` | Последний ряд, который накрывает свёртка, по обеим сторонам |
+| `displayItems(rows, left, right, index, collapsed, regions)` | `DisplayItem[]` — ряды, которые дифф показывает после свёртки и схлопывания |
+| `unifiedEntries(items, rows)` | `UnifiedEntry[]` — та же разметка, прочитанная одной колонкой |
 | `scanUnsafeCharacters(text)` | Bidi- и невидимые символы с позициями |
 | `toSnapshot` / `fromSnapshot` | Проекция, безопасная для structured clone, — для воркеров |
 
