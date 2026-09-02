@@ -408,6 +408,12 @@ doc.diagnostics      // проблемы разбора, наружу не бр�
 | `allCollapsed(model)` | Начальные строки всех диапазонов — документ, свёрнутый целиком |
 | `visibleLines(model, collapsed)` | Индексы строк, остающихся на экране, по порядку |
 | `nestingLevelAt(model, line)` | Насколько глубоко лежит строка, 1 — верхний уровень |
+| `emptyHistory(source)` | `EditHistory` — текст, которому пока нечего отменять |
+| `withEdit(history, edit)` | История после ещё одной правки; ветка redo обрывается |
+| `withUndo(history)` / `withRedo(history)` | Шаг назад или вперёд, либо та же история, если идти некуда |
+| `indexByLine(matches)` | `MatchIndex` — совпадения, сгруппированные по строкам |
+| `hitsInRowOrder(rows, left, right)` | Совпадения диффа в том порядке, в каком они на экране |
+| `hitFrom(hits, position, direction)` | Индекс первого совпадения после позиции, с заворотом на краях |
 | `scanUnsafeCharacters(text)` | Bidi- и невидимые символы с позициями |
 | `toSnapshot` / `fromSnapshot` | Проекция, безопасная для structured clone, — для воркеров |
 

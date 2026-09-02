@@ -408,6 +408,12 @@ const { rows, stats } = alignDiff(diffLines(before, after))
 | `allCollapsed(model)` | Start lines of every range — the document fully folded |
 | `visibleLines(model, collapsed)` | Line indices still on screen, in order |
 | `nestingLevelAt(model, line)` | How deep a line sits, 1 at the top |
+| `emptyHistory(source)` | `EditHistory` — text with nothing to undo yet |
+| `withEdit(history, edit)` | The history after one more edit; ends the redo branch |
+| `withUndo(history)` / `withRedo(history)` | One step back or forward, or the same history when there is nowhere to go |
+| `indexByLine(matches)` | `MatchIndex` — matches grouped by the line they sit on |
+| `hitsInRowOrder(rows, left, right)` | A diff's hits in the order they appear on screen |
+| `hitFrom(hits, position, direction)` | Index of the first hit past a position, wrapping at the ends |
 | `scanUnsafeCharacters(text)` | Bidi and invisible characters, with positions |
 | `toSnapshot` / `fromSnapshot` | Structured-clone-safe projection, for workers |
 

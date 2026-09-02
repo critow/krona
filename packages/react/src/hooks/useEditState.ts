@@ -1,4 +1,11 @@
-import { applyEdit, type SourceEdit } from '@kronajs/core'
+import {
+  type EditHistory,
+  emptyHistory,
+  type SourceEdit,
+  withEdit,
+  withRedo,
+  withUndo,
+} from '@kronajs/core'
 import { useCallback, useMemo, useRef, useState } from 'react'
 
 /** Editing history and current text, as `Krona.Viewer` keeps them. */
@@ -13,14 +20,6 @@ export interface EditState {
   redo(): void
 }
 
-interface History {
-  readonly source: string
-  readonly undo: readonly SourceEdit[]
-  readonly redo: readonly SourceEdit[]
-}
-
-const EMPTY: readonly SourceEdit[] = []
-
 /**
  * Keeps the edited text and its undo history.
  *
@@ -33,8 +32,7 @@ const EMPTY: readonly SourceEdit[] = []
  * shows the new text rather than the edits made to the old one.
  */
 export function useEditState(initial: string, onChange?: (source: string) => void): EditState {
-  const fresh = (source: string): History => ({ source, undo: EMPTY, redo: EMPTY })
-  const [history, setHistory] = useState<History>(() => fresh(initial))
+  const [history, setHistory] = useState<EditHistory>(() => emptyHistory(initial))
   const seed = useRef(initial)
   // Mirrors the state for the callbacks. A commit has to know its result
   // immediately — it reports it through `onChange` — and state updates land
@@ -43,7 +41,7 @@ export function useEditState(initial: string, onChange?: (source: string) => voi
 
   if (seed.current !== initial) {
     seed.current = initial
-    live.current = fresh(initial)
+    live.current = emptyHistory(initial)
     setHistory(live.current)
   } else {
     live.current = history
@@ -52,7 +50,7 @@ export function useEditState(initial: string, onChange?: (source: string) => voi
   const change = useRef(onChange)
   change.current = onChange
 
-  const commit = useCallback((next: History) => {
+  const commit = useCallback((next: EditHistory) => {
     live.current = next
     setHistory(next)
     change.current?.(next.source)
@@ -60,37 +58,23 @@ export function useEditState(initial: string, onChange?: (source: string) => voi
 
   const apply = useCallback(
     (edit: SourceEdit): string => {
-      const current = live.current
-      const applied = applyEdit(current.source, edit)
-      // A fresh edit ends the redo branch, the way every editor does it.
-      commit({ source: applied.source, undo: [...current.undo, applied.inverse], redo: EMPTY })
-      return applied.source
+      const next = withEdit(live.current, edit)
+      commit(next)
+      return next.source
     },
     [commit],
   )
 
+  // The transitions answer with the very history they were given when there is
+  // nowhere to go, so a dead key press costs no render.
   const undo = useCallback(() => {
-    const current = live.current
-    const edit = current.undo[current.undo.length - 1]
-    if (!edit) return
-    const applied = applyEdit(current.source, edit)
-    commit({
-      source: applied.source,
-      undo: current.undo.slice(0, -1),
-      redo: [...current.redo, applied.inverse],
-    })
+    const next = withUndo(live.current)
+    if (next !== live.current) commit(next)
   }, [commit])
 
   const redo = useCallback(() => {
-    const current = live.current
-    const edit = current.redo[current.redo.length - 1]
-    if (!edit) return
-    const applied = applyEdit(current.source, edit)
-    commit({
-      source: applied.source,
-      undo: [...current.undo, applied.inverse],
-      redo: current.redo.slice(0, -1),
-    })
+    const next = withRedo(live.current)
+    if (next !== live.current) commit(next)
   }, [commit])
 
   return useMemo(

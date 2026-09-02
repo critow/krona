@@ -1,15 +1,9 @@
-import type { AlignedRow, DocumentModel, SearchMatch, Span } from '@kronajs/core'
-import { findMatches } from '@kronajs/core'
+import type { AlignedRow, DocumentModel, MatchIndex, SearchHit, Span } from '@kronajs/core'
+import { findMatches, hitFrom, hitsInRowOrder, indexByLine } from '@kronajs/core'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { KronaLabels } from '../labels'
 
-/** One occurrence, placed in the view rather than only in a document. */
-export interface SearchHit extends SearchMatch {
-  /** Which document it was found in. `'single'` in the viewer. */
-  readonly side: 'single' | 'left' | 'right'
-  /** Aligned row showing it, in a diff. */
-  readonly row?: number
-}
+export type { MatchIndex, SearchHit }
 
 /** What to search: one document, or the two of a diff read in row order. */
 export type SearchTarget =
@@ -21,20 +15,7 @@ export type SearchTarget =
       readonly rows: readonly AlignedRow[]
     }
 
-/** Matches of one document, indexed by the line they sit on. */
-export type MatchIndex = ReadonlyMap<number, readonly Span[]>
-
 const NO_SPANS: readonly Span[] = []
-
-function indexByLine(matches: readonly SearchMatch[]): MatchIndex {
-  const byLine = new Map<number, Span[]>()
-  for (const match of matches) {
-    const spans = byLine.get(match.lineIndex)
-    if (spans) spans.push(match)
-    else byLine.set(match.lineIndex, [match])
-  }
-  return byLine
-}
 
 /**
  * Search over what the reader is looking at.
@@ -86,22 +67,7 @@ export function useSearch(
       return singleResult.matches.map((match) => ({ ...match, side: 'single' as const }))
     }
     if (!rows) return []
-    // Row order, not document order: the two documents interleave on screen.
-    const ordered: SearchHit[] = []
-    for (let row = 0; row < rows.length; row++) {
-      const aligned = rows[row] as AlignedRow
-      if (aligned.left !== null) {
-        for (const span of leftByLine.get(aligned.left) ?? NO_SPANS) {
-          ordered.push({ lineIndex: aligned.left, ...span, side: 'left', row })
-        }
-      }
-      if (aligned.right !== null) {
-        for (const span of rightByLine.get(aligned.right) ?? NO_SPANS) {
-          ordered.push({ lineIndex: aligned.right, ...span, side: 'right', row })
-        }
-      }
-    }
-    return ordered
+    return hitsInRowOrder(rows, leftByLine, rightByLine)
   }, [singleResult, rows, leftByLine, rightByLine])
 
   const truncated = Boolean(
@@ -126,19 +92,7 @@ export function useSearch(
         if (current !== -1) return (current + direction + hits.length) % hits.length
         // Nothing is current yet, so the first jump lands on the first hit
         // after wherever the reader already is.
-        const from = at.current
-        for (let i = 0; i < hits.length; i++) {
-          const index = direction === 1 ? i : hits.length - 1 - i
-          const hit = hits[index] as SearchHit
-          const past =
-            direction === 1
-              ? hit.lineIndex > from.lineIndex ||
-                (hit.lineIndex === from.lineIndex && hit.start > from.column)
-              : hit.lineIndex < from.lineIndex ||
-                (hit.lineIndex === from.lineIndex && hit.start < from.column)
-          if (past) return index
-        }
-        return direction === 1 ? 0 : hits.length - 1
+        return hitFrom(hits, at.current, direction)
       })
     },
     [hits],

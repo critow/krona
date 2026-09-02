@@ -8,6 +8,23 @@ Notable changes to Krona. The format follows
 
 ### Added
 
+- More of the view state is framework-free. The undo history — `EditHistory`,
+  `emptyHistory`, `withEdit`, `withUndo`, `withRedo` — and the search ordering —
+  `indexByLine`, `hitsInRowOrder`, `hitFrom` — are in `@kronajs/core` now. Both
+  were transitions over plain values written inside React hooks; undo/redo in
+  particular is the sort of thing every binding would otherwise rewrite, and it
+  is exactly the sort of thing that should not be rewritten twice.
+
+  The transitions answer with the very object they were handed when there is
+  nowhere to go, so a view can compare by reference and a dead key press costs
+  no render.
+
+- `check-docs` reads the core's exported functions. It walked props interfaces
+  and CSS variables only, so a core export could always land undocumented — and
+  34 of them had. Those are listed as a baseline the check ignores; everything
+  else, and everything added from now on, has to be documented in both
+  languages. The list may only shrink.
+
 - The folding logic lives in `@kronajs/core`, where nothing about it needed
   React in the first place: `collapsedToDepth`, `allCollapsed`, `visibleLines`
   and `nestingLevelAt`. It is the first slice of the view state moving out of

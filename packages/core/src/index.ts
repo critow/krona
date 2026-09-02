@@ -18,6 +18,8 @@ export {
   removeBlockEdit,
   valueSpansAt,
 } from './edit/edit'
+export type { EditHistory } from './edit/history'
+export { emptyHistory, withEdit, withRedo, withUndo } from './edit/history'
 export { iniProvider } from './formats/ini'
 export { jsonProvider } from './formats/json'
 export { textProvider } from './formats/text'
@@ -66,6 +68,8 @@ export type {
 } from './model/types'
 export type { UnsafeKind, UnsafeSpan } from './model/unicode'
 export { hasUnsafeCharacters, scanUnsafeCharacters } from './model/unicode'
+export type { HitPosition, MatchIndex, SearchHit } from './search/hits'
+export { hitFrom, hitsInRowOrder, indexByLine } from './search/hits'
 export type { SearchMatch, SearchOptions, SearchResult } from './search/search'
 export { findMatches, matchAfter } from './search/search'
 
