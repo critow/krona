@@ -53,13 +53,19 @@ Notable changes to Krona. The format follows
   they are not.
 
   The thresholds are a floor set just under where the suite stands today —
-  statements 90, branches 82, functions 90, lines 93 against 92.4, 84.9, 92.7
-  and 95.3. They exist to catch a feature landing untested, not to be polished.
+  statements 91, branches 84, functions 92, lines 94 against 93.5, 86.1, 94.2
+  and 96.3. They exist to catch a feature landing untested, not to be polished.
 
-  The first thing the report found was worth having: every public hook documents
-  where it may be called and throws a named error anywhere else, and not one of
-  those messages was tested. They are now — that message is the first thing a
+  What the report found was worth having, twice over. Every public hook
+  documents where it may be called and throws a named error anywhere else, and
+  not one of those messages was tested — that message is the first thing a
   consumer composing their own parts sees, so it is part of the API.
+
+  And jumping to a search match in a diff turned out to be the least-tested path
+  in the library, though it is the hardest one: a match can be hidden inside a
+  folded block *and* inside a collapsed run of unchanged lines, and reaching it
+  has to undo whichever applies. `Krona.Diff` went from 54.5% of its branches to
+  72.7% on that one addition.
 
 ### Fixed
 
