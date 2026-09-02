@@ -134,6 +134,14 @@ app where they belong. Numbers in the defaults are formatted with
 | `matchCount` | `(position: number, total: number, more: boolean) => string` | `3 / 17` | Match counter; `more` when the count is a floor |
 | `noMatches` | `string` | `No matches` | Shown and announced when a query finds nothing |
 
+The defaults themselves are exported, for a control of your own that has to
+name the same things Krona does:
+
+| Export | What it does |
+| --- | --- |
+| `createDefaultLabels(locale?)` | The full set of English defaults, with numbers formatted for `locale` |
+| `resolveLabels(overrides?, locale?)` | The defaults with your overrides merged over them |
+
 Russian needs three plural forms, which is exactly why plurals live in your app
 and not in the library:
 

@@ -14,6 +14,7 @@ catalog:
   '@types/react': 19.2.18
   '@types/react-dom': 19.2.4
   '@tanstack/react-virtual': 3.14.10
+  '@tanstack/virtual-core': 3.17.8
 
   # tooling
   typescript: 5.9.3

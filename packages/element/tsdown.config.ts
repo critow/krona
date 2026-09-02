@@ -15,10 +15,10 @@ export default defineConfig({
   treeshake: true,
   outDir: 'dist',
   unbundle: true,
-  external: ['react', 'react-dom', 'react/jsx-runtime'],
   hooks: {
-    // Consumers who own their CSS pipeline import `kronajs/styles.css`; the same
-    // bytes are also available as a constant for runtime injection.
+    // The same bytes the constant carries, for consumers who own their CSS
+    // pipeline. A custom element puts the stylesheet in its shadow root itself,
+    // so this file is only for pages that would rather ship one stylesheet.
     'build:done': () => {
       copyFileSync('../../styles/krona.css', 'dist/styles.css')
     },
