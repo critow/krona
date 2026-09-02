@@ -456,9 +456,14 @@ npm install @kronajs/element
 работают и атрибутами). Остальное — атрибуты: `format`, `theme`, `locale`,
 `line-height`, `collapsed-depth`, `overscan`, `selected-line`,
 `show-diagnostics`, а для диффа ещё `collapse-unchanged`, `context`,
-`minimum-hidden`, `step`, `ignore-trailing-whitespace`, `show-toolbar` и
-`show-markers`. `expandAll()`, `collapseAll()` и `revealLine(n)` — методы, а
-сворачивание блока шлёт событие `krona-fold`.
+`minimum-hidden`, `step`, `ignore-trailing-whitespace`, `show-toolbar`,
+`show-markers` и `narrow-width`. `expandAll()`, `collapseAll()`,
+`revealLine(n)` и `showSide(side)` — методы, а сворачивание блока шлёт событие
+`krona-fold`.
+
+Ниже `narrow-width` дифф показывает по одной версии за раз, с переключателем
+между ними. Меряется ширина самого элемента, а не окна: диффу в сайдбаре тесно
+ровно так же, как на телефоне.
 
 Стрелки ходят по документу так же, как в React: Tab входит в дерево один раз,
 ↑ / ↓ двигают по строкам, → раскрывает свёрнутый блок и только потом заходит

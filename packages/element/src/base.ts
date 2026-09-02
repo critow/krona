@@ -41,6 +41,8 @@ export abstract class KronaBase extends HTMLElement {
   #labels: Partial<KronaLabels> | null = null
   #resolved: KronaLabels
   #frameHandle = 0
+  #narrow = false
+  #resize: ResizeObserver | null = null
 
   protected constructor(mode: 'krona-viewer' | 'krona-diff') {
     super()
@@ -71,12 +73,49 @@ export abstract class KronaBase extends HTMLElement {
   }
 
   connectedCallback(): void {
+    this.#watchWidth()
     this.schedule()
   }
 
   disconnectedCallback(): void {
+    this.#resize?.disconnect()
+    this.#resize = null
     if (this.#frameHandle) cancelAnimationFrame(this.#frameHandle)
     this.#frameHandle = 0
+  }
+
+  /**
+   * Whether the element is too narrow for a layout that assumes room.
+   *
+   * The element's own width, not the window's: a diff can sit in a sidebar on a
+   * wide screen and be just as cramped as one on a phone, and a media query
+   * cannot tell the difference. The first paint answers `false`, since nothing
+   * has been measured yet — a narrow layout appears one frame in, which is the
+   * cost of asking the layout rather than guessing at it.
+   */
+  protected get narrow(): boolean {
+    return this.#narrow
+  }
+
+  /** Width below which the layout gives up on two columns. `0` turns it off. */
+  protected get narrowWidth(): number {
+    return Math.max(0, asNumber(this.getAttribute('narrow-width'), 640))
+  }
+
+  #watchWidth(): void {
+    if (this.#resize || typeof ResizeObserver === 'undefined') return
+    this.#resize = new ResizeObserver((entries) => {
+      const entry = entries[0]
+      if (!entry) return
+      const threshold = this.narrowWidth
+      // `borderBoxSize` where it exists; the rect is the fallback and agrees.
+      const width = entry.borderBoxSize?.[0]?.inlineSize ?? entry.contentRect.width
+      const narrow = threshold > 0 && width > 0 && width < threshold
+      if (narrow === this.#narrow) return
+      this.#narrow = narrow
+      this.schedule()
+    })
+    this.#resize.observe(this)
   }
 
   abstract attributeChangedCallback(
@@ -129,6 +168,8 @@ export abstract class KronaBase extends HTMLElement {
       this.getAttribute('locale') ?? undefined,
     )
     this.frame.dataset.theme = (this.getAttribute('theme') ?? 'auto') as KronaElementTheme
+    if (this.#narrow) this.frame.dataset.narrow = 'true'
+    else delete this.frame.dataset.narrow
     // The virtualizer positions rows at this pitch; CSS has to paint them at the
     // same one, or the two drift apart as the value moves.
     this.frame.style.setProperty('--krona-line-height', `${this.lineHeight}px`)

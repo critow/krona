@@ -218,6 +218,40 @@ describe('<krona-diff>', () => {
     expect(markers).toEqual(['~', '~'])
   })
 
+  it('shows one version at a time where there is no room for two', async () => {
+    // Ten characters a panel shows neither version, so a cramped diff picks one.
+    const element = mount({ format: 'json', 'narrow-width': '640' })
+    element.style.width = '400px'
+    await ready(element)
+
+    await expect
+      .poll(() => shadow(element).querySelector('.krona')?.getAttribute('data-narrow'))
+      .toBe('true')
+    // The current version by default: a diff is read to find out what a change
+    // did.
+    await expect.poll(() => panel(element, 'left').hidden).toBe(true)
+    expect(panel(element, 'right').hidden).toBe(false)
+
+    const [toLeft] = shadow(element).querySelectorAll<HTMLButtonElement>(
+      '.krona-side-switch button',
+    )
+    expect(toLeft?.textContent).toBe('Previous version')
+    toLeft?.click()
+    await expect.poll(() => panel(element, 'left').hidden).toBe(false)
+    expect(panel(element, 'right').hidden).toBe(true)
+    expect(toLeft?.getAttribute('aria-pressed')).toBe('true')
+  })
+
+  it('keeps both panels where there is room, and offers no switch', async () => {
+    const element = mount({ format: 'json' })
+    element.style.width = '900px'
+    await ready(element)
+
+    expect(shadow(element).querySelector('.krona')?.getAttribute('data-narrow')).toBe(null)
+    expect(panel(element, 'left').hidden).toBe(false)
+    expect((shadow(element).querySelector('.krona-side-switch') as HTMLElement).hidden).toBe(true)
+  })
+
   it('reports what it parsed, for a host that wants the numbers', async () => {
     const element = await ready(mount({ format: 'json' }))
     // One line replaced by another is a changed row, not an add and a remove.

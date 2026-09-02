@@ -37,6 +37,11 @@ Notable changes to Krona. The format follows
   tree once, ↑ / ↓ move by row, → opens a folded block and then steps into it, ←
   closes one and then walks out to its parent.
 
+  Below `narrow-width` the diff shows one version at a time with a switch
+  between them, measuring the element's own width rather than the window's: a
+  diff in a sidebar on a wide screen is just as cramped as one on a phone, and a
+  media query cannot tell the difference.
+
   Searching, editing, row actions, the minimap and the unified one-column diff
   stay `kronajs` only for now.
 
