@@ -6,6 +6,16 @@ Notable changes to Krona. The format follows
 
 ## Unreleased
 
+## 0.2.0 — 2026-09-02
+
+Krona can be operated from the keyboard, and most of what it knows now lives in
+the framework-free core rather than in React hooks.
+
+**One thing behaves differently:** the fold chevrons in the gutter are no longer
+tab stops. They keep their names, their state and their clicks — the document
+itself is a single tab stop now, walked with the arrow keys, which is the change
+that makes a long file navigable at all.
+
 ### Added
 
 - The core's whole public surface is documented, in both languages. Thirty-four

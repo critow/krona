@@ -1,6 +1,6 @@
 {
   "name": "kronajs",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Collapsible tree view, side-by-side diff and in-place editing for JSON, YAML, TOML and INI/.env config files — a React component.",
   "license": "MIT",
   "type": "module",
