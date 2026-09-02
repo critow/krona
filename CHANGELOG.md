@@ -6,6 +6,18 @@ Notable changes to Krona. The format follows
 
 ## Unreleased
 
+## 0.3.0 — 2026-09-02
+
+Krona has a second renderer. Everything it knows about a configuration file
+already lived in a core with no framework in it; this release puts a pair of
+custom elements on top of that, so the viewer and the diff work outside React.
+
+**`@kronajs/element` is not on npm yet.** It is built, checked and released
+alongside the others in every respect but the publish: npm configures trusted
+publishing per package, and a package that has never been published cannot have
+a publisher configured for it, so its first version has to be pushed by hand.
+`RELEASING.md` says how. The demo page runs it in the meantime.
+
 ### Added
 
 - **`@kronajs/element` — Krona as a custom element.** `<krona-viewer>` renders
