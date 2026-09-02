@@ -455,6 +455,14 @@ export const KRONA_CSS = `:where(.krona) {
   outline-offset: -2px;
 }
 
+/* The row the arrow keys are standing on. Drawn inside the row because the
+   rows are absolutely positioned and an outline outside one would be painted
+   over by its neighbour. */
+.krona-lines > .krona-row:focus-visible {
+  outline: 2px solid var(--krona-token-key);
+  outline-offset: -2px;
+}
+
 .krona-fold-chevron {
   width: 0.875rem;
   height: 0.875rem;

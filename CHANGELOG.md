@@ -8,6 +8,19 @@ Notable changes to Krona. The format follows
 
 ### Added
 
+- The document is walked with the keyboard. Tab enters it once — only the row
+  the reader stands on is tabbable — and the arrow keys move line by line, open
+  and close blocks, and step out to the block that contains a line; Home and End
+  reach the ends. Rows are `role="treeitem"` carrying the nesting the folding
+  ranges describe, so a screen reader can say how deep a line sits and whether
+  its block is open. The depth is computed from the ranges by difference array,
+  one pass per document, because the nesting is in the folding ranges rather
+  than in the markup: rows are a flat, virtualized list.
+
+  The gutter chevrons keep their names, their state and their clicks, but they
+  are no longer tab stops. Tabbing chevron by chevron was never navigation, and
+  since rows are virtualized it could not reach the ones off screen at all.
+
 - The deployed demo carries its own markup. It is a client-rendered app, so what
   a crawler fetched was an empty `<div id="root">` and a script tag — Google runs
   the script eventually, but Bing, the social scrapers and the crawlers behind

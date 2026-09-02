@@ -107,13 +107,27 @@ describe('Krona.Viewer', () => {
     expect(toggle.tagName).toBe('BUTTON')
   })
 
-  it('reaches every fold chevron with Tab alone', async () => {
+  // This used to require every chevron to be its own tab stop. Rows are
+  // virtualized, so that only ever held for a document small enough to render
+  // whole, and stepping through a lockfile chevron by chevron was not
+  // navigation. The document is one stop now and the arrow keys walk it; the
+  // chevrons keep their names and their state for everyone else.
+  it('is a single tab stop, with the chevrons still named and stated', async () => {
     const { screen } = await renderViewer()
     await expect.poll(() => screen.container.querySelectorAll('.krona-fold-toggle').length).toBe(3)
+
+    const tabbable = [
+      ...screen.container.querySelectorAll('.krona-lines [role="treeitem"]'),
+    ].filter((row) => (row as HTMLElement).tabIndex === 0)
+    expect(tabbable).toHaveLength(1)
+
     const toggles = [...screen.container.querySelectorAll('.krona-fold-toggle')]
-    expect(toggles.every((el) => el.tagName === 'BUTTON' && !el.hasAttribute('tabindex'))).toBe(
-      true,
-    )
+    expect(
+      toggles.every((el) => el.tagName === 'BUTTON' && el.getAttribute('tabindex') === '-1'),
+    ).toBe(true)
+    expect(
+      toggles.every((el) => el.hasAttribute('aria-label') && el.hasAttribute('aria-expanded')),
+    ).toBe(true)
   })
 
   it('honours defaultCollapsedDepth', async () => {

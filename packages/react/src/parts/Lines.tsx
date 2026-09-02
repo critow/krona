@@ -9,7 +9,9 @@ import {
 } from '@kronajs/core'
 import { type CSSProperties, Fragment, memo, type ReactNode, useState } from 'react'
 import { type LineEditing, type LineSearch, useLineSource } from '../context/lineSource'
+import { useRowNavigation } from '../hooks/useRowNavigation'
 import type { KronaLabels } from '../labels'
+import { levelAt } from '../render/levels'
 import { buildSegments } from '../render/segments'
 import { ExpandBar } from './ExpandBar'
 import { RowEditor } from './RowEditor'
@@ -328,6 +330,7 @@ const LinesBase = memo(function Lines({
   const source = useLineSource()
   const { editing, labels, lineHeight, model, rows, search, totalSize, virtualItems } = source
   const target = editing?.target ?? null
+  const nav = useRowNavigation(source)
 
   // A textarea is taller than the row it starts on, and `.krona-row` contains
   // its own painting, so an overlay editor has to be a sibling of the rows
@@ -339,6 +342,14 @@ const LinesBase = memo(function Lines({
 
   return (
     <div
+      ref={nav.containerRef}
+      // A document is a tree whose nesting lives in the folding ranges rather
+      // than in the markup, so every row states its own depth.
+      role="tree"
+      aria-label={labels.document}
+      onKeyDown={nav.onKeyDown}
+      onFocus={nav.onFocus}
+      onBlur={nav.onBlur}
       className={
         className
           ? `krona-column krona-column--lines krona-lines ${className}`
@@ -365,6 +376,12 @@ const LinesBase = memo(function Lines({
               key={item.key}
               className="krona-row krona-row--expand"
               style={{ transform: `translateY(${item.start}px)` }}
+              data-index={item.index}
+              role="treeitem"
+              tabIndex={item.index === nav.active ? 0 : -1}
+              aria-level={1}
+              aria-posinset={item.index + 1}
+              aria-setsize={rows.length}
             >
               <ExpandBar regionIndex={row.expandRegion} />
             </div>
@@ -376,6 +393,9 @@ const LinesBase = memo(function Lines({
               key={item.key}
               className="krona-row krona-row--spacer"
               style={{ transform: `translateY(${item.start}px)` }}
+              // The blank half of a changed pair. There is no line here, so
+              // there is nothing for a reader to be told about.
+              aria-hidden="true"
             />
           )
         }
@@ -394,6 +414,13 @@ const LinesBase = memo(function Lines({
             }`}
             style={{ transform: `translateY(${item.start}px)` }}
             data-line={lineIndex + 1}
+            data-index={item.index}
+            role="treeitem"
+            tabIndex={item.index === nav.active ? 0 : -1}
+            aria-level={levelAt(rowModel, lineIndex)}
+            aria-posinset={item.index + 1}
+            aria-setsize={rows.length}
+            {...(range ? { 'aria-expanded': !folded } : {})}
           >
             {valueOpen && editing ? (
               <>
