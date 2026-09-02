@@ -3,6 +3,15 @@ name: Release
 on:
   push:
     tags: ['v*']
+  # The same release, started by hand. A tag can only be pushed from a machine
+  # with a git remote; this button is reachable from a phone, and from anything
+  # holding an API token. Both paths run the identical job.
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release, without the leading v — 0.2.0'
+        required: true
+        type: string
 
 permissions:
   # The GitHub Release, and the OIDC token npm needs to attest provenance.
@@ -10,7 +19,9 @@ permissions:
   id-token: write
 
 concurrency:
-  group: release-${{ github.ref }}
+  # Keyed by the version rather than the ref, so a tag push and a manual run for
+  # the same release queue behind each other instead of racing.
+  group: release-${{ inputs.version && format('v{0}', inputs.version) || github.ref_name }}
   # A publish is not something to cancel halfway: npm would keep whatever
   # already landed, and the version could never be reused.
   cancel-in-progress: false
@@ -30,8 +41,23 @@ jobs:
           package-manager-cache: false
       - run: pnpm install --frozen-lockfile
 
-      - name: Check the tag against the repository
-        run: node scripts/release-check.mjs "${GITHUB_REF_NAME#v}" --notes-out release-notes.md
+      - name: Work out what is being released
+        id: release
+        env:
+          ASKED_FOR: ${{ inputs.version }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          # A tag push carries the version in its name; a manual run is asked
+          # for it. Everything downstream reads these two values and never has
+          # to know which way the run started.
+          version="${ASKED_FOR:-${REF_NAME#v}}"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+          echo "Releasing $version from $GITHUB_SHA"
+
+      - name: Check the version against the repository
+        run: node scripts/release-check.mjs "${{ steps.release.outputs.version }}" --notes-out release-notes.md
 
       # The tag names a commit that already passed CI, but this is the last
       # gate before a version becomes permanent, so everything that guards the
@@ -55,10 +81,10 @@ jobs:
 
       - name: Publish to npm
         env:
-          VERSION: ${{ github.ref_name }}
+          VERSION: ${{ steps.release.outputs.version }}
         run: |
           set -euo pipefail
-          version="${VERSION#v}"
+          version="$VERSION"
           publish_or_fetch() {
             package="$1"
             tarball="$2"
@@ -85,6 +111,7 @@ jobs:
       - name: Create or update the GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.release.outputs.tag }}
         run: |
           set -euo pipefail
           # The release can already exist by the time this step runs: a re-run
@@ -92,15 +119,20 @@ jobs:
           # UI, which publishes the release and only then fires the workflow.
           # Creating it blindly fails both, which is the one thing a retry-safe
           # publish should not be undone by.
-          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            gh release edit "$GITHUB_REF_NAME" \
-              --title "$GITHUB_REF_NAME" \
-              --notes-file release-notes.md
-            gh release upload "$GITHUB_REF_NAME" packs/*.tgz --clobber
+          #
+          # `--verify-tag` is gone because a manual run is the one case where
+          # the tag legitimately does not exist yet: `gh` creates it here, on
+          # the commit this run tested. What that flag guarded against — a
+          # release cut for a version nobody meant — is caught earlier and
+          # harder by release-check, which refuses a version the packages and
+          # the changelog do not both agree on.
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --title "$TAG" --notes-file release-notes.md
+            gh release upload "$TAG" packs/*.tgz --clobber
           else
-            gh release create "$GITHUB_REF_NAME" \
-              --title "$GITHUB_REF_NAME" \
+            gh release create "$TAG" \
+              --title "$TAG" \
               --notes-file release-notes.md \
-              --verify-tag \
+              --target "$GITHUB_SHA" \
               packs/*.tgz
           fi
