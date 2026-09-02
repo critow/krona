@@ -92,6 +92,13 @@ export interface LineSource {
   readonly editing?: LineEditing
   /** Present while a search is open: what to paint on each line. */
   readonly search?: LineSearch
+  /**
+   * The line the reader has singled out — to link to it, or because a link
+   * brought them here — as a zero-based index, or `null` for none.
+   */
+  readonly selectedLine?: number | null
+  /** Present when the host wants to hear which line was picked. */
+  selectLine?(lineIndex: number): void
 }
 
 /** The search, as the parts that paint it see it. */

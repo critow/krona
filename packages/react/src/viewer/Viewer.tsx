@@ -77,6 +77,21 @@ export interface KronaViewerProps {
   editable?: boolean
   /** Called with the whole document after every edit, undo and redo. */
   onChange?: (source: string) => void
+  /**
+   * Single one line out: open whatever hides it, scroll to it and mark it.
+   *
+   * Counted the way the gutter counts, from 1, because this is the number that
+   * ends up in a link — `#L42` is the forty-second line, and a prop that made
+   * you subtract one would be wrong more often than right. `undefined` or `0`
+   * marks nothing.
+   */
+  selectedLine?: number
+  /**
+   * Called with a line number, from 1, when the reader picks a line out. What
+   * a link to it looks like is the host's business: Krona does not know the
+   * page's URL and does not invent one.
+   */
+  onSelectLine?: (line: number) => void
   className?: string
   style?: CSSProperties
   /**
@@ -116,6 +131,8 @@ export function KronaViewer({
   showSearch = false,
   editable = false,
   onChange,
+  selectedLine,
+  onSelectLine,
   className,
   style,
   children,
@@ -227,20 +244,33 @@ export function KronaViewer({
   // waits for the render that unfolding causes: until then the row it wants
   // does not exist.
   const [pendingLine, setPendingLine] = useState<number | null>(null)
-  const reveal = useCallback(
-    (hit: SearchHit) => {
+  const revealLine = useCallback(
+    (lineIndex: number) => {
       for (const range of model.foldingRanges) {
-        if (range.startLine > hit.lineIndex) break
-        if (range.endLine >= hit.lineIndex && foldState.isFolded(range.startLine)) {
+        if (range.startLine > lineIndex) break
+        if (range.endLine >= lineIndex && foldState.isFolded(range.startLine)) {
           foldState.unfold(range.startLine)
         }
       }
-      setPendingLine(hit.lineIndex)
+      setPendingLine(lineIndex)
     },
     [model, foldState],
   )
+  const reveal = useCallback((hit: SearchHit) => revealLine(hit.lineIndex), [revealLine])
 
   const search = useSearch({ kind: 'single', model }, reveal, resolvedLabels)
+
+  // Zero-based inside, because everything else here is; one-based at the prop,
+  // because that is the number a link carries.
+  const selectedIndex = selectedLine !== undefined && selectedLine > 0 ? selectedLine - 1 : null
+
+  // A link arriving is the same act as a search landing: open what hides the
+  // line, then scroll to it. Keyed on the number rather than on a click, so
+  // loading a page at `#L42` and clicking through to it behave alike.
+  useEffect(() => {
+    if (selectedIndex === null) return
+    revealLine(selectedIndex)
+  }, [selectedIndex, revealLine])
 
   const visibleLines = useMemo(
     () => visibleLinesOf(model, foldState.collapsed),
@@ -293,9 +323,13 @@ export function KronaViewer({
         matchesAt: search.matchesAt,
         current: search.current,
       },
+      selectedLine: selectedIndex,
       // Spread rather than assigned: with `exactOptionalPropertyTypes` an
       // optional field is absent or set, never explicitly `undefined`.
       ...(editing ? { editing } : {}),
+      // The action only appears where someone is listening for it. A control
+      // that reports a line nobody receives is a control that does nothing.
+      ...(onSelectLine ? { selectLine: (lineIndex: number) => onSelectLine(lineIndex + 1) } : {}),
     }),
     [
       model,
@@ -311,6 +345,8 @@ export function KronaViewer({
       search.state.query,
       search.matchesAt,
       search.current,
+      selectedIndex,
+      onSelectLine,
     ],
   )
 

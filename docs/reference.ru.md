@@ -40,6 +40,8 @@
 | `overscan` | `number` | `8` | Сколько строк рисовать за пределами вьюпорта |
 | `showDiagnostics` | `boolean` | `true` | Показывать ошибки разбора над документом (в раскладке по умолчанию) |
 | `showSearch` | `boolean` | `false` | Показывать поле поиска над документом (только в раскладке по умолчанию) |
+| `selectedLine` | `number` | — | Выделить одну строку: раскрыть то, что её прячет, доскроллить и пометить. Счёт с 1, как в жёлобе, потому что именно это число несёт ссылка |
+| `onSelectLine` | `(line: number) => void` | — | Вызывается с номером строки, с 1, когда читатель её выбирает. Добавляет на строку действие-ссылку |
 | `editable` | `boolean` | `false` | Разрешить правку документа — см. [Редактирование](../README.ru.md#редактирование) |
 | `onChange` | `(source: string) => void` | — | Вызывается со всем документом после каждой правки, отмены и повтора |
 | `className` / `style` | — | — | На область просмотра |
@@ -125,6 +127,7 @@
 | `copyEntry` | `string` | `Copy` | Действие строки: скопировать запись или блок |
 | `copyValue` | `string` | `Copy value` | Действие строки: скопировать только значение |
 | `copyPath` | `string` | `Copy path` | Действие строки: скопировать путь до строки |
+| `linkToLine` | `string` | `Link to this line` | Действие строки, выделяющее её; появляется, когда задан `onSelectLine` |
 | `copied` | `string` | `Copied` | Ненадолго показывается после копирования |
 | `search` | `string` | `Search` | Плейсхолдер и доступное имя поля поиска |
 | `nextMatch` / `previousMatch` | `string` | `Next match` / `Previous match` | Кнопки шага по совпадениям |
@@ -176,6 +179,7 @@ function plural(n: number, one: string, few: string, many: string): string {
 | Поверхности | `--krona-bg`, `--krona-bg-gutter`, `--krona-bg-hover`, `--krona-border`, `--krona-fg`, `--krona-fg-muted` |
 | Контролы | `--krona-chevron`, `--krona-chevron-hover`, `--krona-scrollbar` |
 | Поиск | `--krona-match-bg`, `--krona-match-current-bg` |
+| Выделенная строка | `--krona-row-selected` |
 | Токены | `--krona-token-key`, `-string`, `-number`, `-boolean`, `-null`, `-comment`, `-punctuation`, `-section` |
 | Diff | `--krona-added-bg`, `--krona-added-strong-bg`, `--krona-removed-bg`, `--krona-removed-strong-bg`, `--krona-spacer-bg`, `--krona-added-marker`, `--krona-removed-marker` |
 | Предупреждения | `--krona-unsafe-bg`, `--krona-unsafe-fg` |

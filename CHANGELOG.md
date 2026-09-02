@@ -8,6 +8,19 @@ Notable changes to Krona. The format follows
 
 ### Added
 
+- Linking to a line. `selectedLine` singles one out — opening a folded block to
+  reach it, scrolling to it and marking it — and `onSelectLine` reports the line
+  a reader picks, which also puts a link action on the row. Both count from 1,
+  the way the gutter counts and the way `#L42` means the forty-second line: a
+  prop that made you subtract one would be wrong more often than right.
+
+  What the link looks like stays with the host. Krona does not know the page's
+  URL and does not invent one; the demo writes `#L42` into the address bar,
+  which is where a reader copies a link from anyway.
+
+  Viewer only. A link into a diff would have to name a version as well, and
+  that question has more than one reasonable answer.
+
 - A release can be started by hand: Actions → Release → Run workflow, with the
   version. The job is the one a tag push runs, and it creates the tag on the
   commit it tested, so a release cut this way is recorded like any other. A tag
