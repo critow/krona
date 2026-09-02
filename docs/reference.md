@@ -266,7 +266,7 @@ this is the whole list.
 | `nextChangedRow(rows, from)` / `previousChangedRow(rows, from)` | The next or previous row that is not `equal` |
 | `intralineDiff(left, right, options?)` | Word-level spans for one changed row |
 | `tokenizeWords(text)` | The word split that word-level diffing runs on |
-| `unifiedPatch(rows, left, right, options?)` | The diff as a unified patch — the text `diff -u` prints and `git apply` reads |
+| `unifiedPatch(rows, leftLines, rightLines, options?)` | The diff as a unified patch — the text `diff -u` prints and `git apply` reads. The sides are lines, which is what `diffLines` already carries as `result.left` and `result.right` |
 
 ### Collapsing unchanged runs
 

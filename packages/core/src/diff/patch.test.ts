@@ -1,14 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import '../formats/json'
-import { parseDocument } from '../model/document'
 import { alignDiff } from './align'
 import { diffLines } from './myers'
 import { unifiedPatch } from './patch'
 
 /** The patch two texts produce, through the same path the viewer takes. */
 function patchOf(before: string, after: string, options?: Parameters<typeof unifiedPatch>[3]) {
-  const { rows } = alignDiff(diffLines(before, after))
-  return unifiedPatch(rows, parseDocument(before, 'json'), parseDocument(after, 'json'), options)
+  const result = diffLines(before, after)
+  const { rows } = alignDiff(result)
+  return unifiedPatch(rows, result.left, result.right, options)
 }
 
 const LONG = (marker: string) =>

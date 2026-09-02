@@ -17,6 +17,7 @@ export type {
   FormatProvider,
   Line,
   ParseLimits,
+  PatchOptions,
   SearchMatch,
   SearchOptions,
   SearchResult,
@@ -35,6 +36,7 @@ export {
   parseDocument,
   registerFormat,
   scanUnsafeCharacters,
+  unifiedPatch,
 } from '@kronajs/core'
 export type { KronaConfig, KronaTheme } from './context/config'
 export { useKronaConfig } from './context/config'

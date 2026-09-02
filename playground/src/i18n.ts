@@ -47,6 +47,11 @@ export interface Dict {
   before: string
   after: string
   detected: string
+  /** Writing the diff out as a patch, and what came of it. */
+  copyPatch: string
+  patchCopied: string
+  patchRefused: string
+  patchEmpty: string
   layout: string
   split: string
   unified: string
@@ -97,6 +102,10 @@ const en: Dict = {
   before: 'Before',
   after: 'After',
   detected: 'detected',
+  copyPatch: 'Copy patch',
+  patchCopied: 'Patch copied',
+  patchRefused: 'The browser refused the clipboard',
+  patchEmpty: 'Nothing to patch',
   layout: 'Layout',
   split: 'Split',
   unified: 'Unified',
@@ -167,6 +176,10 @@ const ru: Dict = {
   before: 'Было',
   after: 'Стало',
   detected: 'определён',
+  copyPatch: 'Скопировать патч',
+  patchCopied: 'Патч скопирован',
+  patchRefused: 'Браузер не дал доступ к буферу',
+  patchEmpty: 'Патчить нечего',
   layout: 'Раскладка',
   split: 'Рядом',
   unified: 'Одной колонкой',

@@ -433,7 +433,7 @@ const { rows, stats } = alignDiff(diffLines(before, after))
 | `alignDiff(result, options?)` | `AlignedDiff` — rows for two panels, with spacers, plus `stats` |
 | `intralineDiff(left, right, options?)` | Word-level spans for one changed row |
 | `collapseUnchanged(rows, options?)` | Runs worth hiding behind a bar |
-| `unifiedPatch(rows, left, right, options?)` | The diff as a unified patch, ready for `git apply` |
+| `unifiedPatch(rows, leftLines, rightLines, options?)` | The diff as a unified patch, ready for `git apply` |
 | `collapsedToDepth(model, depth?)` | Start lines to fold for an opening depth |
 | `allCollapsed(model)` | Start lines of every range — the document fully folded |
 | `visibleLines(model, collapsed)` | Line indices still on screen, in order |

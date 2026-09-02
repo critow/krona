@@ -35,6 +35,7 @@ pollution through a `__proto__` key by construction.
 | `alignDiff(result, options?)` | Rows for two panels, with spacers, plus `stats` |
 | `intralineDiff(left, right, options?)` | Word-level spans for one changed row |
 | `collapseUnchanged(rows, options?)` | Unchanged runs worth hiding |
+| `unifiedPatch(rows, leftLines, rightLines, options?)` | The diff as a unified patch, ready for `git apply` |
 | `scanUnsafeCharacters(text)` | Bidi and invisible characters, with positions |
 | `toSnapshot` / `fromSnapshot` | Structured-clone-safe projection, for Web Workers |
 

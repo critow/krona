@@ -19,6 +19,14 @@ Notable changes to Krona. The format follows
   a run's removals before its additions, so the pairs are unzipped again on the
   way out.
 
+  The two sides are passed as lines, not as parsed documents: a patch is text,
+  with no use for folding ranges, tokens or diagnostics. The lines are the ones
+  `diffLines` already carries — `result.left` and `result.right`.
+
+  Re-exported from `kronajs` along with the rest of the diff API, so a React
+  app needs no second dependency for it. The demo has a Copy patch button in
+  compare mode; what it copies applies with `git apply`.
+
 - Linking to a line. `selectedLine` singles one out — opening a folded block to
   reach it, scrolling to it and marking it — and `onSelectLine` reports the line
   a reader picks, which also puts a link action on the row. Both count from 1,
