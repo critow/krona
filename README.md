@@ -48,6 +48,7 @@ JSON/JSONC · YAML · TOML · INI/.env
 - [Custom layouts](#custom-layouts)
 - [Hooks](#hooks)
 - [Search](#search)
+- [Keyboard](#keyboard)
 - [Small screens](#small-screens)
 - [Large files and Web Workers](#large-files-and-web-workers)
 - [Using the core without React](#using-the-core-without-react)
@@ -278,6 +279,25 @@ const { query, setQuery, total, position, next, previous } = useKronaSearch()
 
 `findMatches(model, query)` from the core does the matching itself, if you want
 the occurrences without the UI.
+
+## Keyboard
+
+The document is a tree, and it is walked like one. Tab enters it once — only the
+row you are standing on is tabbable — and the arrow keys do the rest.
+
+| Key | Does |
+| --- | --- |
+| `↑` `↓` | Previous line, next line |
+| `→` | Open a folded block, otherwise move down |
+| `←` | Close an open block, otherwise go out to the block containing the line |
+| `Enter` `Space` | Fold or unfold the block the line opens |
+| `Home` `End` | First line, last line |
+
+Rows carry `role="treeitem"` with the nesting the folding ranges describe, so a
+screen reader announces how deep a line sits and whether its block is open. The
+chevrons in the gutter stay clickable and keep their names, but they are not tab
+stops: rows are virtualized, so tabbing chevron by chevron never reached the
+ones off screen anyway.
 
 ## Small screens
 

@@ -94,6 +94,13 @@ const GutterBase = memo(function Gutter({
             type="button"
             className={`krona-row krona-row--${tone} krona-fold-toggle`}
             style={style}
+            // Out of the tab order, but not out of the accessibility tree.
+            // Tabbing chevron by chevron was never navigation — rows are
+            // virtualized, so Tab could not reach the ones off screen anyway —
+            // and the document is one tab stop now, walked with the arrows.
+            // The control itself stays, for a pointer and for anyone who finds
+            // it by any means other than Tab.
+            tabIndex={-1}
             aria-expanded={!folded}
             aria-label={folded ? labels.expandBlock : labels.collapseBlock}
             title={folded ? labels.expandBlock : labels.collapseBlock}
