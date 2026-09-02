@@ -85,6 +85,8 @@ export interface KronaLabels {
   copyPath: string
   /** Confirmation shown on a copy action that has just run. */
   copied: string
+  /** Row action that picks the line out, for linking to it. */
+  linkToLine: string
 }
 
 /**
@@ -133,6 +135,7 @@ export function createDefaultLabels(locale?: string): KronaLabels {
     copyValue: 'Copy value',
     copyPath: 'Copy path',
     copied: 'Copied',
+    linkToLine: 'Link to this line',
   }
 }
 

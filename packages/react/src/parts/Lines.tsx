@@ -153,6 +153,10 @@ const PLUS = 'M8 3.2v9.6M3.2 8h9.6'
 const COPY =
   'M5.5 5.5V3.2c0-.4.3-.7.7-.7h6.6c.4 0 .7.3.7.7v6.6c0 .4-.3.7-.7.7h-2.3M3.2 5.5h6.6c.4 0 .7.3.7.7v6.6c0 .4-.3.7-.7.7H3.2a.7.7 0 0 1-.7-.7V6.2c0-.4.3-.7.7-.7Z'
 const TICK = 'M3 8.5 6.4 12 13 4.6'
+// A chain of two links, which is what every anchor in every document reader
+// looks like; the path is the copy-path icon's shape at a different angle.
+const LINK =
+  'M6.7 9.3a2.4 2.4 0 0 0 3.6.3l2.2-2.2a2.4 2.4 0 0 0-3.4-3.4L8 5.1M9.3 6.7a2.4 2.4 0 0 0-3.6-.3L3.5 8.6a2.4 2.4 0 0 0 3.4 3.4L8 10.9'
 const PATH =
   'M6.2 9.8a2.6 2.6 0 0 0 3.9.3l2.4-2.4a2.6 2.6 0 0 0-3.7-3.7l-1.4 1.4M9.8 6.2a2.6 2.6 0 0 0-3.9-.3L3.5 8.3a2.6 2.6 0 0 0 3.7 3.7l1.4-1.4'
 
@@ -199,6 +203,7 @@ function RowActions({
   editing,
   labels,
   showCopy,
+  selectLine,
 }: {
   lineIndex: number
   range: FoldRange | undefined
@@ -206,6 +211,7 @@ function RowActions({
   editing: LineEditing | undefined
   labels: KronaLabels
   showCopy: boolean
+  selectLine?: (lineIndex: number) => void
 }) {
   const [copied, setCopied] = useState<'entry' | 'value' | 'path' | null>(null)
 
@@ -229,6 +235,16 @@ function RowActions({
       <span role="status" className="krona-sr-only">
         {copied ? labels.copied : ''}
       </span>
+      {selectLine ? (
+        <button
+          type="button"
+          data-tip={labels.linkToLine}
+          aria-label={labels.linkToLine}
+          onClick={() => selectLine(lineIndex)}
+        >
+          <Icon path={LINK} />
+        </button>
+      ) : null}
       {only ? (
         <button
           type="button"
@@ -411,7 +427,7 @@ const LinesBase = memo(function Lines({
             key={item.key}
             className={`krona-row krona-row--${tone}${
               editing || showCopyActions ? ' krona-row--actionable' : ''
-            }`}
+            }${lineIndex === source.selectedLine ? ' krona-row--selected' : ''}`}
             style={{ transform: `translateY(${item.start}px)` }}
             data-line={lineIndex + 1}
             data-index={item.index}
@@ -452,7 +468,7 @@ const LinesBase = memo(function Lines({
                 onExpand={() => source.toggleFold(range.startLine, row.side)}
               />
             ) : null}
-            {(editing || showCopyActions) && !valueOpen ? (
+            {(editing || showCopyActions || source.selectLine) && !valueOpen ? (
               <RowActions
                 lineIndex={lineIndex}
                 range={range}
@@ -460,6 +476,7 @@ const LinesBase = memo(function Lines({
                 editing={editing}
                 labels={labels}
                 showCopy={showCopyActions}
+                {...(source.selectLine ? { selectLine: source.selectLine } : {})}
               />
             ) : null}
           </div>

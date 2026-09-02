@@ -16,6 +16,9 @@ type Theme = 'light' | 'dark' | 'auto'
  */
 function readParams() {
   const params = new URLSearchParams(globalThis.location?.search ?? '')
+  // `#L42` is the shape every code host uses, so it is the shape a reader
+  // already knows how to type and how to read back out of a shared link.
+  const line = /^#L(\d+)$/.exec(globalThis.location?.hash ?? '')
   const sample = params.get('sample')
   const theme = params.get('theme')
   return {
@@ -23,6 +26,7 @@ function readParams() {
     sampleId: SAMPLES.some((s) => s.id === sample) ? (sample as string) : (SAMPLES[0]?.id ?? ''),
     theme: theme === 'light' || theme === 'auto' ? (theme as Theme) : ('dark' as Theme),
     lang: params.get('lang') === 'ru' ? ('ru' as Lang) : ('en' as Lang),
+    line: line ? Number(line[1]) : 0,
     collapse: params.get('collapse') !== 'off',
     minimap: params.get('minimap') !== 'off',
     search: params.get('search') === 'on',
@@ -198,6 +202,16 @@ export function App() {
       preset.depth === collapsedDepth
     )
   })
+
+  const [selectedLine, setSelectedLine] = useState(initial.line)
+
+  // The address bar is the link. Writing the line there rather than into a
+  // clipboard means the reader copies it the way they copy any other URL, and
+  // the demo does not have to explain itself.
+  const selectLine = useCallback((value: number) => {
+    setSelectedLine(value)
+    history.replaceState(null, '', `${globalThis.location.search}#L${value}`)
+  }, [])
 
   const syncUrl = useCallback((next: Record<string, string>) => {
     const params = new URLSearchParams(globalThis.location.search)
@@ -419,6 +433,8 @@ export function App() {
                   overscan={overscan}
                   showDiagnostics={showDiagnostics}
                   editable={editable}
+                  onSelectLine={selectLine}
+                  {...(selectedLine > 0 ? { selectedLine } : {})}
                   {...(collapsedDepth === undefined
                     ? {}
                     : { defaultCollapsedDepth: collapsedDepth })}

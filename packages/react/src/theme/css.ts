@@ -29,6 +29,7 @@ export const KRONA_CSS = `:where(.krona) {
   --krona-scrollbar: #c2c9d1;
   --krona-match-bg: #fff3c4;
   --krona-match-current-bg: #ffc86b;
+  --krona-row-selected: #ddf4ff;
 
   /* Tokens */
   --krona-token-key: #0550ae;
@@ -68,6 +69,7 @@ export const KRONA_CSS = `:where(.krona) {
   --krona-scrollbar: #3d444d;
   --krona-match-bg: #4a3a12;
   --krona-match-current-bg: #9e6a12;
+  --krona-row-selected: #10305a;
 
   --krona-token-key: #79c0ff;
   --krona-token-string: #7ee787;
@@ -105,6 +107,7 @@ export const KRONA_CSS = `:where(.krona) {
     --krona-scrollbar: #3d444d;
     --krona-match-bg: #4a3a12;
     --krona-match-current-bg: #9e6a12;
+    --krona-row-selected: #10305a;
 
     --krona-token-key: #79c0ff;
     --krona-token-string: #7ee787;
@@ -448,6 +451,13 @@ export const KRONA_CSS = `:where(.krona) {
 
 .krona-fold-toggle:hover .krona-fold-chevron {
   color: var(--krona-chevron-hover);
+}
+
+/* The line a link points at, or the one just picked out. Painted on both
+   columns so the mark runs the width of the row, and kept dimmer than a diff
+   tone: it says where you are, not what changed. */
+.krona-row--selected {
+  background: var(--krona-row-selected);
 }
 
 .krona-fold-toggle:focus-visible {

@@ -39,6 +39,8 @@ below it.
 | `overscan` | `number` | `8` | Extra rows rendered outside the viewport |
 | `showDiagnostics` | `boolean` | `true` | Show parse errors above the document (default layout only) |
 | `showSearch` | `boolean` | `false` | Show the search field above the document (default layout only) |
+| `selectedLine` | `number` | — | Single one line out: open what hides it, scroll to it, mark it. Counted from 1, as the gutter counts, because this is the number a link carries |
+| `onSelectLine` | `(line: number) => void` | — | Called with a line number, from 1, when the reader picks a line out. Adds the link action to the row |
 | `editable` | `boolean` | `false` | Let the reader edit the document — see [Editing](../README.md#editing) |
 | `onChange` | `(source: string) => void` | — | Called with the whole document after every edit, undo and redo |
 | `className` / `style` | — | — | Applied to the viewer region |
@@ -124,6 +126,7 @@ app where they belong. Numbers in the defaults are formatted with
 | `copyEntry` | `string` | `Copy` | Row action copying the entry or block |
 | `copyValue` | `string` | `Copy value` | Row action copying just the value |
 | `copyPath` | `string` | `Copy path` | Row action copying the dotted path to the line |
+| `linkToLine` | `string` | `Link to this line` | Row action that picks the line out, shown when `onSelectLine` is given |
 | `copied` | `string` | `Copied` | Shown briefly on a copy action that has run |
 | `search` | `string` | `Search` | Search field placeholder and accessible name |
 | `nextMatch` / `previousMatch` | `string` | `Next match` / `Previous match` | Search step buttons |
@@ -175,6 +178,7 @@ ancestor — no selector needs to be touched.
 | Surfaces | `--krona-bg`, `--krona-bg-gutter`, `--krona-bg-hover`, `--krona-border`, `--krona-fg`, `--krona-fg-muted` |
 | Controls | `--krona-chevron`, `--krona-chevron-hover`, `--krona-scrollbar` |
 | Search | `--krona-match-bg`, `--krona-match-current-bg` |
+| Selected line | `--krona-row-selected` |
 | Tokens | `--krona-token-key`, `-string`, `-number`, `-boolean`, `-null`, `-comment`, `-punctuation`, `-section` |
 | Diff | `--krona-added-bg`, `--krona-added-strong-bg`, `--krona-removed-bg`, `--krona-removed-strong-bg`, `--krona-spacer-bg`, `--krona-added-marker`, `--krona-removed-marker` |
 | Warnings | `--krona-unsafe-bg`, `--krona-unsafe-fg` |

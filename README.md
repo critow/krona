@@ -49,6 +49,7 @@ JSON/JSONC · YAML · TOML · INI/.env
 - [Hooks](#hooks)
 - [Search](#search)
 - [Keyboard](#keyboard)
+- [Linking to a line](#linking-to-a-line)
 - [Small screens](#small-screens)
 - [Large files and Web Workers](#large-files-and-web-workers)
 - [Using the core without React](#using-the-core-without-react)
@@ -298,6 +299,34 @@ screen reader announces how deep a line sits and whether its block is open. The
 chevrons in the gutter stay clickable and keep their names, but they are not tab
 stops: rows are virtualized, so tabbing chevron by chevron never reached the
 ones off screen anyway.
+
+## Linking to a line
+
+`selectedLine` singles a line out: it opens whatever hides it — a folded block —
+scrolls it into view and marks it. `onSelectLine` is the other direction, called
+when the reader picks a line out, which also puts a link action on the row.
+
+```tsx
+const [line, setLine] = useState(() => Number(/^#L(\d+)$/.exec(location.hash)?.[1] ?? 0))
+
+<Krona format="json">
+  <Krona.Viewer
+    source={text}
+    selectedLine={line}
+    onSelectLine={(picked) => {
+      setLine(picked)
+      history.replaceState(null, '', `#L${picked}`)
+    }}
+  />
+</Krona>
+```
+
+Both count from 1, the way the gutter counts and the way `#L42` means the
+forty-second line. What the link looks like is yours: Krona does not know your
+page's URL and does not invent one.
+
+Viewer only for now. A link into a diff would have to say *which version* it
+means, and that is a question with more than one reasonable answer.
 
 ## Small screens
 

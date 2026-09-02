@@ -83,6 +83,8 @@ const GutterBase = memo(function Gutter({
           </>
         )
         const style = { transform: `translateY(${item.start}px)` }
+        const picked =
+          lineIndex !== null && lineIndex === source.selectedLine ? ' krona-row--selected' : ''
 
         // A foldable line makes its whole gutter cell the control. A 16px
         // chevron between a line number and the code reads as punctuation, not
@@ -92,7 +94,7 @@ const GutterBase = memo(function Gutter({
           <button
             key={item.key}
             type="button"
-            className={`krona-row krona-row--${tone} krona-fold-toggle`}
+            className={`krona-row krona-row--${tone}${picked} krona-fold-toggle`}
             style={style}
             // Out of the tab order, but not out of the accessibility tree.
             // Tabbing chevron by chevron was never navigation — rows are
@@ -109,7 +111,7 @@ const GutterBase = memo(function Gutter({
             {body}
           </button>
         ) : (
-          <div key={item.key} className={`krona-row krona-row--${tone}`} style={style}>
+          <div key={item.key} className={`krona-row krona-row--${tone}${picked}`} style={style}>
             {body}
           </div>
         )
