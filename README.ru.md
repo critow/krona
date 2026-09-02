@@ -419,6 +419,8 @@ doc.diagnostics      // проблемы разбора, наружу не бр�
 | `foldEndRow(row, rows, left, right, index)` | Последний ряд, который накрывает свёртка, по обеим сторонам |
 | `displayItems(rows, left, right, index, collapsed, regions)` | `DisplayItem[]` — ряды, которые дифф показывает после свёртки и схлопывания |
 | `unifiedEntries(items, rows)` | `UnifiedEntry[]` — та же разметка, прочитанная одной колонкой |
+| `buildSegments(text, tokens, intraline, whole, matches?, current?)` | `Segment[]` — отрезки, на которые распадается строка после наложения токенов, словесных подсветок, совпадений поиска и опасных символов |
+| `contentColumnsOf(...models)` | Ширина в символах, которую нужно зарезервировать, чтобы горизонтальный размах не прыгал при прокрутке |
 | `scanUnsafeCharacters(text)` | Bidi- и невидимые символы с позициями |
 | `toSnapshot` / `fromSnapshot` | Проекция, безопасная для structured clone, — для воркеров |
 

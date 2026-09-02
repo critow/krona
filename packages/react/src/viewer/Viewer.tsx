@@ -1,5 +1,6 @@
 import {
   blockSpanAt,
+  contentColumnsOf,
   type DocumentModel,
   duplicateBlockEdit,
   type Format,
@@ -37,7 +38,6 @@ import { Diagnostics } from '../parts/Diagnostics'
 import { Gutter } from '../parts/Gutter'
 import { Lines } from '../parts/Lines'
 import { Search } from '../parts/Search'
-import { contentColumnsOf } from '../render/width'
 import { ViewerContext } from './ViewerContext'
 
 /** Props of `<Krona.Viewer>`. */

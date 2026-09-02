@@ -1,5 +1,6 @@
-import type { Token } from '@kronajs/core'
-import { type Span, scanUnsafeCharacters, type UnsafeSpan } from '@kronajs/core'
+import type { Span } from '../diff/intraline'
+import type { Token } from './types'
+import { scanUnsafeCharacters, type UnsafeSpan } from './unicode'
 
 /** A run of characters that share the same styling. */
 export interface Segment {
