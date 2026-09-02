@@ -1,4 +1,4 @@
-import type { DocumentModel } from '@kronajs/core'
+import { allCollapsed, collapsedToDepth, type DocumentModel } from '@kronajs/core'
 import { useCallback, useMemo, useRef, useState } from 'react'
 
 /** Imperative handle over the set of collapsed folding ranges. */
@@ -13,15 +13,6 @@ export interface FoldState {
   collapseAll(): void
 }
 
-function initialCollapsed(model: DocumentModel, depth: number | undefined): Set<number> {
-  const collapsed = new Set<number>()
-  if (depth === undefined) return collapsed
-  for (const range of model.foldingRanges) {
-    if (range.level >= depth) collapsed.add(range.startLine)
-  }
-  return collapsed
-}
-
 /**
  * Folding state for one document, keyed by the start line of each range.
  *
@@ -32,7 +23,7 @@ export function useFoldState(
   model: DocumentModel,
   defaultCollapsedDepth: number | undefined,
 ): FoldState {
-  const [collapsed, setCollapsed] = useState(() => initialCollapsed(model, defaultCollapsedDepth))
+  const [collapsed, setCollapsed] = useState(() => collapsedToDepth(model, defaultCollapsedDepth))
   const lastSeed = useRef({ model, depth: defaultCollapsedDepth })
 
   // Deriving from props during render (rather than in an effect) avoids
@@ -42,7 +33,7 @@ export function useFoldState(
   // either rule on its own.
   if (lastSeed.current.model !== model || lastSeed.current.depth !== defaultCollapsedDepth) {
     lastSeed.current = { model, depth: defaultCollapsedDepth }
-    setCollapsed(initialCollapsed(model, defaultCollapsedDepth))
+    setCollapsed(collapsedToDepth(model, defaultCollapsedDepth))
   }
 
   const fold = useCallback((startLine: number) => {
@@ -76,7 +67,7 @@ export function useFoldState(
   }, [])
 
   const collapseAll = useCallback(() => {
-    setCollapsed(new Set(model.foldingRanges.map((range) => range.startLine)))
+    setCollapsed(allCollapsed(model))
   }, [model])
 
   return useMemo(
@@ -91,32 +82,4 @@ export function useFoldState(
     }),
     [collapsed, toggleFold, fold, unfold, expandAll, collapseAll],
   )
-}
-
-/**
- * The line indices still visible once collapsed ranges are hidden.
- *
- * Walking the document once and jumping over each collapsed range keeps this
- * linear in the number of lines, with no per-line set lookups for nested
- * ranges that are hidden anyway.
- */
-export function computeVisibleLines(
-  model: DocumentModel,
-  collapsed: ReadonlySet<number>,
-): number[] {
-  const visible: number[] = []
-  const total = model.lines.length
-  let i = 0
-  while (i < total) {
-    visible.push(i)
-    if (collapsed.size > 0 && collapsed.has(i)) {
-      const range = model.foldAt(i)
-      if (range) {
-        i = range.endLine + 1
-        continue
-      }
-    }
-    i++
-  }
-  return visible
 }

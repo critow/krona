@@ -1,6 +1,6 @@
+import { nestingLevelAt } from '@kronajs/core'
 import { type KeyboardEvent, useCallback, useEffect, useRef, useState } from 'react'
 import type { LineSource } from '../context/lineSource'
-import { levelAt } from '../render/levels'
 
 /**
  * Arrow-key movement over the rows, with one of them tabbable.
@@ -65,13 +65,13 @@ export function useRowNavigation(source: LineSource) {
       const row = rows[index]
       if (!row || row.lineIndex === null) return index
       const model = row.model ?? source.model
-      const level = levelAt(model, row.lineIndex)
+      const level = nestingLevelAt(model, row.lineIndex)
       if (level <= 1) return index
       for (let i = index - 1; i >= 0; i--) {
         const above = rows[i]
         if (!above || above.lineIndex === null) continue
         const aboveModel = above.model ?? source.model
-        if (levelAt(aboveModel, above.lineIndex) < level) return i
+        if (nestingLevelAt(aboveModel, above.lineIndex) < level) return i
       }
       return index
     },

@@ -8,6 +8,14 @@ Notable changes to Krona. The format follows
 
 ### Added
 
+- The folding logic lives in `@kronajs/core`, where nothing about it needed
+  React in the first place: `collapsedToDepth`, `allCollapsed`, `visibleLines`
+  and `nestingLevelAt`. It is the first slice of the view state moving out of
+  the hooks — the half that is pure functions over a document — and it is worth
+  moving whatever else is ever built on top: it is testable in Node rather than
+  only in a browser, and it is the answer to what a folded document looks like,
+  which is the question the whole library is about.
+
 - The document is walked with the keyboard. Tab enters it once — only the row
   the reader stands on is tabbable — and the arrow keys move line by line, open
   and close blocks, and step out to the block that contains a line; Home and End

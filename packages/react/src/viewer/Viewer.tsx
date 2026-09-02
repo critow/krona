@@ -7,6 +7,7 @@ import {
   lineSpanAt,
   offsetOfLine,
   removeBlockEdit,
+  visibleLines as visibleLinesOf,
 } from '@kronajs/core'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import {
@@ -29,7 +30,7 @@ import { SearchContext } from '../context/search'
 import { splitSlots } from '../context/slots'
 import { useDocument } from '../hooks/useDocument'
 import { useEditState } from '../hooks/useEditState'
-import { computeVisibleLines, useFoldState } from '../hooks/useFoldState'
+import { useFoldState } from '../hooks/useFoldState'
 import { type SearchHit, useSearch } from '../hooks/useSearch'
 import { type KronaLabels, resolveLabels } from '../labels'
 import { Diagnostics } from '../parts/Diagnostics'
@@ -242,7 +243,7 @@ export function KronaViewer({
   const search = useSearch({ kind: 'single', model }, reveal, resolvedLabels)
 
   const visibleLines = useMemo(
-    () => computeVisibleLines(model, foldState.collapsed),
+    () => visibleLinesOf(model, foldState.collapsed),
     [model, foldState.collapsed],
   )
 
