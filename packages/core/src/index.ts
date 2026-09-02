@@ -23,6 +23,12 @@ export { jsonProvider } from './formats/json'
 export { textProvider } from './formats/text'
 export { tomlProvider } from './formats/toml'
 export { fromSnapshot, parseDocument, toSnapshot } from './model/document'
+export {
+  allCollapsed,
+  collapsedToDepth,
+  nestingLevelAt,
+  visibleLines,
+} from './model/folding'
 export { DEFAULT_LIMITS } from './model/limits'
 export { OffsetIndex, splitLines } from './model/lines'
 export type { PathPart } from './model/path'

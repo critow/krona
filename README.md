@@ -404,6 +404,10 @@ const { rows, stats } = alignDiff(diffLines(before, after))
 | `alignDiff(result, options?)` | `AlignedDiff` — rows for two panels, with spacers, plus `stats` |
 | `intralineDiff(left, right, options?)` | Word-level spans for one changed row |
 | `collapseUnchanged(rows, options?)` | Runs worth hiding behind a bar |
+| `collapsedToDepth(model, depth?)` | Start lines to fold for an opening depth |
+| `allCollapsed(model)` | Start lines of every range — the document fully folded |
+| `visibleLines(model, collapsed)` | Line indices still on screen, in order |
+| `nestingLevelAt(model, line)` | How deep a line sits, 1 at the top |
 | `scanUnsafeCharacters(text)` | Bidi and invisible characters, with positions |
 | `toSnapshot` / `fromSnapshot` | Structured-clone-safe projection, for workers |
 

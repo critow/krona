@@ -3,6 +3,7 @@ import {
   type DocumentModel,
   type FoldKind,
   type FoldRange,
+  nestingLevelAt,
   type Token,
   type TokenType,
   valueSpansAt,
@@ -11,7 +12,6 @@ import { type CSSProperties, Fragment, memo, type ReactNode, useState } from 're
 import { type LineEditing, type LineSearch, useLineSource } from '../context/lineSource'
 import { useRowNavigation } from '../hooks/useRowNavigation'
 import type { KronaLabels } from '../labels'
-import { levelAt } from '../render/levels'
 import { buildSegments } from '../render/segments'
 import { ExpandBar } from './ExpandBar'
 import { RowEditor } from './RowEditor'
@@ -417,7 +417,7 @@ const LinesBase = memo(function Lines({
             data-index={item.index}
             role="treeitem"
             tabIndex={item.index === nav.active ? 0 : -1}
-            aria-level={levelAt(rowModel, lineIndex)}
+            aria-level={nestingLevelAt(rowModel, lineIndex)}
             aria-posinset={item.index + 1}
             aria-setsize={rows.length}
             {...(range ? { 'aria-expanded': !folded } : {})}
