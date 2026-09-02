@@ -28,7 +28,11 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter krona-playground build
+      # Chromium renders the page once so the deployed HTML carries its own
+      # markup: a crawler that does not run scripts would otherwise be handed
+      # an empty div, and several of the ones that matter do not run scripts.
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm build:demo
         env:
           KRONA_BASE: /krona/
       # Pages must already be enabled for the repository, with the source set to

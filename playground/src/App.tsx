@@ -185,7 +185,7 @@ export function App() {
   // and `lang` has to agree with what is actually on screen for a screen reader
   // to read it in the right voice.
   useEffect(() => {
-    document.title = `Krona — ${dict.tagline}`
+    document.title = dict.documentTitle
     document.documentElement.lang = lang
   }, [dict.tagline, lang])
 
