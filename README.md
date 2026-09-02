@@ -424,6 +424,11 @@ it at all](https://critow.github.io/krona/element.html).
 npm install @kronajs/element
 ```
 
+**Not on npm yet.** It is built and tested here, and the demo page above runs
+it, but the first publish needs a trusted publisher npm cannot be given until
+the package exists — see [RELEASING.md](./RELEASING.md). Everything below is how
+it will work; today it works from a checkout.
+
 ```html
 <krona-viewer id="config" format="yaml" collapsed-depth="2"></krona-viewer>
 

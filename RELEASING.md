@@ -1,7 +1,7 @@
 # Releasing
 
 A tag publishes. `.github/workflows/release.yml` runs on `v*`, re-runs every
-check that guards the published artifact, packs every package, publishes them to
+check that guards the published artifact, packs the packages, publishes them to
 npm with provenance, and opens a GitHub Release with the changelog section for
 that version attached to the tarballs.
 
@@ -43,11 +43,9 @@ what changed.
 
 ## What the repository needs once
 
-- **A trusted publisher on every npm package** — `kronajs`, `@kronajs/core` and
-  `@kronajs/element` each authorize GitHub Actions from `critow/krona`, workflow
-  filename `release.yml`, for `npm publish`. A package that has never been
-  published has no trusted publisher yet, so its first release needs one
-  configured, or a first manual publish to create it. The workflow's `id-token: write` permission
+- **A trusted publisher on every npm package** — `kronajs` and `@kronajs/core`
+  each authorize GitHub Actions from `critow/krona`, workflow filename
+  `release.yml`, for `npm publish`. The workflow's `id-token: write` permission
   lets npm exchange GitHub's OIDC identity for a short-lived publish credential;
   no `NPM_TOKEN` repository secret is used.
 - **Publishing access set to disallow bypass-2FA tokens** on every package.
@@ -55,6 +53,29 @@ what changed.
   a traditional npm token.
 - **The `@kronajs` scope** must exist on npm and the publishing account must own
   it, or the first `@kronajs/core` or `@kronajs/element` publish is rejected.
+
+## `@kronajs/element` is not published yet
+
+The workflow packs and publishes `@kronajs/core` and `kronajs`. The element is
+built and checked alongside them — `publint`, `attw` and the version check all
+cover it — but it is not on npm, and the release job does not try to put it
+there.
+
+Trusted publishing is configured per package, and a package that has never been
+published cannot have a publisher configured for it: the first version has to
+arrive some other way. So its first release is a one-off, from a machine logged
+in to npm:
+
+```bash
+pnpm --filter @kronajs/element pack --pack-destination packs
+npm publish ./packs/kronajs-element-<version>.tgz --access public
+```
+
+That version carries no provenance attestation — nothing signed it but the
+account. Afterwards, add a trusted publisher to the package on npm (GitHub
+Actions, `critow/krona`, `release.yml`) and put it back in the workflow's Pack
+and Publish steps, next to the other two; every version after the first is then
+signed like theirs.
 
 ## Why packing and publishing are two tools
 
