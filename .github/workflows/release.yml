@@ -80,6 +80,7 @@ jobs:
         run: |
           pnpm --filter @kronajs/core pack --pack-destination packs
           pnpm --filter kronajs pack --pack-destination packs
+          pnpm --filter @kronajs/element pack --pack-destination packs
 
       - name: Publish to npm
         env:
@@ -105,17 +106,11 @@ jobs:
             fi
           }
 
-          # Core first: the React package's dependency on it is now a real
-          # version range, and a dependency that does not exist yet fails install.
+          # Core first: both adapters' dependency on it is now a real version
+          # range, and a dependency that does not exist yet fails install.
           publish_or_fetch @kronajs/core "./packs/kronajs-core-${version}.tgz"
           publish_or_fetch kronajs "./packs/kronajs-${version}.tgz"
-
-          # @kronajs/element is deliberately absent. npm's trusted publishing is
-          # configured per package, and a package that has never been published
-          # cannot have a publisher configured for it, so its first release
-          # cannot come from here. It is built, linted and checked above like the
-          # others; publishing it is a one-off manual step, after which it joins
-          # this list. See RELEASING.md.
+          publish_or_fetch @kronajs/element "./packs/kronajs-element-${version}.tgz"
 
       - name: Create or update the GitHub Release
         env:
