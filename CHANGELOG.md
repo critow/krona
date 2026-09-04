@@ -8,6 +8,17 @@ Notable changes to Krona. The format follows
 
 ### Added
 
+- Row actions and the change map in the custom elements. Hovering a row offers
+  the value on the line, the dotted path to it, and the whole block where the
+  line opens one; `link-lines` adds a link action, reported as
+  `krona-select-line` with the line and, in a diff, the version it belongs to.
+  `show-minimap="true"` puts the strip of change marks back between the panels,
+  and clicking it jumps both.
+
+  A copy the browser refused says nothing rather than claiming success: the
+  Clipboard API needs a secure context and a permission, and refuses outright in
+  some embeddings.
+
 - Finding text works in the custom elements. `show-search="true"` puts a field
   above the document in `<krona-viewer>` and `<krona-diff>`; Enter walks the
   matches, Shift+Enter walks them backwards, `Aa` makes the query

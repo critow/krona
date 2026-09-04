@@ -18,6 +18,15 @@ export interface KronaFoldDetail {
   readonly folded: boolean
 }
 
+/**
+ * What `krona-select-line` carries: the line the reader picked, counting from
+ * 1, and in a diff the version it belongs to.
+ */
+export interface KronaSelectLineDetail {
+  readonly line: number
+  readonly side?: 'left' | 'right'
+}
+
 const asNumber = (value: string | null, fallback: number): number => {
   const parsed = Number(value)
   return value === null || value === '' || Number.isNaN(parsed) ? fallback : parsed

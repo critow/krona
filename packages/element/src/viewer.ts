@@ -5,7 +5,7 @@ import {
   type Format,
   visibleLines as visibleLinesOf,
 } from '@kronajs/core'
-import { KronaBase } from './base'
+import { KronaBase, type KronaSelectLineDetail } from './base'
 import { Column, type ColumnRow } from './column'
 import { SearchBox } from './search'
 
@@ -49,6 +49,7 @@ export class KronaViewerElement extends KronaBase {
     'selected-line',
     'show-diagnostics',
     'show-search',
+    'show-actions',
   ]
 
   #source = ''
@@ -75,6 +76,15 @@ export class KronaViewerElement extends KronaBase {
       isFolded: (startLine) => this.#collapsed.has(startLine),
       toggleFold: (startLine) => this.#toggleFold(startLine),
       selectedLine: () => this.selectedLine,
+      actions: () => ({
+        labels: () => this.currentLabels,
+        showCopy: () => this.getAttribute('show-actions') !== 'false',
+        // The action only appears where someone is listening for it: a control
+        // that reports a line nobody receives is a control that does nothing.
+        ...(this.#wantsLinks
+          ? { selectLine: (lineIndex: number) => this.#emitSelect(lineIndex + 1) }
+          : {}),
+      }),
       search: () => this.#search,
     })
     this.#search = new SearchBox({
@@ -192,6 +202,27 @@ export class KronaViewerElement extends KronaBase {
     if (wanted === this.#search.root.isConnected) return
     if (wanted) this.section.insertBefore(this.#search.root, this.#column.scroll)
     else this.#search.root.remove()
+  }
+
+  /** Whether anyone asked to hear which line was picked. */
+  get #wantsLinks(): boolean {
+    return this.hasAttribute('link-lines')
+  }
+
+  /**
+   * Says which line the reader picked out.
+   *
+   * A line, counting from 1, because that is the number a link carries and the
+   * one the gutter shows.
+   */
+  #emitSelect(line: number): void {
+    this.dispatchEvent(
+      new CustomEvent<KronaSelectLineDetail>('krona-select-line', {
+        bubbles: true,
+        composed: true,
+        detail: { line },
+      }),
+    )
   }
 
   #toggleFold(startLine: number): void {
