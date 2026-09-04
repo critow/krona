@@ -54,28 +54,19 @@ what changed.
 - **The `@kronajs` scope** must exist on npm and the publishing account must own
   it, or the first `@kronajs/core` or `@kronajs/element` publish is rejected.
 
-## `@kronajs/element` is not published yet
+## `@kronajs/element`, and why its 0.3.0 has no provenance
 
-The workflow packs and publishes `@kronajs/core` and `kronajs`. The element is
-built and checked alongside them — `publint`, `attw` and the version check all
-cover it — but it is not on npm, and the release job does not try to put it
-there.
+All three packages are packed and published by the workflow. The element was
+not, for one release: npm configures trusted publishing per package, and a
+package that has never been published cannot have a publisher configured for
+it — a first version has to arrive some other way. 0.3.0 was published by hand,
+so that version alone carries no provenance attestation; the trusted publisher
+was added afterwards and every version since is signed like the others.
 
-Trusted publishing is configured per package, and a package that has never been
-published cannot have a publisher configured for it: the first version has to
-arrive some other way. So its first release is a one-off, from a machine logged
-in to npm:
-
-```bash
-pnpm --filter @kronajs/element pack --pack-destination packs
-npm publish ./packs/kronajs-element-<version>.tgz --access public
-```
-
-That version carries no provenance attestation — nothing signed it but the
-account. Afterwards, add a trusted publisher to the package on npm (GitHub
-Actions, `critow/krona`, `release.yml`) and put it back in the workflow's Pack
-and Publish steps, next to the other two; every version after the first is then
-signed like theirs.
+Nothing here needs doing again. It is written down because the same wall stands
+in front of any future package added to this repository, and the way past it is
+not obvious: publish once by hand, then configure the publisher, then add it to
+the Pack and Publish steps.
 
 ## Why packing and publishing are two tools
 

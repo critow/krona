@@ -8,6 +8,10 @@ Notable changes to Krona. The format follows
 
 ### Changed
 
+- `@kronajs/element` is packed and published by the release workflow again, now
+  that it exists on npm and has a trusted publisher. Its 0.3.0 stays the one
+  version without a provenance attestation, for the reason that release records.
+
 - The roadmap says where the project actually stands. It still described 0.1 —
   one file or two, editing and search — and knew nothing of the element, the
   patch export or line links. It is the first thing someone reads when deciding
@@ -27,11 +31,11 @@ Krona has a second renderer. Everything it knows about a configuration file
 already lived in a core with no framework in it; this release puts a pair of
 custom elements on top of that, so the viewer and the diff work outside React.
 
-**`@kronajs/element` is not on npm yet.** It is built, checked and released
-alongside the others in every respect but the publish: npm configures trusted
-publishing per package, and a package that has never been published cannot have
-a publisher configured for it, so its first version has to be pushed by hand.
-`RELEASING.md` says how. The demo page runs it in the meantime.
+**`@kronajs/element` 0.3.0 was published by hand, and carries no provenance
+attestation.** npm configures trusted publishing per package, and a package that
+has never been published cannot have a publisher configured for it, so a first
+version has to arrive some other way. The publisher was added afterwards; every
+version after this one is signed like the other two.
 
 ### Added
 

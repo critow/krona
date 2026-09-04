@@ -7,11 +7,6 @@ tag.
 
 [**Live, on a page with no framework on it**](https://critow.github.io/krona/element.html) · [**Full documentation**](https://github.com/critow/krona#readme)
 
-> **Not on npm yet.** The package is built and tested in the repository, and
-> [the demo page](https://critow.github.io/krona/element.html) runs it, but the
-> first publish needs an npm trusted publisher that cannot be configured until
-> the package exists. Until then, install it from the repository.
-
 ```bash
 npm install @kronajs/element
 ```
