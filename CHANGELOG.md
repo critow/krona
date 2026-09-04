@@ -6,6 +6,24 @@ Notable changes to Krona. The format follows
 
 ## Unreleased
 
+### Added
+
+- Linking to a line works in a diff. `selectedLine` and `selectedSide` name a
+  line and the version it belongs to — `'right'` by default, since that is what
+  a diff is usually read for — and `onSelectLine` reports both, which also puts
+  the link action on every row.
+
+  The link names a line; what it opens is the **aligned row** that line sits on.
+  Both panels come to rest on the same comparison and each marks its own side of
+  it, which is what a reader following a link into a diff came to see.
+
+  That is why the link carries a line and a side rather than a row number. A row
+  number is the one figure that appears nowhere on screen — the gutter numbers
+  lines, not rows — so it can be neither read off nor checked, and it moves when
+  either version or the comparison settings change. A line number is in the
+  gutter and stays put. The demo writes `#L42` for the previous version and
+  `#R42` for the current, the way GitHub does.
+
 ### Changed
 
 - `@kronajs/element` is packed and published by the release workflow again, now

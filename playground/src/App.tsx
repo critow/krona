@@ -27,8 +27,10 @@ type Theme = 'light' | 'dark' | 'auto'
 function readParams() {
   const params = new URLSearchParams(globalThis.location?.search ?? '')
   // `#L42` is the shape every code host uses, so it is the shape a reader
-  // already knows how to type and how to read back out of a shared link.
-  const line = /^#L(\d+)$/.exec(globalThis.location?.hash ?? '')
+  // already knows how to type and how to read back out of a shared link. In a
+  // diff the letter names the version too, as it does on GitHub: `L` is the
+  // previous one, `R` the current.
+  const line = /^#([LR])(\d+)$/.exec(globalThis.location?.hash ?? '')
   const sample = params.get('sample')
   const theme = params.get('theme')
   return {
@@ -36,7 +38,8 @@ function readParams() {
     sampleId: SAMPLES.some((s) => s.id === sample) ? (sample as string) : (SAMPLES[0]?.id ?? ''),
     theme: theme === 'light' || theme === 'auto' ? (theme as Theme) : ('dark' as Theme),
     lang: params.get('lang') === 'ru' ? ('ru' as Lang) : ('en' as Lang),
-    line: line ? Number(line[1]) : 0,
+    line: line ? Number(line[2]) : 0,
+    side: line?.[1] === 'L' ? ('left' as const) : ('right' as const),
     collapse: params.get('collapse') !== 'off',
     minimap: params.get('minimap') !== 'off',
     search: params.get('search') === 'on',
@@ -227,12 +230,26 @@ export function App() {
   })
 
   const [selectedLine, setSelectedLine] = useState(initial.line)
+  const [selectedSide, setSelectedSide] = useState<'left' | 'right'>(initial.side)
 
   // The address bar is the link. Writing the line there rather than into a
   // clipboard means the reader copies it the way they copy any other URL, and
   // the demo does not have to explain itself.
-  const selectLine = useCallback((value: number) => {
+  const selectLine = useCallback((value: number, side: 'left' | 'right' = 'right') => {
     setSelectedLine(value)
+    setSelectedSide(side)
+    history.replaceState(
+      null,
+      '',
+      `${globalThis.location.search}#${side === 'left' ? 'L' : 'R'}${value}`,
+    )
+  }, [])
+
+  // One document has no version to name, so its links stay `#L42` — the shape
+  // the viewer has always written.
+  const selectViewerLine = useCallback((value: number) => {
+    setSelectedLine(value)
+    setSelectedSide('right')
     history.replaceState(null, '', `${globalThis.location.search}#L${value}`)
   }, [])
 
@@ -493,6 +510,9 @@ export function App() {
                   showSearch={showSearch}
                   ignoreTrailingWhitespace={ignoreTrailingWhitespace}
                   overscan={overscan}
+                  onSelectLine={selectLine}
+                  selectedSide={selectedSide}
+                  {...(selectedLine > 0 ? { selectedLine } : {})}
                   {...(collapsedDepth === undefined
                     ? {}
                     : { defaultCollapsedDepth: collapsedDepth })}
@@ -508,7 +528,7 @@ export function App() {
                   overscan={overscan}
                   showDiagnostics={showDiagnostics}
                   editable={editable}
-                  onSelectLine={selectLine}
+                  onSelectLine={selectViewerLine}
                   {...(selectedLine > 0 ? { selectedLine } : {})}
                   {...(collapsedDepth === undefined
                     ? {}

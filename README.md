@@ -326,8 +326,29 @@ Both count from 1, the way the gutter counts and the way `#L42` means the
 forty-second line. What the link looks like is yours: Krona does not know your
 page's URL and does not invent one.
 
-Viewer only for now. A link into a diff would have to say *which version* it
-means, and that is a question with more than one reasonable answer.
+**In a diff a line names a version too**, so `selectedSide` says which —
+`'right'`, the current one, by default, since that is what a diff is usually read
+for. `onSelectLine` is handed the side along with the line.
+
+```tsx
+<Krona.Diff
+  left={before}
+  right={after}
+  selectedLine={line}
+  selectedSide={side}
+  onSelectLine={(picked, from) => {
+    history.replaceState(null, '', `#${from === 'left' ? 'L' : 'R'}${picked}`)
+  }}
+/>
+```
+
+The link names a line, but what it opens is the **aligned row** that line sits
+on: both panels come to rest on the same comparison, and both mark their own
+side of it. That is what a reader following a link into a diff came to see — and
+it is why the link carries a line and a side rather than a row number. A row
+number is the one figure that is nowhere on screen, and it moves when either
+version or the comparison settings change; a line number is on the gutter and
+stays put.
 
 ## Small screens
 

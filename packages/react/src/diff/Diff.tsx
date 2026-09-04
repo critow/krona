@@ -13,7 +13,15 @@ import {
   type IntralineResult,
   intralineDiff,
 } from '@kronajs/core'
-import { type CSSProperties, type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
+import {
+  type CSSProperties,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { useKronaConfig } from '../context/config'
 import { SearchContext } from '../context/search'
 import { splitSlots } from '../context/slots'
@@ -70,6 +78,24 @@ export interface KronaDiffProps {
   showMinimap?: boolean
   /** Show the search field above the panels. Default false. */
   showSearch?: boolean
+  /**
+   * Single a line out and scroll to it, opening whatever hides it. Counted
+   * from 1, the way the gutter counts and the way `#L42` means the forty-second
+   * line.
+   *
+   * A line names a version as well, which {@link KronaDiffProps.selectedSide}
+   * says. Krona finds the aligned row that line sits on and reveals *that*, so
+   * both panels come to rest on the same comparison — which is what a reader
+   * following a link into a diff came to see.
+   */
+  selectedLine?: number
+  /** Which version {@link KronaDiffProps.selectedLine} counts in. Default `'right'`. */
+  selectedSide?: 'left' | 'right'
+  /**
+   * Called with the line a reader picks and the version it belongs to. Giving
+   * this also puts a link action on every row.
+   */
+  onSelectLine?: (line: number, side: 'left' | 'right') => void
   /** Extra rows rendered outside the viewport. Default 8. */
   overscan?: number
   className?: string
@@ -106,6 +132,9 @@ export function KronaDiff({
   view = 'auto',
   showMinimap = false,
   showSearch = false,
+  selectedLine,
+  selectedSide = 'right',
+  onSelectLine,
   overscan = 8,
   className,
   style,
@@ -273,9 +302,8 @@ export function KronaDiff({
   // and either one hides it. The panels scroll in lockstep, so revealing it in
   // one reveals it in both.
   const [pendingRow, setPendingRow] = useState<number | null>(null)
-  const reveal = useCallback(
-    (hit: SearchHit) => {
-      const row = hit.row ?? -1
+  const revealRow = useCallback(
+    (row: number) => {
       if (row < 0) return
       setRegions((current) =>
         current.map((region) =>
@@ -296,6 +324,26 @@ export function KronaDiff({
     },
     [aligned.rows, leftModel, rightModel, rowIndex],
   )
+
+  const reveal = useCallback((hit: SearchHit) => revealRow(hit.row ?? -1), [revealRow])
+
+  // Zero-based inside, because everything else here is; one-based at the prop,
+  // because that is the number a link carries.
+  const selectedRow = useMemo(() => {
+    if (selectedLine === undefined || selectedLine < 1) return null
+    const lineIndex = selectedLine - 1
+    const rows = selectedSide === 'left' ? rowIndex.leftRowOf : rowIndex.rightRowOf
+    const row = rows[lineIndex] ?? -1
+    return row >= 0 ? row : null
+  }, [selectedLine, selectedSide, rowIndex])
+
+  // A link arriving is the same act as a search landing: open what hides the
+  // row, then scroll to it. Keyed on the row rather than on a click, so loading
+  // a page at `#R42` and clicking through to it behave alike.
+  useEffect(() => {
+    if (selectedRow === null) return
+    revealRow(selectedRow)
+  }, [selectedRow, revealRow])
 
   const search = useSearch(
     { kind: 'diff', left: leftModel, right: rightModel, rows: aligned.rows },
@@ -329,6 +377,10 @@ export function KronaDiff({
         matchesAt: search.matchesAt,
         current: search.current,
       },
+      selectedRow,
+      // Spread rather than assigned: with `exactOptionalPropertyTypes` an
+      // optional field is absent or set, never explicitly `undefined`.
+      ...(onSelectLine ? { selectLine: onSelectLine } : {}),
       pendingRow,
       clearPendingRow: () => setPendingRow(null),
     }),
@@ -349,6 +401,8 @@ export function KronaDiff({
       scrollSync,
       collapseOptions,
       search,
+      selectedRow,
+      onSelectLine,
       pendingRow,
     ],
   )
