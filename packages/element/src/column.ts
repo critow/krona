@@ -16,6 +16,7 @@ import {
   observeElementRect,
   Virtualizer,
 } from '@tanstack/virtual-core'
+import { type RowActionHost, rowActions } from './actions'
 import { chevron, el } from './dom'
 
 /** How a row is painted: the diff's four kinds, plus the blank half of a pair. */
@@ -77,6 +78,8 @@ export interface ColumnHost {
   readonly barsAreControls?: () => boolean
   /** Diff markers in the gutter. Off in a viewer, where nothing changed. */
   readonly showMarkers?: () => boolean
+  /** Present where rows carry actions: a link to the line, and what to copy. */
+  readonly actions?: () => RowActionHost
   /** Present while a search is open: what to paint on each line. */
   readonly search?: () => {
     readonly matchesAt: (lineIndex: number, side?: 'left' | 'right') => readonly Span[]
@@ -453,6 +456,13 @@ export class Column {
     element.setAttribute('aria-setsize', String(this.#rows.length))
     if (range) element.setAttribute('aria-expanded', folded ? 'false' : 'true')
     if (folded && range) element.append(this.#placeholder(range, row.side))
+
+    const host = this.#host.actions?.()
+    const actions = host ? rowActions(host, rowModel, lineIndex, row.side) : null
+    if (actions) {
+      element.classList.add('krona-row--actionable')
+      element.append(actions)
+    }
     return element
   }
 
@@ -574,6 +584,11 @@ export class ScrollSync {
   register(element: HTMLElement): void {
     this.#elements.add(element)
     element.addEventListener('scroll', this.#onScroll, { passive: true })
+  }
+
+  /** Puts every registered container at the same vertical offset. */
+  scrollTo(top: number): void {
+    for (const element of this.#elements) element.scrollTop = top
   }
 
   release(): void {

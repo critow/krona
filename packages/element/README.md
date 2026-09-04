@@ -40,6 +40,8 @@ for short documents.)
 | `selected-line` | — | Single a line out and scroll to it, counting from 1 |
 | `show-diagnostics` | `true` | Set `false` to hide parse problems |
 | `show-search` | `false` | Set `true` for a field that finds text in what is on screen |
+| `show-actions` | `true` | Set `false` to take the copy actions off the rows |
+| `link-lines` | off | Present to offer a link action on every row, reported as `krona-select-line` |
 
 | Member | What it is |
 | --- | --- |
@@ -74,6 +76,9 @@ than by a ratio.
 | `show-toolbar` | `true` | The fold actions and the change counts |
 | `show-markers` | `true` | `+` / `-` / `~` in the gutter |
 | `show-search` | `false` | A field that finds text in both versions |
+| `show-actions` | `true` | Set `false` to take the copy actions off the rows |
+| `link-lines` | off | Present to offer a link action on every row |
+| `show-minimap` | `false` | A strip between the panels marking where the changes are |
 | `view` | `auto` | `split` for two panels, `unified` for one column, `auto` to split where there is room |
 | `narrow-width` | `640` | Width below which `auto` unifies. `0` keeps two panels always |
 
@@ -108,11 +113,25 @@ them reads down the screen: a line removed and the line that replaced it are
 neighbours, however far apart they sit in their own files. Reaching one opens
 whatever hides it — a folded block, a collapsed run of unchanged rows, or both.
 
+## Row actions
+
+Hovering a row offers what is worth taking from it: the value on the line, the
+dotted path to it, and the whole block where the line opens one. With
+`link-lines`, a link action too.
+
+A copy that the browser refused says nothing rather than claiming success — the
+Clipboard API needs a secure context and a permission, and refuses outright in
+some embeddings.
+
 ## Events
 
-Both elements fire `krona-fold` when a block is folded or unfolded, with
-`{ line, folded }` — the line counting from 1. It bubbles and crosses the shadow
-boundary, so a listener on any ancestor sees it.
+| Event | Detail | When |
+| --- | --- | --- |
+| `krona-fold` | `{ line, folded }` | A block is folded or unfolded |
+| `krona-select-line` | `{ line, side? }` | A reader picks a line out, where `link-lines` is set. `side` names the version in a diff |
+
+Lines count from 1. Both events bubble and cross the shadow boundary, so a
+listener on any ancestor sees them.
 
 ## Keyboard
 
@@ -169,7 +188,7 @@ register one, or register under a name of your own.
 
 ## What it does not do
 
-Editing, row actions and the minimap are `kronajs` only for now. If you need those and can run React, use that
+Editing is `kronajs` only for now. If you need those and can run React, use that
 package; the model, folding and diff underneath both live in
 [`@kronajs/core`](https://www.npmjs.com/package/@kronajs/core).
 

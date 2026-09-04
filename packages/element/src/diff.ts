@@ -19,7 +19,7 @@ import {
   type RowIndex,
   unifiedEntries,
 } from '@kronajs/core'
-import { KronaBase } from './base'
+import { KronaBase, type KronaSelectLineDetail } from './base'
 import { Column, type ColumnRow, ScrollSync } from './column'
 import { el } from './dom'
 import { SearchBox } from './search'
@@ -88,6 +88,9 @@ export class KronaDiffElement extends KronaBase {
     'narrow-width',
     'view',
     'show-search',
+    'show-actions',
+    'link-lines',
+    'show-minimap',
   ]
 
   #left = ''
@@ -112,6 +115,7 @@ export class KronaDiffElement extends KronaBase {
   #leftColumn: Column
   #rightColumn: Column
   #unifiedColumn: Column
+  #minimap: HTMLButtonElement
   #sync = new ScrollSync()
   #search: SearchBox
   /** The alignment the open query was run against, so it is run again when it changes. */
@@ -132,6 +136,7 @@ export class KronaDiffElement extends KronaBase {
     this.#leftPanel = this.#panel('left', this.#leftColumn)
     this.#rightPanel = this.#panel('right', this.#rightColumn)
     this.#unifiedPanel = this.#panel('unified', this.#unifiedColumn)
+    this.#minimap = this.#buildMinimap()
     this.#panels = el('div', 'krona-panels', [
       this.#leftPanel,
       this.#rightPanel,
@@ -411,6 +416,7 @@ export class KronaDiffElement extends KronaBase {
         this.#expandContext(index, direction),
       step: () => this.#step(),
       showMarkers: () => this.getAttribute('show-markers') !== 'false',
+      actions: () => this.#actionHost(),
       search: () => this.#search,
     }
   }
@@ -482,11 +488,16 @@ export class KronaDiffElement extends KronaBase {
     const narrow = this.narrow
     // Splitting the width of a phone between two panels gives about ten
     // characters each, which shows neither version.
+    // The minimap belongs between the panels, and only where there are two.
+    const wantsMinimap = !unified && !narrow && this.getAttribute('show-minimap') === 'true'
+    if (wantsMinimap) this.#paintMinimap()
     const panels = unified
       ? [this.#unifiedPanel]
       : narrow
         ? [this.#side === 'left' ? this.#leftPanel : this.#rightPanel]
-        : [this.#leftPanel, this.#rightPanel]
+        : wantsMinimap
+          ? [this.#leftPanel, this.#minimap, this.#rightPanel]
+          : [this.#leftPanel, this.#rightPanel]
     // Only when the set actually changes. Replacing the children on every
     // render would detach and re-attach the panels for each fold and each
     // keystroke, which throws away their scroll position and makes the
@@ -536,7 +547,30 @@ export class KronaDiffElement extends KronaBase {
       step: () => this.#step(),
       barsAreControls: () => isLeft,
       showMarkers: () => this.getAttribute('show-markers') !== 'false',
+      actions: () => this.#actionHost(),
       search: () => this.#search,
+    }
+  }
+
+  /** The actions a row offers, and who hears about a link. */
+  #actionHost() {
+    return {
+      labels: () => this.currentLabels,
+      showCopy: () => this.getAttribute('show-actions') !== 'false',
+      ...(this.hasAttribute('link-lines')
+        ? {
+            selectLine: (lineIndex: number, side?: 'left' | 'right') =>
+              this.dispatchEvent(
+                new CustomEvent<KronaSelectLineDetail>('krona-select-line', {
+                  bubbles: true,
+                  composed: true,
+                  // One-based out, as the gutter counts, and the version it
+                  // belongs to: a line in a comparison names both.
+                  detail: { line: lineIndex + 1, side: side ?? 'right' },
+                }),
+              ),
+          }
+        : {}),
     }
   }
 
@@ -615,6 +649,48 @@ export class KronaDiffElement extends KronaBase {
         wholeLine: intraline.wholeLine,
       }
     })
+  }
+
+  /**
+   * A thin strip between the panels marking where the changes are; clicking
+   * jumps both panels there.
+   */
+  #buildMinimap(): HTMLButtonElement {
+    const map = el('button', 'krona-minimap')
+    map.type = 'button'
+    map.addEventListener('click', (event) => {
+      const bounds = map.getBoundingClientRect()
+      const ratio = (event.clientY - bounds.top) / bounds.height
+      // Display items, not aligned rows: hidden rows take up no vertical space.
+      const target = Math.round(ratio * this.#items.length) * this.lineHeight
+      this.#sync.scrollTo(Math.max(0, target - bounds.height / 2))
+    })
+    return map
+  }
+
+  /** One mark per run of changed rows, placed by its share of the whole. */
+  #paintMinimap(): void {
+    const rows = this.#diff().rows
+    const total = rows.length || 1
+    this.#minimap.setAttribute('aria-label', this.currentLabels.changeMap)
+    const marks: HTMLElement[] = []
+    let index = 0
+    while (index < rows.length) {
+      const kind = rows[index]?.kind
+      if (!kind || kind === 'equal') {
+        index++
+        continue
+      }
+      let end = index
+      while (end + 1 < rows.length && rows[end + 1]?.kind === kind) end++
+      const mark = el('span', `krona-minimap-mark krona-minimap-mark--${kind}`)
+      mark.style.top = `${(index / total) * 100}%`
+      // A floor, so a single changed line in a long file is still visible.
+      mark.style.height = `${Math.max(((end - index + 1) / total) * 100, 0.4)}%`
+      marks.push(mark)
+      index = end + 1
+    }
+    this.#minimap.replaceChildren(...marks)
   }
 
   /** Attached or detached rather than hidden, for the reason the panels are. */

@@ -476,11 +476,12 @@ npm install @kronajs/element
 хочет держать в разметке (для коротких документов `source`, `left` и `right`
 работают и атрибутами). Остальное — атрибуты: `format`, `theme`, `locale`,
 `line-height`, `collapsed-depth`, `overscan`, `selected-line`,
-`show-diagnostics`, `show-search`, а для диффа ещё `collapse-unchanged`, `context`,
-`minimum-hidden`, `step`, `ignore-trailing-whitespace`, `show-toolbar`,
-`show-markers`, `view` и `narrow-width`. `expandAll()`, `collapseAll()`,
-`revealLine(n)` и `showSide(side)` — методы, а сворачивание блока шлёт событие
-`krona-fold`.
+`show-diagnostics`, `show-search`, `show-actions`, `link-lines`, а для диффа ещё
+`collapse-unchanged`, `context`, `minimum-hidden`, `step`,
+`ignore-trailing-whitespace`, `show-toolbar`, `show-markers`, `show-minimap`,
+`view` и `narrow-width`. `expandAll()`, `collapseAll()`, `revealLine(n)` и
+`showSide(side)` — методы; сворачивание блока шлёт `krona-fold`, а выбор строки —
+`krona-select-line`.
 
 Ниже `narrow-width` дифф показывает по одной версии за раз, с переключателем
 между ними. Меряется ширина самого элемента, а не окна: диффу в сайдбаре тесно
@@ -499,7 +500,7 @@ CSS-переменные `--krona-*` границу shadow DOM пересека�
 для Angular и что меняется на React 18 — в
 [README пакета](./packages/element/README.md).
 
-**Редактирование, действия на строке и миникарта пока только в `kronajs`.** Если нужно это и React доступен, берите тот
+**Редактирование пока только в `kronajs`.** Если нужно это и React доступен, берите тот
 пакет.
 
 ## Ядро без React
@@ -593,7 +594,7 @@ Krona показывает один конфигурационный файл и
 
 | Чего пока нет | Почему | Вероятность |
 | --- | --- | --- |
-| Редактирование, действия на строке и миникарта в кастомных элементах | Элемент пока умеет читать. Каждый пункт — работа, а не перенос, а тем, у кого есть React, всё это уже доступно. | Да, по мере запросов |
+| Редактирование в кастомных элементах | Элемент пока умеет читать. Каждый пункт — работа, а не перенос, а тем, у кого есть React, всё это уже доступно. | Да, по мере запросов |
 | Другие форматы (JSON5, XML, `.properties`, HCL) | Каждый — это провайдер, `analyze` и `tokenize` за тем же интерфейсом. Ждём, когда кому-то реально понадобится. | Может быть |
 | Семантический дифф | Перестановка ключей — это *настоящее* различие в конфиге. Krona сравнивает текст, ровно как git. | Не планируется |
 
