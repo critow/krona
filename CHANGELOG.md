@@ -24,6 +24,21 @@ Notable changes to Krona. The format follows
   gutter and stays put. The demo writes `#L42` for the previous version and
   `#R42` for the current, the way GitHub does.
 
+### Fixed
+
+- **The custom element's narrow layout did not work.** It set `hidden` on the
+  panel it meant to put away, and `.krona-panel` sets `display: flex`, which
+  outranks the browser's rule for `hidden` — so on a narrow screen both panels
+  stayed on top of each other and the version switch was visible at every width.
+  It shipped that way in 0.3.0.
+
+  The panels are attached and detached now instead. A panel that is not in the
+  document cannot be seen, and cannot go on painting rows nobody asked for.
+
+  The test that should have caught this asserted `panel.hidden === true`, which
+  is reading back the property the code had just set: it could not have failed.
+  It now asks whether the panel is in the document at all.
+
 ### Changed
 
 - `@kronajs/element` is packed and published by the release workflow again, now

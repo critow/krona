@@ -72,7 +72,8 @@ than by a ratio.
 | `ignore-trailing-whitespace` | off | Treat lines differing only in trailing space as equal |
 | `show-toolbar` | `true` | The fold actions and the change counts |
 | `show-markers` | `true` | `+` / `-` / `~` in the gutter |
-| `narrow-width` | `640` | Width below which one version is shown at a time. `0` keeps both always |
+| `view` | `auto` | `split` for two panels, `unified` for one column, `auto` to split where there is room |
+| `narrow-width` | `640` | Width below which `auto` unifies. `0` keeps two panels always |
 
 | Member | What it is |
 | --- | --- |
@@ -81,6 +82,12 @@ than by a ratio.
 | `labels` | Overrides for the built-in English strings |
 | `expandAll()` / `collapseAll()` | Open or close every folding range and hidden run |
 | `showSide('left' \| 'right')` | Which version a narrow layout shows |
+
+Below `narrow-width` a diff turns **unified**: one column, the old line above
+the new one. Two panels on a phone are about ten characters each, which shows
+neither version, and one column needs only the width of a single line. `view`
+overrides that either way; a narrow diff kept `split` shows one version at a
+time, with a switch between them.
 
 The width watched is the element's own, not the window's: a diff in a sidebar on
 a wide screen is just as cramped as one on a phone, and a media query cannot
@@ -147,8 +154,7 @@ register one, or register under a name of your own.
 
 ## What it does not do
 
-Searching, editing, row actions, the minimap, and the diff's unified one-column
-view are `kronajs` only for now. If you need those and can run React, use that
+Searching, editing, row actions and the minimap are `kronajs` only for now. If you need those and can run React, use that
 package; the model, folding and diff underneath both live in
 [`@kronajs/core`](https://www.npmjs.com/package/@kronajs/core).
 
