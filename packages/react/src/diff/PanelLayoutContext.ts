@@ -36,6 +36,14 @@ export interface PanelLayout {
   /** What a search wants painted on the lines, if one is open. */
   readonly search: LineSearch
   /** Row a jump asked for, once the fold and the collapsed run hiding it are open. */
+  /**
+   * The aligned row a link points at, or null. A row rather than a line: the
+   * two panels must come to rest on the same comparison, and each shows its own
+   * side of it.
+   */
+  readonly selectedRow: number | null
+  /** Present when the host wants to hear which line was picked. */
+  readonly selectLine?: (lineIndex: number, side: 'left' | 'right') => void
   readonly pendingRow: number | null
   clearPendingRow(): void
 }

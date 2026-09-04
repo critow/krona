@@ -86,6 +86,13 @@ function PanelBase({ side, className, style, children }: KronaPanelProps) {
     [layout.leftModel, layout.rightModel],
   )
 
+  const selectedRowLine = useMemo(() => {
+    if (layout.selectedRow === null) return null
+    const aligned = layout.alignedRows[layout.selectedRow]
+    if (!aligned) return null
+    return isLeft ? aligned.left : aligned.right
+  }, [layout.selectedRow, layout.alignedRows, isLeft])
+
   const lineSource = useMemo(
     () => ({
       side,
@@ -99,6 +106,17 @@ function PanelBase({ side, className, style, children }: KronaPanelProps) {
       lineHeight: layout.lineHeight,
       maxLineNumber: model.lines.length,
       contentColumns,
+      // The link points at an aligned row; this panel marks whichever of its own
+      // lines that row shows, so the mark runs across both versions of one
+      // comparison rather than singling out a line in one of them.
+      selectedLine: selectedRowLine,
+      ...(layout.selectLine
+        ? {
+            // Zero-based inside, one-based out: the number a link carries is
+            // the one the gutter shows, as it is in the viewer.
+            selectLine: (lineIndex: number) => layout.selectLine?.(lineIndex + 1, side),
+          }
+        : {}),
       isFolded: (startLine: number) => layout.collapsedRows.has(rowOf[startLine] ?? -1),
       toggleFold: (startLine: number) => {
         const row = rowOf[startLine] ?? -1
@@ -110,7 +128,18 @@ function PanelBase({ side, className, style, children }: KronaPanelProps) {
       step: layout.step,
       search: layout.search,
     }),
-    [side, model, rows, virtualizer, virtualItems, totalSize, contentColumns, layout, rowOf],
+    [
+      side,
+      model,
+      rows,
+      virtualizer,
+      virtualItems,
+      totalSize,
+      contentColumns,
+      layout,
+      rowOf,
+      selectedRowLine,
+    ],
   )
 
   const slots = useMemo(() => (children ? splitSlots(children, 'canvas') : null), [children])

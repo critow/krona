@@ -75,6 +75,16 @@ below it.
 A row that opens a folding range is never hidden by this collapse — the run is
 split around it, so its chevron stays reachable.
 
+| Prop | Type | Default | Description |
+| --- | --- | --- | --- |
+| `selectedLine` | `number` | — | Single one line out: open what hides it, scroll to it, mark it. Counted from 1 |
+| `selectedSide` | `'left' \| 'right'` | `'right'` | Which version `selectedLine` counts in |
+| `onSelectLine` | `(line: number, side: 'left' \| 'right') => void` | — | Called with a line and its version when the reader picks one. Adds the link action to the row |
+
+The link names a line; what it opens is the aligned row that line sits on, so
+both panels come to rest on the same comparison and each marks its own side of
+it.
+
 ### Parts
 
 Every part accepts `className` and `style`. `Gutter`, `Lines` and `Toolbar` are
