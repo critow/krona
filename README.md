@@ -586,8 +586,8 @@ its own size.
 
 Krona shows one configuration file, or two of them — side by side or in one
 column — lets you [edit](#editing) the single file and [search](#search) either,
-[links to a line](#linking-to-a-line), and writes a diff out as a
-[unified patch](#reference). It does that in React, and the viewer and diff
+[links to a line](#linking-to-a-line) — in one document or in a comparison —
+and writes a diff out as a [unified patch](#reference). It does that in React, and the viewer and diff
 [without a framework](#without-react-krona-viewer-and-krona-diff) as well.
 
 Everything below is deliberately absent rather than forgotten.
@@ -596,7 +596,6 @@ Everything below is deliberately absent rather than forgotten.
 | --- | --- | --- |
 | Search, editing, row actions and the minimap in `<krona-viewer>` | The element is the reading half so far. Each of these is real work rather than a port, and the React package covers anyone who can run React. | Yes, in order of who asks |
 | A unified one-column diff in `<krona-diff>` | The core already produces it — `unifiedEntries` — so this is rendering, not logic. | Yes |
-| A link to a line inside a diff | `#L42` in a comparison has to name a version as well, and that question has more than one reasonable answer. Waiting for a real use to pick one. | Undecided |
 | More formats (JSON5, XML, `.properties`, HCL) | Each is a provider — an `analyze` and a `tokenize` — behind the same interface. Waiting for someone to actually need one. | Maybe |
 | Semantic diff | Reordering keys *is* a difference in a configuration file. Krona compares text, exactly like git. | Not planned |
 
