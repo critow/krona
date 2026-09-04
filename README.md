@@ -475,7 +475,7 @@ for short ones. The rest is attributes: `format`, `theme`, `locale`,
 `line-height`, `collapsed-depth`, `overscan`, `selected-line`,
 `show-diagnostics`, and for the diff `collapse-unchanged`, `context`,
 `minimum-hidden`, `step`, `ignore-trailing-whitespace`, `show-toolbar`,
-`show-markers` and `narrow-width`. `expandAll()`, `collapseAll()`,
+`show-markers`, `view` and `narrow-width`. `expandAll()`, `collapseAll()`,
 `revealLine(n)` and `showSide(side)` are methods, and folding a block fires
 `krona-fold`.
 
@@ -495,8 +495,7 @@ Per-framework notes — the `isCustomElement` line Vue needs, Angular's
 `CUSTOM_ELEMENTS_SCHEMA`, and what changes on React 18 — are in the
 [package README](./packages/element/README.md).
 
-**Searching, editing, row actions, the minimap and the unified diff view are
-`kronajs` only for now.** If you need those and can run React, use that
+**Searching, editing, row actions and the minimap are `kronajs` only for now.** If you need those and can run React, use that
 package.
 
 ## Using the core without React
@@ -586,17 +585,15 @@ its own size.
 
 Krona shows one configuration file, or two of them — side by side or in one
 column — lets you [edit](#editing) the single file and [search](#search) either,
-[links to a line](#linking-to-a-line), and writes a diff out as a
-[unified patch](#reference). It does that in React, and the viewer and diff
+[links to a line](#linking-to-a-line) — in one document or in a comparison —
+and writes a diff out as a [unified patch](#reference). It does that in React, and the viewer and diff
 [without a framework](#without-react-krona-viewer-and-krona-diff) as well.
 
 Everything below is deliberately absent rather than forgotten.
 
 | Not here yet | Reasoning | Likely |
 | --- | --- | --- |
-| Search, editing, row actions and the minimap in `<krona-viewer>` | The element is the reading half so far. Each of these is real work rather than a port, and the React package covers anyone who can run React. | Yes, in order of who asks |
-| A unified one-column diff in `<krona-diff>` | The core already produces it — `unifiedEntries` — so this is rendering, not logic. | Yes |
-| A link to a line inside a diff | `#L42` in a comparison has to name a version as well, and that question has more than one reasonable answer. Waiting for a real use to pick one. | Undecided |
+| Search, editing, row actions and the minimap in the custom elements | The element is the reading half so far. Each of these is real work rather than a port, and the React package covers anyone who can run React. | Yes, in order of who asks |
 | More formats (JSON5, XML, `.properties`, HCL) | Each is a provider — an `analyze` and a `tokenize` — behind the same interface. Waiting for someone to actually need one. | Maybe |
 | Semantic diff | Reordering keys *is* a difference in a configuration file. Krona compares text, exactly like git. | Not planned |
 

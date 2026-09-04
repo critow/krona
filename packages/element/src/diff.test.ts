@@ -28,7 +28,11 @@ function mount(
   right = AFTER,
 ): KronaDiffElement {
   const element = document.createElement('krona-diff') as KronaDiffElement
-  for (const [name, value] of Object.entries(attributes)) element.setAttribute(name, value)
+  // The narrow layout is off unless a test asks for it. The browser these run
+  // in is itself narrower than the 640px default, so leaving it on would make
+  // every test about the split view a test about the unified one.
+  const attrs = { 'narrow-width': '0', ...attributes }
+  for (const [name, value] of Object.entries(attrs)) element.setAttribute(name, value)
   element.style.height = '320px'
   document.body.append(element)
   mounted.push(element)
@@ -40,14 +44,29 @@ function mount(
 const shadow = (element: KronaDiffElement) => element.shadowRoot as ShadowRoot
 const panel = (element: KronaDiffElement, side: 'left' | 'right') =>
   shadow(element).querySelector(`.krona-panel--${side}`) as HTMLElement
+/**
+ * Whether a panel is on screen.
+ *
+ * Its presence in the DOM, not a `hidden` property: `.krona-panel` sets
+ * `display: flex`, which outranks the UA rule for `hidden`, so a panel marked
+ * hidden would still be visible — and an assertion about the property would
+ * only read back what the element had just been told.
+ */
+const showing = (element: KronaDiffElement, side: 'left' | 'right' | 'unified') =>
+  shadow(element).querySelector(`.krona-panel--${side}`) !== null
+// Empty rather than throwing when the panel is not on screen at all, which is
+// the normal state of one of them on a narrow layout.
 const rows = (element: KronaDiffElement, side: 'left' | 'right') => [
-  ...panel(element, side).querySelectorAll('.krona-lines .krona-row'),
+  ...(shadow(element).querySelectorAll(`.krona-panel--${side} .krona-lines .krona-row`) ?? []),
 ]
 const text = (element: KronaDiffElement) =>
   shadow(element).querySelector('.krona')?.textContent ?? ''
 
+/** Waits for the first paint, whichever panels the layout decided to show. */
 async function ready(element: KronaDiffElement): Promise<KronaDiffElement> {
-  await expect.poll(() => rows(element, 'left').length).toBeGreaterThan(0)
+  await expect
+    .poll(() => shadow(element).querySelectorAll('.krona-lines .krona-row').length)
+    .toBeGreaterThan(0)
   return element
 }
 
@@ -218,9 +237,10 @@ describe('<krona-diff>', () => {
     expect(markers).toEqual(['~', '~'])
   })
 
-  it('shows one version at a time where there is no room for two', async () => {
-    // Ten characters a panel shows neither version, so a cramped diff picks one.
-    const element = mount({ format: 'json', 'narrow-width': '640' })
+  it('switches between the versions where a narrow diff was told to stay split', async () => {
+    // Ten characters a panel shows neither version, so a cramped split picks one
+    // at a time.
+    const element = mount({ format: 'json', 'narrow-width': '640', view: 'split' })
     element.style.width = '400px'
     await ready(element)
 
@@ -229,16 +249,16 @@ describe('<krona-diff>', () => {
       .toBe('true')
     // The current version by default: a diff is read to find out what a change
     // did.
-    await expect.poll(() => panel(element, 'left').hidden).toBe(true)
-    expect(panel(element, 'right').hidden).toBe(false)
+    await expect.poll(() => showing(element, 'left')).toBe(false)
+    expect(showing(element, 'right')).toBe(true)
 
     const [toLeft] = shadow(element).querySelectorAll<HTMLButtonElement>(
       '.krona-side-switch button',
     )
     expect(toLeft?.textContent).toBe('Previous version')
     toLeft?.click()
-    await expect.poll(() => panel(element, 'left').hidden).toBe(false)
-    expect(panel(element, 'right').hidden).toBe(true)
+    await expect.poll(() => showing(element, 'left')).toBe(true)
+    expect(showing(element, 'right')).toBe(false)
     expect(toLeft?.getAttribute('aria-pressed')).toBe('true')
   })
 
@@ -248,8 +268,70 @@ describe('<krona-diff>', () => {
     await ready(element)
 
     expect(shadow(element).querySelector('.krona')?.getAttribute('data-narrow')).toBe(null)
-    expect(panel(element, 'left').hidden).toBe(false)
-    expect((shadow(element).querySelector('.krona-side-switch') as HTMLElement).hidden).toBe(true)
+    expect(showing(element, 'left')).toBe(true)
+    expect(showing(element, 'right')).toBe(true)
+    expect(shadow(element).querySelector('.krona-side-switch')).toBe(null)
+  })
+
+  it('reads both versions down one column when asked', async () => {
+    const element = mount({ format: 'json', view: 'unified' })
+    const column = () =>
+      shadow(element).querySelectorAll('.krona-panel--unified .krona-lines .krona-row')
+    await expect.poll(() => column().length).toBeGreaterThan(0)
+
+    // The two panels are gone; there is one column instead.
+    expect(showing(element, 'left')).toBe(false)
+    expect(showing(element, 'right')).toBe(false)
+
+    // A changed line appears twice — the one that went, then the one that came —
+    // and each says what it is on its own, since there is no column beside it.
+    const tones = [...column()].map((row) =>
+      [...row.classList].find((name) => name.startsWith('krona-row--'))?.slice(11),
+    )
+    expect(tones.filter((tone) => tone === 'removed')).toHaveLength(1)
+    expect(tones.filter((tone) => tone === 'added')).toHaveLength(1)
+    expect(tones).not.toContain('changed')
+    // Eight rows plus the second half of the changed pair.
+    expect(column()).toHaveLength(9)
+    expect(text(element)).toContain('8080')
+    expect(text(element)).toContain('9090')
+  })
+
+  it('unifies where there is no room for two panels, and offers no side switch', async () => {
+    const element = mount({ format: 'json', 'narrow-width': '640' })
+    element.style.width = '400px'
+    await expect
+      .poll(() => shadow(element).querySelectorAll('.krona-panel--unified .krona-row').length)
+      .toBeGreaterThan(0)
+
+    expect(showing(element, 'left')).toBe(false)
+    // Nothing to switch between: both versions are on screen already.
+    expect(shadow(element).querySelector('.krona-side-switch')).toBe(null)
+  })
+
+  it('keeps two panels on a narrow screen when told to split', async () => {
+    const element = mount({ format: 'json', 'narrow-width': '640', view: 'split' })
+    element.style.width = '400px'
+    await ready(element)
+
+    expect(showing(element, 'unified')).toBe(false)
+    // One panel at a time, with the switch that makes the other reachable.
+    expect(showing(element, 'right')).toBe(true)
+    expect(showing(element, 'left')).toBe(false)
+    expect(shadow(element).querySelector('.krona-side-switch')).not.toBe(null)
+  })
+
+  it('folds from the unified column, hiding the block on both sides of it', async () => {
+    const element = mount({ format: 'json', view: 'unified' })
+    const column = () =>
+      shadow(element).querySelectorAll('.krona-panel--unified .krona-lines .krona-row')
+    await expect.poll(() => column().length).toBe(9)
+
+    const server = shadow(element).querySelectorAll<HTMLButtonElement>(
+      '.krona-panel--unified .krona-fold-toggle',
+    )[1]
+    server?.click()
+    await expect.poll(() => text(element)).not.toContain('localhost')
   })
 
   it('reports what it parsed, for a host that wants the numbers', async () => {

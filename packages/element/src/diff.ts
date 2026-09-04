@@ -16,6 +16,7 @@ import {
   type IntralineResult,
   intralineDiff,
   type RowIndex,
+  unifiedEntries,
 } from '@kronajs/core'
 import { KronaBase } from './base'
 import { Column, type ColumnRow, ScrollSync } from './column'
@@ -29,6 +30,19 @@ const TONE = {
 } as const
 
 const NO_INTRALINE: IntralineResult = { left: [], right: [], wholeLine: false }
+
+/**
+ * How one row of a unified column reads on its own.
+ *
+ * A changed pair arrives as two rows, so each says what it is by itself: the
+ * line that went, then the line that came. `changed` is a statement about two
+ * lines sitting side by side, and here there is no second column to sit beside.
+ */
+function unifiedTone(kind: AlignedRow['kind'], isLeft: boolean): ColumnRow['tone'] {
+  if (kind === 'equal') return 'normal'
+  if (kind === 'changed') return isLeft ? 'removed' : 'added'
+  return kind
+}
 
 /**
  * `<krona-diff>` — two versions of a configuration file, side by side.
@@ -70,6 +84,7 @@ export class KronaDiffElement extends KronaBase {
     'step',
     'ignore-trailing-whitespace',
     'narrow-width',
+    'view',
   ]
 
   #left = ''
@@ -90,8 +105,10 @@ export class KronaDiffElement extends KronaBase {
   #panels: HTMLDivElement
   #leftPanel: HTMLElement
   #rightPanel: HTMLElement
+  #unifiedPanel: HTMLElement
   #leftColumn: Column
   #rightColumn: Column
+  #unifiedColumn: Column
   #sync = new ScrollSync()
   /**
    * Which version a narrow layout shows. The current one by default: a diff is
@@ -105,11 +122,17 @@ export class KronaDiffElement extends KronaBase {
     this.#toolbar.setAttribute('role', 'toolbar')
     this.#leftColumn = new Column(this.#hostFor('left'))
     this.#rightColumn = new Column(this.#hostFor('right'))
+    this.#unifiedColumn = new Column(this.#unifiedHost())
     this.#leftPanel = this.#panel('left', this.#leftColumn)
     this.#rightPanel = this.#panel('right', this.#rightColumn)
-    this.#panels = el('div', 'krona-panels', [this.#leftPanel, this.#rightPanel])
+    this.#unifiedPanel = this.#panel('unified', this.#unifiedColumn)
+    this.#panels = el('div', 'krona-panels', [
+      this.#leftPanel,
+      this.#rightPanel,
+      this.#unifiedPanel,
+    ])
     this.#switch = this.#sideSwitch()
-    this.section.append(this.#toolbar, this.#switch, this.#panels)
+    this.section.append(this.#toolbar, this.#panels)
   }
 
   /** The previous version. A property, because a document is not markup. */
@@ -166,6 +189,7 @@ export class KronaDiffElement extends KronaBase {
   override connectedCallback(): void {
     this.#leftColumn.mount()
     this.#rightColumn.mount()
+    this.#unifiedColumn.mount()
     this.#sync.register(this.#leftColumn.scroll)
     this.#sync.register(this.#rightColumn.scroll)
     super.connectedCallback()
@@ -174,6 +198,7 @@ export class KronaDiffElement extends KronaBase {
   override disconnectedCallback(): void {
     this.#leftColumn.unmount()
     this.#rightColumn.unmount()
+    this.#unifiedColumn.unmount()
     this.#sync.release()
     super.disconnectedCallback()
   }
@@ -324,8 +349,76 @@ export class KronaDiffElement extends KronaBase {
     return result
   }
 
-  #panel(side: 'left' | 'right', column: Column): HTMLElement {
+  #panel(side: 'left' | 'right' | 'unified', column: Column): HTMLElement {
     return el('section', `krona-panel krona-panel--${side}`, [column.scroll])
+  }
+
+  /**
+   * Whether both versions share one column.
+   *
+   * `auto` splits where there is room and unifies below `narrow-width`: two
+   * panels on a phone are two unreadable panels, and one column needs only the
+   * width of a single line.
+   */
+  get #unified(): boolean {
+    const view = this.getAttribute('view')
+    return view === 'unified' || (view !== 'split' && this.narrow)
+  }
+
+  /** The two versions read as one column, the way `git diff` prints one. */
+  #unifiedHost() {
+    const rowFor = (startLine: number, side?: 'left' | 'right') =>
+      (side === 'left' ? this.#index().leftRowOf : this.#index().rightRowOf)[startLine] ?? -1
+    return {
+      labels: () => this.currentLabels,
+      lineHeight: () => this.lineHeight,
+      overscan: () => this.overscan,
+      // The right-hand version is the column's own document: it is the file the
+      // reader still has, and the one an unchanged row is read from.
+      model: () => this.#parsed().right,
+      maxLineNumber: () =>
+        Math.max(this.#parsed().left.lines.length, this.#parsed().right.lines.length),
+      contentColumns: () => contentColumnsOf(this.#parsed().left, this.#parsed().right),
+      foldAt: (lineIndex: number, side?: 'left' | 'right') =>
+        (side === 'left' ? this.#parsed().left : this.#parsed().right).foldAt(lineIndex),
+      isFolded: (startLine: number, side?: 'left' | 'right') =>
+        this.#collapsed.has(rowFor(startLine, side)),
+      toggleFold: (startLine: number, side?: 'left' | 'right') =>
+        this.#toggleRow(rowFor(startLine, side), startLine),
+      region: (index: number) => this.#regions[index] ?? undefined,
+      expandContext: (index: number, direction: ExpandDirection) =>
+        this.#expandContext(index, direction),
+      step: () => this.#step(),
+      showMarkers: () => this.getAttribute('show-markers') !== 'false',
+    }
+  }
+
+  /** The rows of the unified column: the same alignment, read down one column. */
+  #unifiedRows(): ColumnRow[] {
+    const { left, right } = this.#parsed()
+    const rows = this.#diff().rows
+    return unifiedEntries(this.#items, rows).map<ColumnRow>((entry) => {
+      if (entry.regionIndex !== undefined) {
+        return { lineIndex: null, tone: 'spacer', expandRegion: entry.regionIndex }
+      }
+      const aligned = rows[entry.rowIndex] as AlignedRow
+      const isLeft = entry.side === 'left'
+      const lineIndex = isLeft ? aligned.left : aligned.right
+      if (lineIndex === null) return { lineIndex: null, tone: 'spacer' }
+      const base = {
+        lineIndex,
+        tone: unifiedTone(aligned.kind, isLeft),
+        model: isLeft ? left : right,
+        side: isLeft ? ('left' as const) : ('right' as const),
+      }
+      if (aligned.kind !== 'changed') return base
+      const intraline = this.#intralineAt(entry.rowIndex)
+      return {
+        ...base,
+        intraline: isLeft ? intraline.left : intraline.right,
+        wholeLine: intraline.wholeLine,
+      }
+    })
   }
 
   /**
@@ -354,14 +447,39 @@ export class KronaDiffElement extends KronaBase {
     this.schedule()
   }
 
+  /**
+   * Which panels are on screen.
+   *
+   * They are attached and detached rather than hidden. `hidden` is a UA rule of
+   * the lowest specificity and `.krona-panel` sets `display: flex`, so a hidden
+   * panel stays on screen — and, being in the DOM, goes on painting rows nobody
+   * asked for.
+   */
   #paintLayout(): void {
+    const unified = this.#unified
     const narrow = this.narrow
     // Splitting the width of a phone between two panels gives about ten
     // characters each, which shows neither version.
-    this.#leftPanel.hidden = narrow && this.#side !== 'left'
-    this.#rightPanel.hidden = narrow && this.#side !== 'right'
+    const panels = unified
+      ? [this.#unifiedPanel]
+      : narrow
+        ? [this.#side === 'left' ? this.#leftPanel : this.#rightPanel]
+        : [this.#leftPanel, this.#rightPanel]
+    // Only when the set actually changes. Replacing the children on every
+    // render would detach and re-attach the panels for each fold and each
+    // keystroke, which throws away their scroll position and makes the
+    // virtualizer measure a container that is briefly nowhere.
+    const current = [...this.#panels.children]
+    if (current.length !== panels.length || panels.some((panel, i) => current[i] !== panel)) {
+      this.#panels.replaceChildren(...panels)
+    }
 
-    this.#switch.hidden = !narrow
+    // Nothing to switch between in a unified diff: both versions are already on
+    // screen, one line above the other.
+    const wantsSwitch = !unified && narrow
+    if (wantsSwitch && !this.#switch.isConnected)
+      this.section.insertBefore(this.#switch, this.#panels)
+    else if (!wantsSwitch && this.#switch.isConnected) this.#switch.remove()
     const labels = this.currentLabels
     const legend = this.#switch.querySelector('legend')
     if (legend) legend.textContent = labels.document
@@ -486,6 +604,10 @@ export class KronaDiffElement extends KronaBase {
       this.#regions,
     )
     this.#paintLayout()
+    if (this.#unified) {
+      this.#unifiedColumn.update(this.#unifiedRows())
+      return
+    }
     this.#leftColumn.update(this.#rowsFor('left'))
     this.#rightColumn.update(this.#rowsFor('right'))
   }

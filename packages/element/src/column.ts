@@ -31,6 +31,14 @@ export interface ColumnRow {
   readonly intraline?: readonly Span[]
   /** True when the whole line counts as changed rather than parts of it. */
   readonly wholeLine?: boolean
+  /**
+   * The document this row's line belongs to, where it is not the column's own.
+   * Set in a unified diff, whose consecutive rows come from the two versions —
+   * line 12 of the old file and line 12 of the new one are two different lines.
+   */
+  readonly model?: DocumentModel
+  /** Which version the row is read from, in a unified diff. */
+  readonly side?: 'left' | 'right'
 }
 
 /**
@@ -49,9 +57,11 @@ export interface ColumnHost {
   readonly model: () => DocumentModel
   /** Widest line across every document on screen, so panels reserve one width. */
   readonly contentColumns: () => number
-  readonly foldAt: (lineIndex: number) => FoldRange | undefined
-  readonly isFolded: (lineIndex: number) => boolean
-  readonly toggleFold: (lineIndex: number) => void
+  readonly foldAt: (lineIndex: number, side?: 'left' | 'right') => FoldRange | undefined
+  readonly isFolded: (startLine: number, side?: 'left' | 'right') => boolean
+  readonly toggleFold: (startLine: number, side?: 'left' | 'right') => void
+  /** Widest line number the gutter must fit. Defaults to the column's model. */
+  readonly maxLineNumber?: () => number
   /** Zero-based line the reader followed a link to, if any. */
   readonly selectedLine?: () => number | null
   /** Hidden run behind a bar, when this column shows expand bars. */
@@ -204,7 +214,7 @@ export class Column {
     this.gutter.style.height = `${total}px`
     this.lines.style.height = `${total}px`
 
-    const digits = Math.max(2, String(model.lines.length).length)
+    const digits = Math.max(2, String(host.maxLineNumber?.() ?? model.lines.length).length)
     const items = this.#virtualizer.getVirtualItems()
     const gutterRows: HTMLElement[] = []
     const lineRows: HTMLElement[] = [this.#strut]
@@ -262,11 +272,11 @@ export class Column {
       case 'ArrowRight':
         // Open what is closed, otherwise walk into it — the same key doing both
         // is what makes a tree feel like a tree.
-        if (fold?.folded) this.#host.toggleFold(fold.range.startLine)
+        if (fold?.folded) this.#host.toggleFold(fold.range.startLine, fold.side)
         else this.#go(this.#step(this.#active, 1))
         break
       case 'ArrowLeft':
-        if (fold && !fold.folded) this.#host.toggleFold(fold.range.startLine)
+        if (fold && !fold.folded) this.#host.toggleFold(fold.range.startLine, fold.side)
         else this.#go(this.#parentOf(this.#active))
         break
       case 'Enter':
@@ -274,7 +284,7 @@ export class Column {
         // Only when the row itself has focus: a control inside it keeps its own
         // Enter.
         if (!target.classList.contains('krona-row') || !fold) return
-        this.#host.toggleFold(fold.range.startLine)
+        this.#host.toggleFold(fold.range.startLine, fold.side)
         break
       default:
         return
@@ -315,23 +325,29 @@ export class Column {
   #parentOf(index: number): number {
     const row = this.#rows[index]
     if (!row || row.lineIndex === null) return index
-    const model = this.#host.model()
-    const level = nestingLevelAt(model, row.lineIndex)
+    const own = this.#host.model()
+    const level = nestingLevelAt(row.model ?? own, row.lineIndex)
     if (level <= 1) return index
     for (let i = index - 1; i >= 0; i--) {
       const above = this.#rows[i]
       if (!above || above.lineIndex === null) continue
-      if (nestingLevelAt(model, above.lineIndex) < level) return i
+      if (nestingLevelAt(above.model ?? own, above.lineIndex) < level) return i
     }
     return index
   }
 
-  #foldOf(index: number): { range: FoldRange; folded: boolean } | undefined {
+  #foldOf(
+    index: number,
+  ): { range: FoldRange; folded: boolean; side?: 'left' | 'right' } | undefined {
     const row = this.#rows[index]
     if (!row || row.lineIndex === null) return undefined
-    const range = this.#host.foldAt(row.lineIndex)
+    const range = this.#host.foldAt(row.lineIndex, row.side)
     if (!range) return undefined
-    return { range, folded: this.#host.isFolded(range.startLine) }
+    return {
+      range,
+      folded: this.#host.isFolded(range.startLine, row.side),
+      ...(row.side ? { side: row.side } : {}),
+    }
   }
 
   #selected(lineIndex: number | null): string {
@@ -360,7 +376,7 @@ export class Column {
     number.style.minWidth = `${digits}ch`
     parts.push(number)
 
-    const range = lineIndex === null ? undefined : host.foldAt(lineIndex)
+    const range = lineIndex === null ? undefined : host.foldAt(lineIndex, row.side)
     parts.push(range ? chevron() : el('span', 'krona-fold-spacer'))
 
     const picked = this.#selected(lineIndex)
@@ -371,7 +387,7 @@ export class Column {
       cell.style.transform = `translateY(${offset}px)`
       return cell
     }
-    const folded = host.isFolded(range.startLine)
+    const folded = host.isFolded(range.startLine, row.side)
     const labels = host.labels()
     const name = folded ? labels.expandBlock : labels.collapseBlock
     const button = el('button', `krona-row krona-row--${tone}${picked} krona-fold-toggle`, parts)
@@ -384,7 +400,7 @@ export class Column {
     button.setAttribute('aria-expanded', folded ? 'false' : 'true')
     button.setAttribute('aria-label', name)
     button.title = name
-    button.addEventListener('click', () => host.toggleFold(range.startLine))
+    button.addEventListener('click', () => host.toggleFold(range.startLine, row.side))
     return button
   }
 
@@ -410,24 +426,27 @@ export class Column {
       return spacer
     }
 
-    const text = model.lines[lineIndex]?.text ?? ''
-    const range = this.#host.foldAt(lineIndex)
-    const folded = range ? this.#host.isFolded(range.startLine) : false
+    // In a unified diff consecutive rows come from the two versions, so a row
+    // names its own document; everywhere else there is only one.
+    const rowModel = row.model ?? model
+    const text = rowModel.lines[lineIndex]?.text ?? ''
+    const range = this.#host.foldAt(lineIndex, row.side)
+    const folded = range ? this.#host.isFolded(range.startLine, row.side) : false
     const element = el(
       'div',
       `krona-row krona-row--${tone}${this.#selected(lineIndex)}`,
-      this.#segments(model, lineIndex, text, row),
+      this.#segments(rowModel, lineIndex, text, row),
     )
     element.style.transform = `translateY(${offset}px)`
     element.dataset.line = String(lineIndex + 1)
     element.dataset.index = String(index)
     element.setAttribute('role', 'treeitem')
     element.tabIndex = index === this.#active ? 0 : -1
-    element.setAttribute('aria-level', String(nestingLevelAt(model, lineIndex)))
+    element.setAttribute('aria-level', String(nestingLevelAt(rowModel, lineIndex)))
     element.setAttribute('aria-posinset', String(index + 1))
     element.setAttribute('aria-setsize', String(this.#rows.length))
     if (range) element.setAttribute('aria-expanded', folded ? 'false' : 'true')
-    if (folded && range) element.append(this.#placeholder(range))
+    if (folded && range) element.append(this.#placeholder(range, row.side))
     return element
   }
 
@@ -457,7 +476,7 @@ export class Column {
     })
   }
 
-  #placeholder(range: FoldRange): HTMLElement {
+  #placeholder(range: FoldRange, side?: 'left' | 'right'): HTMLElement {
     const labels = this.#host.labels()
     const hidden = range.endLine - range.startLine
     const inside =
@@ -472,7 +491,7 @@ export class Column {
     )
     button.type = 'button'
     button.title = labels.expandBlock
-    button.addEventListener('click', () => this.#host.toggleFold(range.startLine))
+    button.addEventListener('click', () => this.#host.toggleFold(range.startLine, side))
     return button
   }
 
