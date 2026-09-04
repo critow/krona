@@ -39,6 +39,7 @@ for short documents.)
 | `overscan` | `8` | Extra rows rendered outside the viewport |
 | `selected-line` | — | Single a line out and scroll to it, counting from 1 |
 | `show-diagnostics` | `true` | Set `false` to hide parse problems |
+| `show-search` | `false` | Set `true` for a field that finds text in what is on screen |
 
 | Member | What it is |
 | --- | --- |
@@ -72,6 +73,7 @@ than by a ratio.
 | `ignore-trailing-whitespace` | off | Treat lines differing only in trailing space as equal |
 | `show-toolbar` | `true` | The fold actions and the change counts |
 | `show-markers` | `true` | `+` / `-` / `~` in the gutter |
+| `show-search` | `false` | A field that finds text in both versions |
 | `view` | `auto` | `split` for two panels, `unified` for one column, `auto` to split where there is room |
 | `narrow-width` | `640` | Width below which `auto` unifies. `0` keeps two panels always |
 
@@ -92,6 +94,19 @@ time, with a switch between them.
 The width watched is the element's own, not the window's: a diff in a sidebar on
 a wide screen is just as cramped as one on a phone, and a media query cannot
 tell the difference.
+
+## Search
+
+`show-search="true"` puts a field above the document. Matching is literal, never
+a pattern: a regular expression typed into a text field is one a stranger can
+type too, and a viewer that stops answering is a worse outcome than one that
+cannot match `\d+`. Enter walks the matches, Shift+Enter walks them backwards,
+and `Aa` makes the query case-sensitive.
+
+In a diff the matches are ordered by row rather than by document, so walking
+them reads down the screen: a line removed and the line that replaced it are
+neighbours, however far apart they sit in their own files. Reaching one opens
+whatever hides it — a folded block, a collapsed run of unchanged rows, or both.
 
 ## Events
 
@@ -154,7 +169,7 @@ register one, or register under a name of your own.
 
 ## What it does not do
 
-Searching, editing, row actions and the minimap are `kronajs` only for now. If you need those and can run React, use that
+Editing, row actions and the minimap are `kronajs` only for now. If you need those and can run React, use that
 package; the model, folding and diff underneath both live in
 [`@kronajs/core`](https://www.npmjs.com/package/@kronajs/core).
 

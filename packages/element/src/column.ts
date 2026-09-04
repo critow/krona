@@ -7,6 +7,7 @@ import {
   type FoldRange,
   type KronaLabels,
   nestingLevelAt,
+  type SearchHit,
   type Span,
 } from '@kronajs/core'
 import {
@@ -76,6 +77,11 @@ export interface ColumnHost {
   readonly barsAreControls?: () => boolean
   /** Diff markers in the gutter. Off in a viewer, where nothing changed. */
   readonly showMarkers?: () => boolean
+  /** Present while a search is open: what to paint on each line. */
+  readonly search?: () => {
+    readonly matchesAt: (lineIndex: number, side?: 'left' | 'right') => readonly Span[]
+    readonly current: SearchHit | null
+  }
 }
 
 /**
@@ -452,11 +458,19 @@ export class Column {
 
   /** One line's text, cut into token, highlight and unsafe-character runs. */
   #segments(model: DocumentModel, lineIndex: number, text: string, row: ColumnRow): Node[] {
+    const search = this.#host.search?.()
+    const current = search?.current
     const segments = buildSegments(
       text,
       model.tokensAt(lineIndex),
       row.intraline,
       row.wholeLine ?? false,
+      search?.matchesAt(lineIndex, row.side),
+      // The one match the reader is standing on, and only where it actually is:
+      // the same line number in the other version is a different line.
+      current && current.lineIndex === lineIndex && (!row.side || current.side === row.side)
+        ? current
+        : undefined,
     )
     if (segments.length === 0) return [document.createTextNode(text)]
     return segments.map((segment) => {
@@ -471,6 +485,8 @@ export class Column {
       const classes: string[] = []
       if (segment.token) classes.push(`krona-token--${segment.token}`)
       if (segment.changed) classes.push('krona-intraline')
+      if (segment.match) classes.push('krona-match')
+      if (segment.match === 'current') classes.push('krona-match--current')
       if (classes.length === 0) return document.createTextNode(value)
       return el('span', classes.join(' '), value)
     })

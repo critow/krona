@@ -473,7 +473,7 @@ Documents are properties rather than attributes — a file is not something a pa
 wants in its markup — though `source`, `left` and `right` work as attributes too
 for short ones. The rest is attributes: `format`, `theme`, `locale`,
 `line-height`, `collapsed-depth`, `overscan`, `selected-line`,
-`show-diagnostics`, and for the diff `collapse-unchanged`, `context`,
+`show-diagnostics`, `show-search`, and for the diff `collapse-unchanged`, `context`,
 `minimum-hidden`, `step`, `ignore-trailing-whitespace`, `show-toolbar`,
 `show-markers`, `view` and `narrow-width`. `expandAll()`, `collapseAll()`,
 `revealLine(n)` and `showSide(side)` are methods, and folding a block fires
@@ -495,7 +495,7 @@ Per-framework notes — the `isCustomElement` line Vue needs, Angular's
 `CUSTOM_ELEMENTS_SCHEMA`, and what changes on React 18 — are in the
 [package README](./packages/element/README.md).
 
-**Searching, editing, row actions and the minimap are `kronajs` only for now.** If you need those and can run React, use that
+**Editing, row actions and the minimap are `kronajs` only for now.** If you need those and can run React, use that
 package.
 
 ## Using the core without React
@@ -593,7 +593,7 @@ Everything below is deliberately absent rather than forgotten.
 
 | Not here yet | Reasoning | Likely |
 | --- | --- | --- |
-| Search, editing, row actions and the minimap in the custom elements | The element is the reading half so far. Each of these is real work rather than a port, and the React package covers anyone who can run React. | Yes, in order of who asks |
+| Editing, row actions and the minimap in the custom elements | The element is the reading half so far. Each of these is real work rather than a port, and the React package covers anyone who can run React. | Yes, in order of who asks |
 | More formats (JSON5, XML, `.properties`, HCL) | Each is a provider — an `analyze` and a `tokenize` — behind the same interface. Waiting for someone to actually need one. | Maybe |
 | Semantic diff | Reordering keys *is* a difference in a configuration file. Krona compares text, exactly like git. | Not planned |
 

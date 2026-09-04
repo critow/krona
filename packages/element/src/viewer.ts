@@ -7,6 +7,7 @@ import {
 } from '@kronajs/core'
 import { KronaBase } from './base'
 import { Column, type ColumnRow } from './column'
+import { SearchBox } from './search'
 
 /**
  * `<krona-viewer>` — a configuration file as a collapsible, virtualized tree.
@@ -47,6 +48,7 @@ export class KronaViewerElement extends KronaBase {
     'overscan',
     'selected-line',
     'show-diagnostics',
+    'show-search',
   ]
 
   #source = ''
@@ -56,7 +58,10 @@ export class KronaViewerElement extends KronaBase {
   #visible: number[] = []
   /** Set until the first render, so an opening depth is applied exactly once. */
   #needsDefaultFold = true
+  /** The document the open query was run against, so it is run again when it changes. */
+  #searched: DocumentModel | null = null
   #column: Column
+  #search: SearchBox
 
   constructor() {
     super('krona-viewer')
@@ -70,6 +75,15 @@ export class KronaViewerElement extends KronaBase {
       isFolded: (startLine) => this.#collapsed.has(startLine),
       toggleFold: (startLine) => this.#toggleFold(startLine),
       selectedLine: () => this.selectedLine,
+      search: () => this.#search,
+    })
+    this.#search = new SearchBox({
+      labels: () => this.currentLabels,
+      target: () => ({ kind: 'single', model: this.#parsed() }),
+      // A match may be inside a folded block and outside the rendered window,
+      // so jumping to one opens whatever hides it and only then scrolls.
+      reveal: (hit) => this.revealLine(hit.lineIndex + 1),
+      repaint: () => this.#column.paint(),
     })
     this.section.append(this.#column.scroll)
   }
@@ -166,6 +180,20 @@ export class KronaViewerElement extends KronaBase {
     return this.#model
   }
 
+  /**
+   * Attaches or detaches the search field.
+   *
+   * Detached rather than hidden: `.krona-search` sets `display: flex`, which
+   * outranks the browser's rule for `hidden`, so a hidden field would still be
+   * on screen.
+   */
+  #paintSearch(): void {
+    const wanted = this.getAttribute('show-search') === 'true'
+    if (wanted === this.#search.root.isConnected) return
+    if (wanted) this.section.insertBefore(this.#search.root, this.#column.scroll)
+    else this.#search.root.remove()
+  }
+
   #toggleFold(startLine: number): void {
     const folded = this.#collapsed.has(startLine)
     if (folded) this.#collapsed.delete(startLine)
@@ -177,6 +205,13 @@ export class KronaViewerElement extends KronaBase {
   protected override render(): void {
     const model = this.#parsed()
     this.paintFrame(model.diagnostics)
+    this.#paintSearch()
+    // Matches found in a file that has since been replaced would point at lines
+    // that are no longer there.
+    if (this.#searched !== model) {
+      this.#searched = model
+      this.#search.refresh()
+    }
     this.#visible = visibleLinesOf(model, this.#collapsed)
     this.#column.update(
       this.#visible.map<ColumnRow>((lineIndex) => ({ lineIndex, tone: 'normal' })),

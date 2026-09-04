@@ -8,6 +8,18 @@ Notable changes to Krona. The format follows
 
 ### Added
 
+- Finding text works in the custom elements. `show-search="true"` puts a field
+  above the document in `<krona-viewer>` and `<krona-diff>`; Enter walks the
+  matches, Shift+Enter walks them backwards, `Aa` makes the query
+  case-sensitive.
+
+  In a diff the matches are ordered by row rather than by document, so walking
+  them reads down the screen, and reaching one opens whatever hides it — a
+  folded block, a collapsed run of unchanged rows, or both. The searching itself
+  is `findMatches`, `indexByLine`, `hitsInRowOrder` and `hitFrom` from the core,
+  the same four the React package uses; what is new here is a field and the
+  painting.
+
 - Linking to a line works in a diff. `selectedLine` and `selectedSide` name a
   line and the version it belongs to — `'right'` by default, since that is what
   a diff is usually read for — and `onSelectLine` reports both, which also puts

@@ -12,6 +12,7 @@ import {
   displayItems,
   type ExpandDirection,
   type Format,
+  foldEndRow,
   hasFoldAt,
   type IntralineResult,
   intralineDiff,
@@ -21,6 +22,7 @@ import {
 import { KronaBase } from './base'
 import { Column, type ColumnRow, ScrollSync } from './column'
 import { el } from './dom'
+import { SearchBox } from './search'
 
 const TONE = {
   equal: 'normal',
@@ -85,6 +87,7 @@ export class KronaDiffElement extends KronaBase {
     'ignore-trailing-whitespace',
     'narrow-width',
     'view',
+    'show-search',
   ]
 
   #left = ''
@@ -110,6 +113,9 @@ export class KronaDiffElement extends KronaBase {
   #rightColumn: Column
   #unifiedColumn: Column
   #sync = new ScrollSync()
+  #search: SearchBox
+  /** The alignment the open query was run against, so it is run again when it changes. */
+  #searched: readonly AlignedRow[] | null = null
   /**
    * Which version a narrow layout shows. The current one by default: a diff is
    * usually read to find out what a change did.
@@ -132,6 +138,21 @@ export class KronaDiffElement extends KronaBase {
       this.#unifiedPanel,
     ])
     this.#switch = this.#sideSwitch()
+    this.#search = new SearchBox({
+      labels: () => this.currentLabels,
+      target: () => {
+        const { left, right } = this.#parsed()
+        return { kind: 'diff', left, right, rows: this.#diff().rows }
+      },
+      // A row can be inside a folded block *and* inside a collapsed run of
+      // unchanged lines, and either one hides it.
+      reveal: (hit) => this.#revealRow(hit.row ?? -1),
+      repaint: () => {
+        this.#leftColumn.paint()
+        this.#rightColumn.paint()
+        this.#unifiedColumn.paint()
+      },
+    })
     this.section.append(this.#toolbar, this.#panels)
   }
 
@@ -390,6 +411,7 @@ export class KronaDiffElement extends KronaBase {
         this.#expandContext(index, direction),
       step: () => this.#step(),
       showMarkers: () => this.getAttribute('show-markers') !== 'false',
+      search: () => this.#search,
     }
   }
 
@@ -514,6 +536,7 @@ export class KronaDiffElement extends KronaBase {
       step: () => this.#step(),
       barsAreControls: () => isLeft,
       showMarkers: () => this.getAttribute('show-markers') !== 'false',
+      search: () => this.#search,
     }
   }
 
@@ -529,6 +552,37 @@ export class KronaDiffElement extends KronaBase {
     else this.#collapsed.add(row)
     this.render()
     this.emitFold(startLine + 1, !folded)
+  }
+
+  /**
+   * Opens whatever hides a row and brings it into view.
+   *
+   * A diff has two ways to hide a row and can use both at once: the block
+   * around it is folded, and the unchanged run it sits in is collapsed behind a
+   * bar. The columns scroll in lockstep, so revealing it in one reveals it in
+   * all.
+   */
+  #revealRow(row: number): void {
+    if (row < 0) return
+    const { left, right } = this.#parsed()
+    const rows = this.#diff().rows
+    const index = this.#index()
+
+    this.#regions = this.#regions.map((region) =>
+      region && region.startRow <= row && region.endRow >= row ? null : region,
+    )
+    for (const collapsed of [...this.#collapsed]) {
+      if (collapsed >= row) continue
+      if (foldEndRow(collapsed, rows, left, right, index) >= row) this.#collapsed.delete(collapsed)
+    }
+    this.render()
+
+    const at = this.#items.findIndex((item) => item.rowIndex === row)
+    this.#leftColumn.scrollToRow(at)
+    this.#rightColumn.scrollToRow(at)
+    this.#unifiedColumn.scrollToRow(
+      unifiedEntries(this.#items, rows).findIndex((entry) => entry.rowIndex === row),
+    )
   }
 
   #expandContext(index: number, direction: ExpandDirection): void {
@@ -549,15 +603,26 @@ export class KronaDiffElement extends KronaBase {
       const aligned = rows[item.rowIndex] as AlignedRow
       const lineIndex = isLeft ? aligned.left : aligned.right
       if (lineIndex === null) return { lineIndex: null, tone: 'spacer' }
-      if (aligned.kind !== 'changed') return { lineIndex, tone: TONE[aligned.kind] }
+      // The side travels with the row so that anything asking about the line —
+      // a search for what to highlight, say — reaches the right document.
+      if (aligned.kind !== 'changed') return { lineIndex, tone: TONE[aligned.kind], side }
       const intraline = this.#intralineAt(item.rowIndex)
       return {
         lineIndex,
         tone: 'changed',
+        side,
         intraline: isLeft ? intraline.left : intraline.right,
         wholeLine: intraline.wholeLine,
       }
     })
+  }
+
+  /** Attached or detached rather than hidden, for the reason the panels are. */
+  #paintSearch(): void {
+    const wanted = this.getAttribute('show-search') === 'true'
+    if (wanted === this.#search.root.isConnected) return
+    if (wanted) this.section.insertBefore(this.#search.root, this.#panels)
+    else this.#search.root.remove()
   }
 
   #paintToolbar(stats: AlignedDiff['stats']): void {
@@ -594,7 +659,12 @@ export class KronaDiffElement extends KronaBase {
     const diff = this.#diff()
     this.#seed()
     this.paintFrame([...left.diagnostics, ...right.diagnostics])
+    this.#paintSearch()
     this.#paintToolbar(diff.stats)
+    if (this.#searched !== diff.rows) {
+      this.#searched = diff.rows
+      this.#search.refresh()
+    }
     this.#items = displayItems(
       diff.rows,
       left,
