@@ -114,6 +114,19 @@ body {
   min-width: 0;
 }
 
+.paste-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 1.6rem;
+}
+
+.paste-head .ui-button {
+  padding: 0.1rem 0.45rem;
+  font-size: 0.7rem;
+}
+
 .paste-label {
   font-size: 0.7rem;
   letter-spacing: 0.04em;

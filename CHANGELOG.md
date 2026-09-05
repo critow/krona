@@ -6,6 +6,21 @@ Notable changes to Krona. The format follows
 
 ## Unreleased
 
+### Added
+
+- `kronajs` re-exports `applyEdit`, `formattedEdit` and `getFormat` from the
+  core, so a consumer can format a whole document — or ask whether the format
+  has a formatter at all — without adding `@kronajs/core` as a second
+  dependency.
+
+- The demo's **Your file** pane has a **Format** button. Krona still never
+  reformats a document it is handed: folding is by line, the diff compares
+  lines, and rewriting the text on the way in would show something nobody
+  wrote — so a minified config pasted into the box is one row with nothing to
+  fold, which is exactly what the reader did not mean. The button applies the
+  provider's own formatter to the whole document on request, and is disabled
+  for the formats that have none.
+
 ## 0.4.0 — 2026-09-05
 
 ### Added

@@ -1,4 +1,15 @@
-import { alignDiff, detectFormat, diffLines, Krona, unifiedPatch, useKronaDiff } from 'kronajs'
+import {
+  alignDiff,
+  applyEdit,
+  detectFormat,
+  diffLines,
+  formattedEdit,
+  getFormat,
+  Krona,
+  parseDocument,
+  unifiedPatch,
+  useKronaDiff,
+} from 'kronajs'
 import 'kronajs/hcl'
 import 'kronajs/json5'
 import 'kronajs/properties'
@@ -108,6 +119,21 @@ function DiffPanelsBase({
 const OWN = 'own'
 
 /**
+ * The pasted text, written the way its format is usually written.
+ *
+ * Krona never reformats a document it is handed: folding is by line, the diff
+ * compares lines, and rewriting the file on the way in would compare something
+ * nobody wrote. This is the same formatter the block editor uses, applied to
+ * the whole document because the reader asked for it — a minified config pasted
+ * into the box is one line, and one line is nothing to fold.
+ */
+function reformatted(source: string, format: string): string {
+  const model = parseDocument(source, format)
+  const edit = formattedEdit(model, { start: 0, end: source.length, text: source }, true)
+  return applyEdit(source, edit).source
+}
+
+/**
  * A file name for the patch headers.
  *
  * `git apply` strips one leading path component, so the names have to carry one
@@ -206,6 +232,10 @@ export function App() {
   }, [sampleId, ownLeft, ownRight, dict])
 
   const note = sampleId === OWN ? dict.yourFileNote : (dict.notes[sample.id] ?? sample.note)
+
+  // Only where the provider brings a formatter — JSON does, the rest leave text
+  // exactly as it was typed, and a button that did nothing would be a lie.
+  const canFormat = getFormat(sample.format)?.format !== undefined
 
   // `auto` follows the reader's system setting for the component only; the page
   // around it stays dark, so that is the chrome the mark has to sit on.
@@ -462,11 +492,25 @@ export function App() {
           >
             {sampleId === OWN ? (
               <div className="paste">
-                <label className="paste-field">
-                  <span className="paste-label">
-                    {mode === 'diff' ? dict.before : dict.yourFile}
-                  </span>
+                <div className="paste-field">
+                  <div className="paste-head">
+                    <label className="paste-label" htmlFor="own-left">
+                      {mode === 'diff' ? dict.before : dict.yourFile}
+                    </label>
+                    <Button
+                      disabled={!canFormat || ownLeft.length === 0}
+                      title={canFormat ? undefined : dict.formatUnsupported}
+                      onClick={() => {
+                        const next = reformatted(ownLeft, sample.format)
+                        setOwnLeft(next)
+                        store('krona:own-left', next)
+                      }}
+                    >
+                      {dict.formatDocument}
+                    </Button>
+                  </div>
                   <textarea
+                    id="own-left"
                     className="paste-input"
                     value={ownLeft}
                     spellCheck={false}
@@ -476,11 +520,27 @@ export function App() {
                       store('krona:own-left', event.target.value)
                     }}
                   />
-                </label>
+                </div>
                 {mode === 'diff' ? (
-                  <label className="paste-field">
-                    <span className="paste-label">{dict.after}</span>
+                  <div className="paste-field">
+                    <div className="paste-head">
+                      <label className="paste-label" htmlFor="own-right">
+                        {dict.after}
+                      </label>
+                      <Button
+                        disabled={!canFormat || ownRight.length === 0}
+                        title={canFormat ? undefined : dict.formatUnsupported}
+                        onClick={() => {
+                          const next = reformatted(ownRight, sample.format)
+                          setOwnRight(next)
+                          store('krona:own-right', next)
+                        }}
+                      >
+                        {dict.formatDocument}
+                      </Button>
+                    </div>
                     <textarea
+                      id="own-right"
                       className="paste-input"
                       value={ownRight}
                       spellCheck={false}
@@ -490,7 +550,7 @@ export function App() {
                         store('krona:own-right', event.target.value)
                       }}
                     />
-                  </label>
+                  </div>
                 ) : null}
               </div>
             ) : null}

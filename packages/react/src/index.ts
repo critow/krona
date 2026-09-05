@@ -27,11 +27,14 @@ export type {
 // Re-exported so consumers need only one dependency for the common cases.
 export {
   alignDiff,
+  applyEdit,
   collapseUnchanged,
   DEFAULT_LIMITS,
   detectFormat,
   diffLines,
   findMatches,
+  formattedEdit,
+  getFormat,
   intralineDiff,
   parseDocument,
   registerFormat,
