@@ -180,6 +180,10 @@ const { source, canUndo, canRedo, undo, redo } = useKronaViewer()
 `<Krona.Diff>` stays read-only. Comparing two versions is a different job from
 changing one of them, and a diff has no single document to write to.
 
+All of it works [without React](#without-react-krona-viewer-and-krona-diff) too:
+`<krona-viewer editable>` is the same editing, reporting each change through a
+`krona-change` event, with `undo()` and `redo()` as methods on the element.
+
 **Copying needs no editing.** Both modes offer copy actions on the hovered row —
 the value on its own, and the whole entry, which is the whole block when the
 line opens one. Turn them off with `<Krona.Lines showCopyActions={false} />`.
@@ -473,12 +477,25 @@ Documents are properties rather than attributes — a file is not something a pa
 wants in its markup — though `source`, `left` and `right` work as attributes too
 for short ones. The rest is attributes: `format`, `theme`, `locale`,
 `line-height`, `collapsed-depth`, `overscan`, `selected-line`,
-`show-diagnostics`, `show-search`, `show-actions`, `link-lines`, and for the
-diff `collapse-unchanged`, `context`, `minimum-hidden`, `step`,
+`show-diagnostics`, `show-search`, `show-actions`, `link-lines`, `editable`,
+and for the diff `collapse-unchanged`, `context`, `minimum-hidden`, `step`,
 `ignore-trailing-whitespace`, `show-toolbar`, `show-markers`, `show-minimap`,
-`view` and `narrow-width`. `expandAll()`, `collapseAll()`, `revealLine(n)` and
-`showSide(side)` are methods; folding a block fires `krona-fold`, and picking a
-line out fires `krona-select-line`.
+`view` and `narrow-width`. `expandAll()`, `collapseAll()`, `revealLine(n)`,
+`undo()`, `redo()` and `showSide(side)` are methods; folding a block fires
+`krona-fold`, picking a line out fires `krona-select-line`, and an edit fires
+`krona-change`.
+
+`editable` on a viewer is the same editing as React's: a value is a control, a
+row offers its line, its block, a copy of itself and its removal, and every
+change reports the whole document.
+
+```html
+<krona-viewer id="config" format="toml" editable></krona-viewer>
+<script type="module">
+  const viewer = document.getElementById('config')
+  viewer.addEventListener('krona-change', (event) => save(event.detail.source))
+</script>
+```
 
 Below `narrow-width` the diff shows one version at a time, with a switch between
 them — the width of the element itself, not the window's, so a diff in a sidebar
@@ -496,8 +513,8 @@ Per-framework notes — the `isCustomElement` line Vue needs, Angular's
 `CUSTOM_ELEMENTS_SCHEMA`, and what changes on React 18 — are in the
 [package README](./packages/element/README.md).
 
-**Editing is `kronajs` only for now.** If you need those and can run React, use that
-package.
+A diff is read-only in both packages: editing a comparison would be editing two
+files at once.
 
 ## Using the core without React
 
@@ -594,7 +611,6 @@ Everything below is deliberately absent rather than forgotten.
 
 | Not here yet | Reasoning | Likely |
 | --- | --- | --- |
-| Editing in the custom elements | The element is the reading half so far. Each of these is real work rather than a port, and the React package covers anyone who can run React. | Yes, in order of who asks |
 | More formats (JSON5, XML, `.properties`, HCL) | Each is a provider — an `analyze` and a `tokenize` — behind the same interface. Waiting for someone to actually need one. | Maybe |
 | Semantic diff | Reordering keys *is* a difference in a configuration file. Krona compares text, exactly like git. | Not planned |
 

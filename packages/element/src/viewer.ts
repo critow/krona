@@ -5,8 +5,9 @@ import {
   type Format,
   visibleLines as visibleLinesOf,
 } from '@kronajs/core'
-import { KronaBase, type KronaSelectLineDetail } from './base'
+import { KronaBase, type KronaChangeDetail, type KronaSelectLineDetail } from './base'
 import { Column, type ColumnRow } from './column'
+import { EditSession } from './editing'
 import { SearchBox } from './search'
 
 /**
@@ -34,8 +35,7 @@ import { SearchBox } from './search'
  * string a page wants in its markup — though `source` works as an attribute too
  * for short documents.
  *
- * What this element does not do, which `kronajs` does: searching, editing, row
- * actions and the minimap. Comparing two versions is `<krona-diff>`.
+ * Comparing two versions is `<krona-diff>`.
  */
 export class KronaViewerElement extends KronaBase {
   static readonly observedAttributes = [
@@ -50,6 +50,7 @@ export class KronaViewerElement extends KronaBase {
     'show-diagnostics',
     'show-search',
     'show-actions',
+    'editable',
   ]
 
   #source = ''
@@ -63,6 +64,7 @@ export class KronaViewerElement extends KronaBase {
   #searched: DocumentModel | null = null
   #column: Column
   #search: SearchBox
+  #edit: EditSession
 
   constructor() {
     super('krona-viewer')
@@ -76,9 +78,11 @@ export class KronaViewerElement extends KronaBase {
       isFolded: (startLine) => this.#collapsed.has(startLine),
       toggleFold: (startLine) => this.#toggleFold(startLine),
       selectedLine: () => this.selectedLine,
+      editing: () => this.#editing,
       actions: () => ({
         labels: () => this.currentLabels,
         showCopy: () => this.getAttribute('show-actions') !== 'false',
+        editing: () => this.#editing,
         // The action only appears where someone is listening for it: a control
         // that reports a line nobody receives is a control that does nothing.
         ...(this.#wantsLinks
@@ -95,6 +99,20 @@ export class KronaViewerElement extends KronaBase {
       reveal: (hit) => this.revealLine(hit.lineIndex + 1),
       repaint: () => this.#column.paint(),
     })
+    this.#edit = new EditSession(
+      {
+        labels: () => this.currentLabels,
+        model: () => this.#parsed(),
+        lineHeight: () => this.lineHeight,
+        changed: (source) => this.#changed(source),
+        repaint: () => this.#column.paint(),
+        unfold: (startLine) => {
+          if (!this.#collapsed.delete(startLine)) return
+          this.render()
+        },
+      },
+      this.#source,
+    )
     this.section.append(this.#column.scroll)
   }
 
@@ -106,6 +124,9 @@ export class KronaViewerElement extends KronaBase {
   set source(value: string) {
     if (value === this.#source) return
     this.#source = value
+    // A history of edits to the previous file describes lines this one does not
+    // have, so new text starts a new history.
+    this.#edit.reseed(value)
     this.#model = null
     this.#needsDefaultFold = true
     this.schedule()
@@ -114,6 +135,24 @@ export class KronaViewerElement extends KronaBase {
   /** The parsed document currently on screen, or null before the first render. */
   get model(): DocumentModel | null {
     return this.#model
+  }
+
+  /** Whether there is anything to undo. False where the viewer is read-only. */
+  get canUndo(): boolean {
+    return this.#editable && this.#edit.canUndo
+  }
+
+  get canRedo(): boolean {
+    return this.#editable && this.#edit.canRedo
+  }
+
+  /** Takes back the last edit, and says so through `krona-change`. */
+  undo(): void {
+    if (this.#editable) this.#edit.undo()
+  }
+
+  redo(): void {
+    if (this.#editable) this.#edit.redo()
   }
 
   /** Opens every folding range. */
@@ -202,6 +241,43 @@ export class KronaViewerElement extends KronaBase {
     if (wanted === this.#search.root.isConnected) return
     if (wanted) this.section.insertBefore(this.#search.root, this.#column.scroll)
     else this.#search.root.remove()
+  }
+
+  /**
+   * Whether the reader may change the file.
+   *
+   * Presence is enough — `editable` is a boolean attribute — but `false` is
+   * honoured too, because a framework binding a boolean writes it out.
+   */
+  get #editable(): boolean {
+    return this.hasAttribute('editable') && this.getAttribute('editable') !== 'false'
+  }
+
+  /** The editing session, where there is one: a read-only viewer offers none. */
+  get #editing(): EditSession | undefined {
+    return this.#editable ? this.#edit : undefined
+  }
+
+  /**
+   * Takes in the result of an edit: the element's text is now the session's.
+   *
+   * The fold state is seeded again rather than kept, because an edit moves the
+   * lines under it — a range recorded as starting on line 12 may now start on
+   * line 9, and folding what that number points at afterwards would close a
+   * block the reader never touched.
+   */
+  #changed(source: string): void {
+    this.#source = source
+    this.#model = null
+    this.#needsDefaultFold = true
+    this.render()
+    this.dispatchEvent(
+      new CustomEvent<KronaChangeDetail>('krona-change', {
+        bubbles: true,
+        composed: true,
+        detail: { source },
+      }),
+    )
   }
 
   /** Whether anyone asked to hear which line was picked. */

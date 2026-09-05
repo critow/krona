@@ -8,6 +8,21 @@ Notable changes to Krona. The format follows
 
 ### Added
 
+- Editing in `<krona-viewer>`. `editable` turns the document into something the
+  reader can change: double-click a value to edit it in place, or reach it with
+  the arrows and press Enter; the row actions edit the line as raw text, edit a
+  whole block as raw text, duplicate the entry or delete it. `undo()` and
+  `redo()` are methods on the element, `canUndo` / `canRedo` say whether there
+  is anywhere to step, and every change, undo and redo reports the whole
+  document through a `krona-change` event.
+
+  It is the same editing as the React package, down to the core functions
+  underneath — text edits against a span of the source, re-parsed after, so
+  comments and layout survive and an edit cannot invent syntax the format does
+  not have. Setting `source` again starts a new history: undoing into a file
+  that is no longer open would put back lines it never had. `<krona-diff>` stays
+  read-only, in both packages.
+
 - Row actions and the change map in the custom elements. Hovering a row offers
   the value on the line, the dotted path to it, and the whole block where the
   line opens one; `link-lines` adds a link action, reported as

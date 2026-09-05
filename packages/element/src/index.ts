@@ -18,7 +18,12 @@
 export type { KronaLabels } from '@kronajs/core'
 // Re-exported so a page needs one import for the common cases.
 export { createDefaultLabels, detectFormat, parseDocument, registerFormat } from '@kronajs/core'
-export type { KronaElementTheme, KronaFoldDetail } from './base'
+export type {
+  KronaChangeDetail,
+  KronaElementTheme,
+  KronaFoldDetail,
+  KronaSelectLineDetail,
+} from './base'
 export { KronaDiffElement } from './diff'
 export { KRONA_CSS } from './theme/css'
 export { KronaViewerElement } from './viewer'

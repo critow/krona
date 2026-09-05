@@ -26,6 +26,21 @@
       <h2>A file to fold</h2>
       <krona-viewer id="viewer" format="yaml" theme="dark" collapsed-depth="2"></krona-viewer>
 
+      <h2>A file to change</h2>
+      <p>
+        Add <code>editable</code> and every value becomes a control: double-click one, or reach
+        it with the arrows and press Enter. A row also offers its whole line, its whole block,
+        a copy of itself and its removal. Each change reports the entire document through
+        <code>krona-change</code> — the element edits text, never an object built out of it,
+        so comments and layout survive.
+      </p>
+      <p>
+        <button id="undo" type="button">Undo</button>
+        <button id="redo" type="button">Redo</button>
+        <output id="edits" for="editor">unchanged</output>
+      </p>
+      <krona-viewer id="editor" format="toml" theme="dark" editable></krona-viewer>
+
       <h2>Two versions to compare</h2>
       <krona-diff id="diff" format="json" theme="dark" collapse-unchanged></krona-diff>
 
