@@ -653,9 +653,10 @@ The published packages ask for Node 18.18 or newer — they hold no Node-only co
 and that floor is about the tooling that installs them. Working on Krona itself
 needs 20.19, which is what its own toolchain requires.
 
-Pushing a `v*` tag publishes both packages to npm with provenance and opens a
-GitHub Release. [RELEASING.md](./RELEASING.md) has the steps and the one secret
-the repository needs.
+Pushing a `v*` tag publishes the three packages to npm with provenance and
+opens a GitHub Release. [RELEASING.md](./RELEASING.md) has the steps; the
+repository holds no secrets at all — npm trusts the workflow through OIDC, and
+the job that publishes runs none of the repository's own code.
 
 `pnpm check-docs` reads the public surface out of the source and fails when a
 name stops being mentioned in a language's documents — the README and its

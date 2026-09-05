@@ -6,6 +6,39 @@ Notable changes to Krona. The format follows
 
 ## Unreleased
 
+### Changed
+
+- **The release workflow is two jobs.** `build` holds a read-only token, checks
+  the version's shape before anything reads it, refuses a commit that is not on
+  `main`, runs every check and packs the three tarballs — and now refuses a
+  tarball that lacks its `dist`, which is how `@kronajs/element` 0.3.0 reached
+  npm as three files and no code. `publish` is the only job that writes, runs
+  none of the repository's own code, and sits inside an `npm-publish`
+  environment where a required reviewer goes.
+
+  A version already on npm is compared byte for byte with what this run built
+  rather than downloaded and trusted; the version no longer reaches a shell
+  through string interpolation; `workflow_dispatch` gained a *dry run* that
+  builds, checks and packs while publishing nothing.
+
+- **Every action is pinned to a commit**, with its version in a comment beside
+  it, and Dependabot proposes the bumps. `ci.yml` declares `contents: read`
+  rather than inheriting whatever the repository's default is, no checkout
+  leaves a token in `.git/config`, and the Pages deploy runs in a job that
+  builds nothing.
+
+- `pnpm` will not install a version published less than a day ago
+  (`minimumReleaseAge`), and the last three loose development pins moved into
+  the catalog. Installs from the lockfile — which is every install in CI — are
+  unaffected.
+
+### Added
+
+- `SECURITY.md`: how to report privately, which versions are supported, and
+  what Krona promises about the files it renders.
+- A weekly `pnpm audit` workflow, since a repository that pins everything would
+  otherwise never hear about an advisory.
+
 ### Added
 
 - `kronajs` re-exports `applyEdit`, `formattedEdit` and `getFormat` from the

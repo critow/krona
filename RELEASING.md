@@ -5,6 +5,41 @@ check that guards the published artifact, packs the packages, publishes them to
 npm with provenance, and opens a GitHub Release with the changelog section for
 that version attached to the tarballs.
 
+## Two jobs, and what each one may do
+
+`build` holds a read-only token and does all the work: it checks the version's
+shape before anything reads it, checks the commit is on `main`, runs every
+check, packs the three tarballs and refuses one that lacks its `dist` — which
+is how `@kronajs/element` 0.3.0 reached npm as three files and no code. It
+hands the tarballs to the next job as an artifact.
+
+`publish` is the only job that writes, and it runs none of the repository's own
+code — no install, no build, no test — so nothing but its three steps ever sees
+the right to publish. It runs inside the `npm-publish` environment, whose
+protection rules (a required reviewer, a wait timer) are the last thing between
+a green build and a version that can never be taken back.
+
+Pressing the button from a branch other than `main` does nothing, and a tag on
+a commit that is not on `main` is refused: the button is a way to start a
+release, not a way around review.
+
+**Dry run.** Actions → Release → Run workflow with *dry_run* ticked builds,
+checks and packs everything and publishes nothing. Use it after touching this
+workflow.
+
+**Retries.** A version already on npm is compared byte for byte with the
+tarball this run built: `dist.integrity` from the registry against a `sha512`
+of the local file. A match is a retry and the publish is skipped; a mismatch
+stops the release, because whatever is under that version is not what was built
+here. If a rebuild is ever honestly not reproducible, compare `tar -tzf` of
+both tarballs and attach the registry's copy to the GitHub Release by hand with
+`gh release upload`.
+
+**Actions are pinned to commits.** Every `uses:` in this repository names a
+40-character SHA with the version in a comment beside it. A floating tag can be
+moved; in the workflow that publishes, that would be somebody else's code next
+to the right to publish. Dependabot proposes the bumps.
+
 The publish step is retry-safe. If npm accepted some of the immutable versions
 before a later step failed, the next run skips those uploads and downloads the
 exact registry tarballs for the GitHub Release assets.
@@ -43,11 +78,19 @@ what changed.
 
 ## What the repository needs once
 
-- **A trusted publisher on every npm package** — `kronajs` and `@kronajs/core`
-  each authorize GitHub Actions from `critow/krona`, workflow filename
-  `release.yml`, for `npm publish`. The workflow's `id-token: write` permission
-  lets npm exchange GitHub's OIDC identity for a short-lived publish credential;
-  no `NPM_TOKEN` repository secret is used.
+- **A trusted publisher on every npm package** — `kronajs`, `@kronajs/core` and
+  `@kronajs/element` each authorize GitHub Actions from `critow/krona`, workflow
+  filename `release.yml`, for `npm publish`. The workflow's `id-token: write`
+  permission lets npm exchange GitHub's OIDC identity for a short-lived publish
+  credential; no `NPM_TOKEN` repository secret is used, and the repository has
+  no secrets at all.
+- **An environment named `npm-publish`** (Settings → Environments), with
+  yourself as a required reviewer. The publish job names it, so a release waits
+  for that approval. If the trusted publisher on npm names an environment, it
+  must be this one; if it names none, npm does not check the claim and the
+  environment is purely GitHub's own gate.
+- **Private vulnerability reporting** enabled (Settings → Code security), which
+  is the channel `SECURITY.md` points at.
 - **Publishing access set to disallow bypass-2FA tokens** on every package.
   Trusted publishing continues to work because it authenticates with OIDC, not
   a traditional npm token.

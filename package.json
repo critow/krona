@@ -34,12 +34,12 @@
     "@arethetypeswrong/cli": "catalog:",
     "@biomejs/biome": "catalog:",
     "@playwright/test": "catalog:",
-    "@types/node": "^26.2.0",
+    "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@vitejs/plugin-react": "catalog:",
     "@vitest/browser": "catalog:",
-    "@vitest/browser-playwright": "^4.1.11",
+    "@vitest/browser-playwright": "catalog:",
     "@vitest/coverage-v8": "catalog:",
     "playwright": "catalog:",
     "publint": "catalog:",
@@ -48,6 +48,6 @@
     "typescript": "catalog:",
     "vite": "catalog:",
     "vitest": "catalog:",
-    "vitest-browser-react": "^2.2.0"
+    "vitest-browser-react": "catalog:"
   }
 }
