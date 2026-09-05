@@ -6,6 +6,8 @@ Notable changes to Krona. The format follows
 
 ## Unreleased
 
+## 0.4.0 — 2026-09-05
+
 ### Fixed
 
 - A `.properties` line that is nothing but a backslash produced a token
