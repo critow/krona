@@ -57,6 +57,6 @@ jobs:
       # rights, which GITHUB_TOKEN never has, whatever `permissions:` says.
       # Until that one-time switch is flipped, this step fails with
       # "Resource not accessible by integration".
-      - uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5.0.0
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
       - id: deployment
         uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
