@@ -23,7 +23,7 @@ catalog:
   '@tanstack/virtual-core': 3.17.8
 
   # tooling
-  typescript: 5.9.3
+  typescript: 7.0.2
   tsdown: 0.22.14
   vitest: 4.1.11
   '@vitest/browser': 4.1.11
