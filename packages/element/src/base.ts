@@ -27,6 +27,11 @@ export interface KronaSelectLineDetail {
   readonly side?: 'left' | 'right'
 }
 
+/** What `krona-change` carries: the whole document, as it stands after an edit. */
+export interface KronaChangeDetail {
+  readonly source: string
+}
+
 const asNumber = (value: string | null, fallback: number): number => {
   const parsed = Number(value)
   return value === null || value === '' || Number.isNaN(parsed) ? fallback : parsed

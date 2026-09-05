@@ -1,5 +1,6 @@
 import { blockSpanAt, type DocumentModel, type KronaLabels, valueSpansAt } from '@kronajs/core'
 import { el } from './dom'
+import type { EditSession } from './editing'
 
 /** What a row offers besides its text. */
 export interface RowActionHost {
@@ -8,6 +9,8 @@ export interface RowActionHost {
   readonly showCopy: () => boolean
   /** Present when the host wants to hear which line was picked. */
   readonly selectLine?: (lineIndex: number, side?: 'left' | 'right') => void
+  /** Present where the reader may edit: opens an editor, duplicates, removes. */
+  readonly editing?: () => EditSession | undefined
 }
 
 const SVG = 'http://www.w3.org/2000/svg'
@@ -19,6 +22,11 @@ const TICK = 'M3 8.5 6.4 12 13 4.6'
 // looks like; the path is the copy-path icon's shape at a different angle.
 const LINK =
   'M6.7 9.3a2.4 2.4 0 0 0 3.6.3l2.2-2.2a2.4 2.4 0 0 0-3.4-3.4L8 5.1M9.3 6.7a2.4 2.4 0 0 0-3.6-.3L3.5 8.6a2.4 2.4 0 0 0 3.4 3.4L8 10.9'
+const PENCIL = 'M3 13h2.5l7-7a1.8 1.8 0 0 0-2.5-2.5l-7 7V13Z'
+const BRACES =
+  'M6 2.5H5A1.5 1.5 0 0 0 3.5 4v2.2c0 .7-.6 1.3-1.3 1.3.7 0 1.3.6 1.3 1.3V11A1.5 1.5 0 0 0 5 12.5h1M10 2.5h1A1.5 1.5 0 0 1 12.5 4v2.2c0 .7.6 1.3 1.3 1.3-.7 0-1.3.6-1.3 1.3V11a1.5 1.5 0 0 1-1.5 1.5h-1'
+const TRASH = 'M2.5 4h11M6 4V2.6h4V4M4.2 4l.5 9.4h6.6L11.8 4M6.6 6.4v4.6M9.4 6.4v4.6'
+const PLUS = 'M8 3.2v9.6M3.2 8h9.6'
 const PATH =
   'M6.2 9.8a2.6 2.6 0 0 0 3.9.3l2.4-2.4a2.6 2.6 0 0 0-3.7-3.7l-1.4 1.4M9.8 6.2a2.6 2.6 0 0 0-3.9-.3L3.5 8.3a2.6 2.6 0 0 0 3.7 3.7l1.4-1.4'
 
@@ -75,7 +83,8 @@ export function rowActions(
   const only = values.length === 1 ? values[0] : undefined
   const block = showCopy ? blockSpanAt(model, lineIndex) : undefined
   const path = showCopy ? model.pathAt(lineIndex) : undefined
-  if (!host.selectLine && !only && !block && !path) return null
+  const session = host.editing?.()
+  if (!host.selectLine && !only && !block && !path && !session) return null
 
   const actions = el('span', 'krona-row-actions')
   // The tooltip is a pseudo-element, which a screen reader never sees, and the
@@ -133,6 +142,30 @@ export function rowActions(
       copy(node, labels.copyEntry, model.source.slice(block.start, block.end), true),
     )
     actions.append(node)
+  }
+  if (session) {
+    actions.append(
+      button(labels.editLine, labels.editLine, icon(PENCIL, true), () =>
+        session.editLine(lineIndex),
+      ),
+    )
+    if (model.foldAt(lineIndex)) {
+      actions.append(
+        button(labels.editBlock, labels.editBlock, icon(BRACES), () =>
+          session.editBlock(lineIndex),
+        ),
+      )
+    }
+    actions.append(
+      button(labels.duplicateEntry, labels.duplicateEntry, icon(PLUS), () =>
+        session.duplicate(lineIndex),
+      ),
+    )
+    const remove = button(labels.deleteEntry, labels.deleteEntry, icon(TRASH), () =>
+      session.remove(lineIndex),
+    )
+    remove.className = 'krona-action--danger'
+    actions.append(remove)
   }
   return actions
 }

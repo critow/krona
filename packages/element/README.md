@@ -42,6 +42,7 @@ for short documents.)
 | `show-search` | `false` | Set `true` for a field that finds text in what is on screen |
 | `show-actions` | `true` | Set `false` to take the copy actions off the rows |
 | `link-lines` | off | Present to offer a link action on every row, reported as `krona-select-line` |
+| `editable` | off | Present to let the reader change the file, reported as `krona-change` |
 
 | Member | What it is |
 | --- | --- |
@@ -50,6 +51,8 @@ for short documents.)
 | `labels` | Overrides for the built-in English strings |
 | `expandAll()` / `collapseAll()` | Open or close every folding range |
 | `revealLine(line)` | Open whatever hides a line and scroll to it, counting from 1 |
+| `undo()` / `redo()` | Step through the edit history |
+| `canUndo` / `canRedo` | Whether there is anywhere to step |
 
 ## `<krona-diff>`
 
@@ -117,11 +120,47 @@ whatever hides it — a folded block, a collapsed run of unchanged rows, or both
 
 Hovering a row offers what is worth taking from it: the value on the line, the
 dotted path to it, and the whole block where the line opens one. With
-`link-lines`, a link action too.
+`link-lines`, a link action too, and with `editable`, the editing ones.
 
 A copy that the browser refused says nothing rather than claiming success — the
 Clipboard API needs a secure context and a permission, and refuses outright in
 some embeddings.
+
+## Editing
+
+`editable` turns the document into something the reader can change:
+
+```html
+<krona-viewer id="config" format="toml" editable></krona-viewer>
+
+<script type="module">
+  const viewer = document.getElementById('config')
+  viewer.source = await fetch('config.toml').then((r) => r.text())
+  viewer.addEventListener('krona-change', (event) => save(event.detail.source))
+</script>
+```
+
+Double-click a value to edit it in place, or reach it with the arrows and press
+Enter. The row actions do the rest: edit the line as raw text, edit a whole
+block as raw text, duplicate the entry, delete it. `Enter` commits, `Escape`
+cancels, and in a block editor `Ctrl`/`Cmd` + `Enter` commits, since `Enter`
+there is a line break. `undo()` and `redo()` are methods on the element.
+
+New entries are made by **duplicating** one: a copy is the only new entry
+guaranteed to be valid where it lands — already an entry of this container, in
+this format, at this indentation — and it opens for editing straight away.
+
+Every edit is a **text** edit: it replaces a span of the source and the result is
+parsed again, so an edit cannot invent syntax the format does not have, comments
+survive, and editing works the same in every format. Editing a block reshapes it
+into the layout the file already uses; a value edited in place keeps its line.
+
+The element owns the text once `editable` is set, and hands the whole document
+back on every change, undo and redo. Setting `source` again starts a new history:
+undoing into a file that is no longer open would put back lines it never had.
+
+`<krona-diff>` stays read-only. Comparing two versions is a different job from
+changing one of them, and a diff has no single document to write to.
 
 ## Events
 
@@ -129,6 +168,7 @@ some embeddings.
 | --- | --- | --- |
 | `krona-fold` | `{ line, folded }` | A block is folded or unfolded |
 | `krona-select-line` | `{ line, side? }` | A reader picks a line out, where `link-lines` is set. `side` names the version in a diff |
+| `krona-change` | `{ source }` | The whole document, after every edit, undo and redo |
 
 Lines count from 1. Both events bubble and cross the shadow boundary, so a
 listener on any ancestor sees them.
@@ -187,10 +227,6 @@ also `defineKronaViewer(name?)` and `defineKronaDiff(name?)` if you would rather
 register one, or register under a name of your own.
 
 ## What it does not do
-
-Editing is `kronajs` only for now. If you need those and can run React, use that
-package; the model, folding and diff underneath both live in
-[`@kronajs/core`](https://www.npmjs.com/package/@kronajs/core).
 
 Formats: JSON/JSONC, TOML and INI/.env register from the main entry point; YAML
 lives behind `@kronajs/element/yaml` because its parser is tens of kilobytes.

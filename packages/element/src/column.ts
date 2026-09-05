@@ -18,6 +18,7 @@ import {
 } from '@tanstack/virtual-core'
 import { type RowActionHost, rowActions } from './actions'
 import { chevron, el } from './dom'
+import { type EditSession, editorFor } from './editing'
 
 /** How a row is painted: the diff's four kinds, plus the blank half of a pair. */
 export type RowTone = 'normal' | 'added' | 'removed' | 'changed' | 'spacer'
@@ -80,6 +81,8 @@ export interface ColumnHost {
   readonly showMarkers?: () => boolean
   /** Present where rows carry actions: a link to the line, and what to copy. */
   readonly actions?: () => RowActionHost
+  /** Present where the reader may edit: the open editor and its operations. */
+  readonly editing?: () => EditSession | undefined
   /** Present while a search is open: what to paint on each line. */
   readonly search?: () => {
     readonly matchesAt: (lineIndex: number, side?: 'left' | 'right') => readonly Span[]
@@ -98,6 +101,9 @@ const BRACKETS: Record<FoldKind, readonly [string, string] | null> = {
   array: ['[', ']'],
   scalar: null,
 }
+
+/** Tokens whose text is a value a reader may edit in place. */
+const VALUE_TOKENS: ReadonlySet<string> = new Set(['string', 'number', 'boolean', 'null'])
 
 const MARKERS: Record<RowTone, string> = {
   added: '+',
@@ -233,6 +239,24 @@ export class Column {
       if (!row) continue
       gutterRows.push(this.#gutterRow(row, item.start, digits))
       lineRows.push(this.#lineRow(model, row, item.index, item.start))
+    }
+
+    // A line or block editor covers the whole row, so it sits over the column
+    // rather than inside one row: a textarea three lines tall does not fit in a
+    // row one line high.
+    const session = host.editing?.()
+    const target = session?.target
+    if (session && target && target.kind !== 'value') {
+      const at = items.find((item) => this.#rows[item.index]?.lineIndex === target.lineIndex)
+      if (at) {
+        const overlay = el(
+          'div',
+          'krona-row-overlay',
+          editorFor(session, target, host.labels(), host.lineHeight()),
+        )
+        overlay.style.transform = `translateY(${at.start}px)`
+        lineRows.push(overlay)
+      }
     }
 
     this.gutter.replaceChildren(...gutterRows)
@@ -457,12 +481,23 @@ export class Column {
     if (range) element.setAttribute('aria-expanded', folded ? 'false' : 'true')
     if (folded && range) element.append(this.#placeholder(range, row.side))
 
-    const host = this.#host.actions?.()
-    const actions = host ? rowActions(host, rowModel, lineIndex, row.side) : null
-    if (actions) {
-      element.classList.add('krona-row--actionable')
-      element.append(actions)
+    const session = this.#host.editing?.()
+    const target = session?.target
+    const openHere = target?.lineIndex === lineIndex
+    if (session && target && openHere && target.kind === 'value') {
+      // In place, so the line keeps reading as the line it is.
+      element.replaceChildren(
+        document.createTextNode(text.slice(0, target.start)),
+        ...editorFor(session, target, this.#host.labels(), this.#host.lineHeight()),
+        document.createTextNode(text.slice(target.end)),
+      )
+      return element
     }
+
+    const host = this.#host.actions?.()
+    const actions = openHere ? null : host ? rowActions(host, rowModel, lineIndex, row.side) : null
+    if (actions || (session && !openHere)) element.classList.add('krona-row--actionable')
+    if (actions) element.append(actions)
     return element
   }
 
@@ -497,6 +532,27 @@ export class Column {
       if (segment.changed) classes.push('krona-intraline')
       if (segment.match) classes.push('krona-match')
       if (segment.match === 'current') classes.push('krona-match--current')
+
+      const session = this.#host.editing?.()
+      if (session && segment.token !== undefined && VALUE_TOKENS.has(segment.token)) {
+        classes.push('krona-value')
+        // A real button, not a span with a handler: this is the only way to
+        // reach a value from the keyboard, and it costs nothing visually — the
+        // styles strip a button back to the text it wraps.
+        const node = el('button', classes.join(' '), value)
+        node.type = 'button'
+        // A native title, not the styled tooltip: a bubble popping over every
+        // value under the pointer is noise.
+        node.title = this.#host.labels().editValue
+        const open = () => session.editValue(lineIndex, segment.start, segment.end)
+        node.addEventListener('dblclick', open)
+        node.addEventListener('keydown', (event) => {
+          if (event.key !== 'Enter' && event.key !== ' ') return
+          event.preventDefault()
+          open()
+        })
+        return node
+      }
       if (classes.length === 0) return document.createTextNode(value)
       return el('span', classes.join(' '), value)
     })
