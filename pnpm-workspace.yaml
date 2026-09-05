@@ -18,7 +18,7 @@ catalog:
   react: 19.2.8
   react-dom: 19.2.8
   '@types/react': 19.2.18
-  '@types/react-dom': 19.2.4
+  '@types/react-dom': 19.2.5
   '@tanstack/react-virtual': 3.14.10
   '@tanstack/virtual-core': 3.17.8
 
