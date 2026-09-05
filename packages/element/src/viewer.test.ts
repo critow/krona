@@ -281,3 +281,23 @@ describe('attributes the element watches', () => {
       .not.toBe(null)
   })
 })
+
+describe('the stylesheet each element carries', () => {
+  it('adopts one shared constructed sheet rather than an inline style element', async () => {
+    // CSSOM is not governed by a page's Content-Security-Policy, so this paints
+    // under a strict `style-src` where an inline `<style>` would be refused —
+    // and fifty elements on a page hold one copy of the rules, not fifty.
+    const first = await ready(mount({ format: 'json' }))
+    expect(shadow(first).adoptedStyleSheets).toHaveLength(1)
+    expect(shadow(first).querySelector('style')).toBe(null)
+
+    const second = await ready(mount({ format: 'json' }))
+    expect(shadow(second).adoptedStyleSheets[0]).toBe(shadow(first).adoptedStyleSheets[0])
+  })
+
+  it('still paints the rows it brought the rules for', async () => {
+    const element = await ready(mount({ format: 'json' }))
+    const row = rows(element)[0] as HTMLElement
+    expect(getComputedStyle(row).position).toBe('absolute')
+  })
+})

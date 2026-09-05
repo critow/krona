@@ -27,7 +27,9 @@ import { Krona } from 'kronajs'
 - Folds like an editor; collapsed blocks read `{ 3 items }`.
 - Diffs like git: line based, side by side, with word-level highlighting.
 - Composable — each mode takes apart into the same public parts.
-- Three runtime dependencies: `jsonc-parser`, `yaml`, `diff`.
+- Five packages in the install tree: `jsonc-parser`, `yaml` and `diff` parse and
+  diff; `@tanstack/react-virtual` and its `@tanstack/virtual-core` virtualize. A
+  CI check fails the build if a sixth appears.
 - No `innerHTML`, no JavaScript objects built from your file, bidi and
   zero-width characters shown as visible badges.
 

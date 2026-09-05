@@ -53,6 +53,34 @@ export const asNumber = (
   return Math.min(max, Math.max(min, parsed))
 }
 
+// The host is not styled by the sheet — it knows nothing of a shadow root — so
+// the two rules it needs are stated here.
+const HOST_CSS = ':host { display: block; min-height: 0 }\n:host([hidden]) { display: none }\n'
+
+let sharedSheet: CSSStyleSheet | null | undefined
+
+/**
+ * The stylesheet as one constructed sheet, built the first time it is asked for
+ * and adopted by every element after that.
+ *
+ * CSSOM is not governed by a page's Content-Security-Policy, so an element
+ * paints under a strict `style-src` where an inline `<style>` would be refused
+ * — and a page holding fifty elements holds one copy of the rules rather than
+ * fifty. `null` where a browser cannot construct one, and the `<style>` comes
+ * back for that page.
+ */
+function sharedStylesheet(): CSSStyleSheet | null {
+  if (sharedSheet !== undefined) return sharedSheet
+  try {
+    const sheet = new CSSStyleSheet()
+    sheet.replaceSync(HOST_CSS + KRONA_CSS)
+    sharedSheet = sheet
+  } catch {
+    sharedSheet = null
+  }
+  return sharedSheet
+}
+
 /**
  * What `<krona-viewer>` and `<krona-diff>` have in common: a shadow root with
  * the stylesheet in it, the attributes that say how to paint rather than what,
@@ -79,11 +107,14 @@ export abstract class KronaBase extends HTMLElement {
     this.#resolved = resolveLabels(undefined, undefined)
 
     const root = this.attachShadow({ mode: 'open' })
-    const style = document.createElement('style')
-    // The host is not styled by the sheet — it knows nothing of a shadow root —
-    // so the two rules it needs are stated here.
-    style.textContent = `:host { display: block; min-height: 0 }\n:host([hidden]) { display: none }\n${KRONA_CSS}`
-    root.append(style)
+    const sheet = 'adoptedStyleSheets' in root ? sharedStylesheet() : null
+    if (sheet) {
+      root.adoptedStyleSheets = [sheet]
+    } else {
+      const style = document.createElement('style')
+      style.textContent = HOST_CSS + KRONA_CSS
+      root.append(style)
+    }
 
     this.#diagnostics = el('div', 'krona-diagnostics')
     this.#diagnostics.setAttribute('role', 'status')

@@ -146,10 +146,17 @@ function patchName(label: string, format: string): string {
   return first.includes('.') ? first : `config.${format}`
 }
 
-/** Text held between reloads, when the browser allows it. */
+/**
+ * Text held between reloads of this tab, and no longer.
+ *
+ * `sessionStorage`, not `localStorage`: what a reader pastes here is a
+ * configuration file, sometimes a `.env`, and `github.io` is one origin shared
+ * by every project page hosted on it. Keeping it after the tab closes would
+ * leave it there for the next page, and for the next person at the machine.
+ */
 function readStored(key: string): string {
   try {
-    return globalThis.localStorage?.getItem(key) ?? ''
+    return globalThis.sessionStorage?.getItem(key) ?? ''
   } catch {
     // A private window, or site data switched off. The demo works without it.
     return ''
@@ -158,7 +165,7 @@ function readStored(key: string): string {
 
 function store(key: string, value: string): void {
   try {
-    globalThis.localStorage?.setItem(key, value)
+    globalThis.sessionStorage?.setItem(key, value)
   } catch {
     // Nothing to do: the page keeps the text in memory either way.
   }

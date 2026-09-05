@@ -5,12 +5,17 @@ import type { DocumentModel, Line } from './types'
  *
  * A trailing newline does not produce a phantom empty line, which keeps line
  * counts equal to what editors and `wc -l + 1` report.
+ *
+ * With `limit`, the scan stops once that many lines exist: a caller about to
+ * drop the rest has no reason to pay for splitting it, and a file that is ten
+ * million newlines is exactly the caller that would.
  */
-export function splitLines(source: string): string[] {
+export function splitLines(source: string, limit = Number.POSITIVE_INFINITY): string[] {
   if (source === '') return ['']
+  if (limit < 1) return []
   const out: string[] = []
   let start = 0
-  for (let i = 0; i < source.length; i++) {
+  for (let i = 0; i < source.length && out.length < limit; i++) {
     const ch = source.charCodeAt(i)
     if (ch === 10 /* \n */) {
       out.push(source.slice(start, i))
@@ -21,7 +26,9 @@ export function splitLines(source: string): string[] {
       start = i + 1
     }
   }
-  if (start <= source.length - 1 || start === 0) out.push(source.slice(start))
+  if (out.length < limit && (start <= source.length - 1 || start === 0)) {
+    out.push(source.slice(start))
+  }
   return out
 }
 

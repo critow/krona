@@ -63,7 +63,62 @@ cost more than it should.
 - `visibleText(text)` in the core: the same bidi and invisible characters the
   rows badge, written as `U+XXXX` for the places that can only hold text.
 
+- **`maxLines`, a parse limit of its own**, 1 000 000 by default. Size alone
+  never bounded the work: ten million newlines fit inside `maxInputLength` and
+  still ask for a record per line, plus every array that runs beside them. Past
+  it the first million lines open as plain text with a `too-many-lines`
+  diagnostic, and the split stops there rather than at the end of the string.
+
+- **`styleNonce` on `<Krona.Root>`**, written onto the `<style>` it injects, for
+  a page whose Content-Security-Policy names a nonce in `style-src`.
+  `injectStyles` takes the same through its new second argument, and
+  `InjectStylesOptions` is exported.
+
+- **A threat model, written down** in both READMEs: what a hostile file cannot
+  do — text nodes only, no object built from a document, a default for every
+  bound, literal search, badged bidi — which inputs remain the host's to trust,
+  and that anything breaking one of those promises is a security bug. Tests pin
+  the parts that are testable: markup in a value renders as characters, a
+  `javascript:` value never becomes a link, `__proto__` is an ordinary key.
+
+- `SECURITY.md`: how to report privately, which versions are supported, and
+  what Krona promises about the files it renders.
+- A weekly `pnpm audit` workflow, since a repository that pins everything would
+  otherwise never hear about an advisory.
+
+- `kronajs` re-exports `applyEdit`, `formattedEdit` and `getFormat` from the
+  core, so a consumer can format a whole document — or ask whether the format
+  has a formatter at all — without adding `@kronajs/core` as a second
+  dependency.
+
+- The demo's **Your file** pane has a **Format** button. Krona still never
+  reformats a document it is handed: folding is by line, the diff compares
+  lines, and rewriting the text on the way in would show something nobody
+  wrote — so a minified config pasted into the box is one row with nothing to
+  fold, which is exactly what the reader did not mean. The button applies the
+  provider's own formatter to the whole document on request, and is disabled
+  for the formats that have none.
+
 ### Changed
+
+- **The custom elements adopt one constructed stylesheet** rather than each
+  writing an inline `<style>` into its shadow root. CSSOM is not governed by
+  `style-src`, so the elements paint under a strict Content-Security-Policy with
+  nothing for the page to allow, and fifty of them on a page hold one copy of
+  the rules instead of fifty. A browser that cannot construct a sheet gets the
+  `<style>` back.
+
+- **The diff has a size limit as well as a clock.** `timeout` bounds Myers
+  itself and nothing before it — splitting both files, hashing every line to
+  find anchors and building the row list all happen before it is ever consulted,
+  and on a pair of very large files that is where the time goes. Past
+  `maxInputLength` — the parse limit by default, and `<Krona.Diff>` passes the
+  host's own — the coarse prefix/suffix result comes back at once.
+
+- **The demo ships a Content-Security-Policy** and holds pasted text in
+  `sessionStorage` rather than `localStorage`. What a reader pastes here is a
+  configuration file, sometimes a `.env`, and `github.io` is one origin shared
+  by every project page hosted on it; the text now lives no longer than the tab.
 
 - **The release workflow is two jobs.** `build` holds a read-only token, checks
   the version's shape before anything reads it, refuses a commit that is not on
@@ -89,27 +144,10 @@ cost more than it should.
   the catalog. Installs from the lockfile — which is every install in CI — are
   unaffected.
 
-### Added
-
-- `SECURITY.md`: how to report privately, which versions are supported, and
-  what Krona promises about the files it renders.
-- A weekly `pnpm audit` workflow, since a repository that pins everything would
-  otherwise never hear about an advisory.
-
-### Added
-
-- `kronajs` re-exports `applyEdit`, `formattedEdit` and `getFormat` from the
-  core, so a consumer can format a whole document — or ask whether the format
-  has a formatter at all — without adding `@kronajs/core` as a second
-  dependency.
-
-- The demo's **Your file** pane has a **Format** button. Krona still never
-  reformats a document it is handed: folding is by line, the diff compares
-  lines, and rewriting the text on the way in would show something nobody
-  wrote — so a minified config pasted into the box is one row with nothing to
-  fold, which is exactly what the reader did not mean. The button applies the
-  provider's own formatter to the whole document on request, and is disabled
-  for the formats that have none.
+- Two documentation claims corrected: the elements' shadow root is **open**, so
+  what it isolates is styling and not the DOM, and the React package's install
+  tree is five packages rather than the three it names as dependencies —
+  `@tanstack/react-virtual` brings `@tanstack/virtual-core` with it.
 
 ## 0.4.0 — 2026-09-05
 

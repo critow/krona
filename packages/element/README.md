@@ -182,10 +182,13 @@ its parent, and Enter or Space toggles the block on the current row.
 
 ## Styles
 
-The stylesheet travels inside each element's own shadow root, so nothing on the
-page can reach in and nothing leaks out. Theming is the same `--krona-*` custom
-properties as the React package, and custom properties *do* cross a shadow
-boundary, so setting them on any ancestor still works:
+The stylesheet travels inside each element's own shadow root as a constructed
+stylesheet, so the page's CSS does not reach the rows, Krona's CSS does not leak
+out, and a strict `style-src` has nothing to refuse — CSSOM is not governed by a
+Content-Security-Policy. The root is **open**, so scripts on the page can still
+inspect it; what is isolated is the styling, not the DOM. Theming is the same
+`--krona-*` custom properties as the React package, and custom properties *do*
+cross a shadow boundary, so setting them on any ancestor still works:
 
 ```css
 krona-viewer {

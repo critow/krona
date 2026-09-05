@@ -1,4 +1,5 @@
 import { diffArrays } from 'diff'
+import { DEFAULT_LIMITS } from '../model/limits'
 import { splitLines } from '../model/lines'
 import { anchoredDiff, mergeChanges } from './anchor'
 
@@ -45,6 +46,18 @@ export interface LineDiffOptions {
    * `'myers'` runs the plain algorithm over the whole document.
    */
   readonly strategy?: 'anchored' | 'myers'
+  /**
+   * Longest input, in characters, the exact algorithm is run on at all.
+   *
+   * The timeout bounds Myers itself, and nothing else: splitting both files,
+   * hashing every line to find anchors and building the row list all happen
+   * before the clock is consulted, and on a pair of very large files that is
+   * where the time and the memory go. Past this length the coarse
+   * prefix/suffix result comes back at once, with `approximate: true`. Same
+   * default as `parseDocument`'s own `maxInputLength`, since a document that
+   * was too big to parse has nothing to gain from an exact diff.
+   */
+  readonly maxInputLength?: number
 }
 
 const DEFAULT_TIMEOUT = 1500
@@ -73,6 +86,19 @@ function trimEnd(value: string): string {
  * ```
  */
 export function diffLines(left: string, right: string, options?: LineDiffOptions): DiffResult {
+  const max = options?.maxInputLength ?? DEFAULT_LIMITS.maxInputLength
+  if (left.length > max || right.length > max) {
+    const leftLines = splitLines(left)
+    const rightLines = splitLines(right)
+    const compareLeft = options?.ignoreTrailingWhitespace ? leftLines.map(trimEnd) : leftLines
+    const compareRight = options?.ignoreTrailingWhitespace ? rightLines.map(trimEnd) : rightLines
+    return {
+      left: leftLines,
+      right: rightLines,
+      changes: approximate(compareLeft, compareRight),
+      approximate: true,
+    }
+  }
   return diffLineArrays(splitLines(left), splitLines(right), options)
 }
 

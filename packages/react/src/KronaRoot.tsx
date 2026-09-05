@@ -39,6 +39,12 @@ export interface KronaRootProps {
    * render on the server). Default true.
    */
   injectStyles?: boolean
+  /**
+   * `nonce` for the injected `<style>`, for a page whose
+   * Content-Security-Policy names one in `style-src`. No effect with
+   * `injectStyles={false}`, which is the other way to satisfy such a policy.
+   */
+  styleNonce?: string
   className?: string
   style?: CSSProperties
   children?: ReactNode
@@ -66,13 +72,14 @@ export function KronaRoot({
   limits,
   providers,
   injectStyles: shouldInject = true,
+  styleNonce,
   className,
   style,
   children,
 }: KronaRootProps) {
   useInsertionEffect(() => {
-    if (shouldInject) injectStyles()
-  }, [shouldInject])
+    if (shouldInject) injectStyles(undefined, styleNonce ? { nonce: styleNonce } : undefined)
+  }, [shouldInject, styleNonce])
 
   const resolvedLabels = useMemo(() => resolveLabels(labels, locale), [labels, locale])
 

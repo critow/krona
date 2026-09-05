@@ -167,15 +167,28 @@ export function parseDocument(
   const registry = options?.providers ?? defaultRegistry
   const diagnostics: Diagnostic[] = []
 
-  const texts = splitLines(source)
+  const { maxInputLength, maxLines } = resolved.limits
+  // One line past the limit is all it takes to know the limit was crossed, and
+  // stops the split there rather than at the end of a very long string.
+  const texts = splitLines(source, maxLines + 1)
+  const tooManyLines = texts.length > maxLines
+  if (tooManyLines) texts.length = maxLines
   const lines = toLines(texts)
 
-  if (source.length > resolved.limits.maxInputLength) {
-    diagnostics.push({
-      severity: 'error',
-      code: 'input-too-large',
-      message: `Input is ${source.length} characters, over the ${resolved.limits.maxInputLength} limit; folding and highlighting are disabled.`,
-    })
+  if (source.length > maxInputLength || tooManyLines) {
+    diagnostics.push(
+      source.length > maxInputLength
+        ? {
+            severity: 'error',
+            code: 'input-too-large',
+            message: `Input is ${source.length} characters, over the ${maxInputLength} limit; folding and highlighting are disabled.`,
+          }
+        : {
+            severity: 'error',
+            code: 'too-many-lines',
+            message: `Input has more than ${maxLines} lines; the first ${maxLines} are shown, without folding or highlighting.`,
+          },
+    )
     return new Document({
       format: 'text',
       source,
