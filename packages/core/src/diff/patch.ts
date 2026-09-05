@@ -80,6 +80,17 @@ function span(start: number, count: number): string {
 }
 
 /**
+ * A file name fit for a header line.
+ *
+ * A patch is line-oriented: a name carrying a line break would end the header
+ * early and let the rest of it pose as hunks of its own. The pattern is two
+ * characters and cannot backtrack.
+ */
+function headerName(name: string): string {
+  return name.replace(/[\r\n]+/g, ' ')
+}
+
+/**
  * The diff as a unified patch — the text `diff -u` prints and `git apply` reads.
  *
  * Built from the aligned rows rather than from a fresh diff, so the patch is of
@@ -122,7 +133,10 @@ export function unifiedPatch(
   }
   if (hunks.length === 0) return ''
 
-  const out: string[] = [`--- ${options?.from ?? 'a'}`, `+++ ${options?.to ?? 'b'}`]
+  const out: string[] = [
+    `--- ${headerName(options?.from ?? 'a')}`,
+    `+++ ${headerName(options?.to ?? 'b')}`,
+  ]
   for (const hunk of hunks) {
     const slice = ops.slice(hunk.start, hunk.end)
     const removed = slice.filter((op) => op.kind !== 'add').length

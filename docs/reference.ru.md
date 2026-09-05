@@ -311,6 +311,7 @@ function plural(n: number, one: string, few: string, many: string): string {
 | --- | --- |
 | `buildSegments(text, tokens, intraline, whole, matches?, current?)` | `Segment[]` — отрезки, на которые распадается строка после наложения токенов, словесных подсветок, совпадений поиска и опасных символов |
 | `scanUnsafeCharacters(text)` | Bidi- и невидимые символы с позициями |
+| `visibleText(text)` | Те же символы, записанные как `U+XXXX` — для мест, где плашку не нарисовать |
 | `hasUnsafeCharacters(text)` | Есть ли они в строке вообще, без аллокаций |
 
 ### Поиск

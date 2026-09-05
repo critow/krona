@@ -1,4 +1,10 @@
-import { blockSpanAt, type DocumentModel, type KronaLabels, valueSpansAt } from '@kronajs/core'
+import {
+  blockSpanAt,
+  type DocumentModel,
+  type KronaLabels,
+  valueSpansAt,
+  visibleText,
+} from '@kronajs/core'
 import { el } from './dom'
 import type { EditSession } from './editing'
 
@@ -133,7 +139,9 @@ export function rowActions(
     actions.append(node)
   }
   if (path) {
-    const tip = `${labels.copyPath}: ${path}`
+    // Badged, like the rows: a tooltip cannot carry one, and a key holding a
+    // bidi override would make the path read differently from what it is.
+    const tip = `${labels.copyPath}: ${visibleText(path)}`
     const node = button(labels.copyPath, tip, icon(PATH), () => copy(node, tip, path, false))
     actions.append(node)
   }

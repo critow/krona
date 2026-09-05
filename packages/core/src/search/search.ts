@@ -71,7 +71,10 @@ export function findMatches(
   options: SearchOptions = {},
 ): SearchResult {
   if (query.length === 0) return EMPTY
-  const limit = options.limit ?? DEFAULT_LIMIT
+  // A limit that is not a number would never stop the walk: `matches.length >=
+  // NaN` is false however many there are.
+  const asked = options.limit
+  const limit = asked === undefined || Number.isNaN(asked) ? DEFAULT_LIMIT : asked
   if (limit <= 0) return EMPTY
 
   const caseSensitive = options.caseSensitive ?? false

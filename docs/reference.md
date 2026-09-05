@@ -311,6 +311,7 @@ this is the whole list.
 | --- | --- |
 | `buildSegments(text, tokens, intraline, whole, matches?, current?)` | `Segment[]` — the runs a line splits into once tokens, word-level highlights, search matches and unsafe characters are merged |
 | `scanUnsafeCharacters(text)` | Bidi and invisible characters, with positions |
+| `visibleText(text)` | The same characters written as `U+XXXX`, for a place that cannot carry a badge |
 | `hasUnsafeCharacters(text)` | Whether the line holds any, allocation free |
 
 ### Search

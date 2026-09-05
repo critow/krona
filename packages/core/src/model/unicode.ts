@@ -82,3 +82,29 @@ export function hasUnsafeCharacters(text: string): boolean {
   }
   return false
 }
+
+/**
+ * Text with every bidi and invisible character replaced by its `U+XXXX` label.
+ *
+ * The rows paint those characters as badges, but a tooltip drawn by CSS from an
+ * attribute cannot carry a badge — and a key holding a right-to-left override
+ * would make the path a reader is about to copy read differently from what it
+ * is. This is the same substitution, flattened into text, for the places that
+ * can only hold text.
+ *
+ * @example
+ * ```ts
+ * visibleText('user\u202Eadmin') // 'userU+202Eadmin'
+ * ```
+ */
+export function visibleText(text: string): string {
+  const spans = scanUnsafeCharacters(text)
+  if (spans.length === 0) return text
+  let out = ''
+  let from = 0
+  for (const span of spans) {
+    out += text.slice(from, span.start) + span.label
+    from = span.end
+  }
+  return out + text.slice(from)
+}

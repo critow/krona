@@ -71,7 +71,7 @@ export type {
   TokenType,
 } from './model/types'
 export type { UnsafeKind, UnsafeSpan } from './model/unicode'
-export { hasUnsafeCharacters, scanUnsafeCharacters } from './model/unicode'
+export { hasUnsafeCharacters, scanUnsafeCharacters, visibleText } from './model/unicode'
 export type { HitPosition, MatchIndex, SearchHit } from './search/hits'
 export { hitFrom, hitsInRowOrder, indexByLine } from './search/hits'
 export type { SearchMatch, SearchOptions, SearchResult } from './search/search'

@@ -125,6 +125,26 @@ describe('editing in Krona.Viewer', () => {
     }
   })
 
+  it('shows a hidden character in the copy-path tooltip as its code', async () => {
+    // The rows badge bidi and invisible characters; a tooltip drawn by CSS from
+    // an attribute cannot, so the path is flattened with the same labels — or a
+    // key with an override in it would read differently from what it copies.
+    const rlo = String.fromCharCode(0x202e)
+    const screen = await render(
+      <Krona format="json">
+        <Krona.Viewer source={`{\n  "user${rlo}admin": 1\n}`}>
+          <Krona.Gutter />
+          <Krona.Lines />
+        </Krona.Viewer>
+      </Krona>,
+    )
+    const copyPath = await rowAction(screen.container, 1, 'Copy path')
+    expect(copyPath).toBeDefined()
+    const tip = copyPath?.getAttribute('data-tip') ?? ''
+    expect(tip).toContain('U+202E')
+    expect(tip).not.toContain(rlo)
+  })
+
   it('duplicates an entry and opens the copy for editing', async () => {
     const screen = await render(<Harness />)
     await expect.poll(() => valueButtons(screen.container).length).toBeGreaterThan(0)

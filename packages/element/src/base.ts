@@ -32,9 +32,25 @@ export interface KronaChangeDetail {
   readonly source: string
 }
 
-const asNumber = (value: string | null, fallback: number): number => {
+/**
+ * A numeric attribute, held between `min` and `max`.
+ *
+ * Attributes arrive as text from markup nobody here wrote — a template, a CMS
+ * field, a sanitizer that let one through — and `Number()` accepts `Infinity`
+ * and `1e9` as readily as `8`. `overscan="1e9"` asks the virtualizer to render
+ * every row of the document at once, which is a frozen tab; the element
+ * declines and uses its default instead of arguing.
+ */
+export const asNumber = (
+  value: string | null,
+  fallback: number,
+  min: number,
+  max: number,
+): number => {
+  if (value === null || value === '') return fallback
   const parsed = Number(value)
-  return value === null || value === '' || Number.isNaN(parsed) ? fallback : parsed
+  if (!Number.isFinite(parsed)) return fallback
+  return Math.min(max, Math.max(min, parsed))
 }
 
 /**
@@ -113,7 +129,26 @@ export abstract class KronaBase extends HTMLElement {
 
   /** Width below which the layout gives up on two columns. `0` turns it off. */
   protected get narrowWidth(): number {
-    return Math.max(0, asNumber(this.getAttribute('narrow-width'), 640))
+    return asNumber(this.getAttribute('narrow-width'), 640, 0, 100_000)
+  }
+
+  /**
+   * Answers the width question again from the element's current size.
+   *
+   * The observer only speaks when the element resizes, and `narrow-width` moves
+   * the threshold without moving the element: without this, a diff told to
+   * unify at a wider mark would keep two panels until something else nudged it.
+   */
+  protected remeasure(): void {
+    this.#setNarrow(this.getBoundingClientRect().width)
+  }
+
+  #setNarrow(width: number): void {
+    const threshold = this.narrowWidth
+    const narrow = threshold > 0 && width > 0 && width < threshold
+    if (narrow === this.#narrow) return
+    this.#narrow = narrow
+    this.schedule()
   }
 
   #watchWidth(): void {
@@ -121,13 +156,8 @@ export abstract class KronaBase extends HTMLElement {
     this.#resize = new ResizeObserver((entries) => {
       const entry = entries[0]
       if (!entry) return
-      const threshold = this.narrowWidth
       // `borderBoxSize` where it exists; the rect is the fallback and agrees.
-      const width = entry.borderBoxSize?.[0]?.inlineSize ?? entry.contentRect.width
-      const narrow = threshold > 0 && width > 0 && width < threshold
-      if (narrow === this.#narrow) return
-      this.#narrow = narrow
-      this.schedule()
+      this.#setNarrow(entry.borderBoxSize?.[0]?.inlineSize ?? entry.contentRect.width)
     })
     this.#resize.observe(this)
   }
@@ -143,23 +173,25 @@ export abstract class KronaBase extends HTMLElement {
   }
 
   protected get lineHeight(): number {
-    return Math.max(1, asNumber(this.getAttribute('line-height'), 20))
+    return asNumber(this.getAttribute('line-height'), 20, 1, 1000)
   }
 
   protected get overscan(): number {
-    return Math.max(0, asNumber(this.getAttribute('overscan'), 8))
+    return Math.floor(asNumber(this.getAttribute('overscan'), 8, 0, 500))
   }
 
   /** Zero-based, because everything inside is; one-based at the attribute. */
   protected get selectedLine(): number | null {
-    const line = asNumber(this.getAttribute('selected-line'), 0)
+    const line = Math.floor(
+      asNumber(this.getAttribute('selected-line'), 0, 0, Number.MAX_SAFE_INTEGER),
+    )
     return line > 0 ? line - 1 : null
   }
 
   /** `undefined` collapses nothing, which is a different answer from `0`. */
   protected get collapsedDepth(): number | undefined {
     const depth = this.getAttribute('collapsed-depth')
-    return depth === null ? undefined : Math.max(0, asNumber(depth, 0))
+    return depth === null ? undefined : Math.floor(asNumber(depth, 0, 0, 10_000))
   }
 
   protected parse(source: string, format: Format): DocumentModel {
