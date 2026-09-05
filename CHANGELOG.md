@@ -8,6 +8,52 @@ Notable changes to Krona. The format follows
 
 ### Added
 
+- **JSON5**, behind `kronajs/json5` (`@kronajs/core/json5`,
+  `@kronajs/element/json5`). Unquoted keys, single-quoted strings, hex and
+  signed numbers, `Infinity` and `NaN`, trailing commas, `//` and `/* */`
+  comments, and strings continued onto the next line with a backslash — all
+  folding, pathing and highlighting the same way JSON already does.
+
+  Its scanner — like those of the three formats below — is hand-written and
+  brings no dependency with it: Krona needs the shape of a file and the class of
+  each span, never its value. In each of them one scanner serves both the
+  folding and the highlighting, so the two cannot disagree about where a comment
+  ends.
+
+  `format="auto"` picks JSON5 only over files JSON could not hold — an unquoted
+  key, a single-quoted string. A document that is valid JSON is JSON.
+
+- **XML**, behind `kronajs/xml` (`@kronajs/core/xml`, `@kronajs/element/xml`).
+  Elements fold from their start tag to their end tag; tag names, attributes and
+  their values are painted apart; comments and CDATA sections carry across every
+  line they cover, and a start tag may run over several lines. A repeated
+  sibling gets an index, so the path of the second `<upstream>` is
+  `server.upstreams.upstream[1]`.
+
+  Forgiving by design: a tag nobody closed still folds to the end of the file
+  and is reported as a diagnostic, because a configuration file being edited is
+  unclosed about half the time.
+
+  A folding range may now be `kind: 'element'`, which collapses as
+  `< 3 items />` rather than borrowing an object's braces.
+
+- **HCL**, behind `kronajs/hcl` (`@kronajs/core/hcl`, `@kronajs/element/hcl`) —
+  the language Terraform and friends are written in. Blocks fold with their
+  labels, and a block is named by its type and labels together, so the path of
+  an attribute reads `resource.aws_instance.web.ami`. Objects, lists and
+  heredocs fold; all three kinds of comment are marked; a heredoc's contents are
+  its own text, so a `#` inside one is a shebang rather than a comment.
+
+- **Java properties**, behind `kronajs/properties` (`@kronajs/core/properties`,
+  `@kronajs/element/properties`). `#` and `!` comments, `=`, `:` or a bare space
+  between a key and its value, escapes taken off a key before it becomes a path,
+  and a value continued with a trailing backslash — which folds to one row,
+  because it is one entry however many lines it is written across.
+
+  INI already read most such files and keeps them: `format="auto"` prefers the
+  properties provider only where INI would read a file wrongly — an `!` comment,
+  a continuation, a key separated from its value by nothing but a space.
+
 - Editing in `<krona-viewer>`. `editable` turns the document into something the
   reader can change: double-click a value to edit it in place, or reach it with
   the arrows and press Enter; the row actions edit the line as raw text, edit a

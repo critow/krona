@@ -312,7 +312,7 @@ function format(
 export const jsonProvider: FormatProvider = {
   id: 'json',
   displayName: 'JSON / JSONC',
-  extensions: ['.json', '.jsonc', '.json5', '.webmanifest'],
+  extensions: ['.json', '.jsonc', '.webmanifest'],
   detect,
   analyze,
   tokenize,

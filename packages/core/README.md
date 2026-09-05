@@ -40,7 +40,10 @@ pollution through a `__proto__` key by construction.
 | `toSnapshot` / `fromSnapshot` | Structured-clone-safe projection, for Web Workers |
 
 Formats: JSON/JSONC, TOML and INI/.env register from the main entry point; YAML
-lives behind `@kronajs/core/yaml` because its parser is tens of kilobytes.
+lives behind `@kronajs/core/yaml` because its parser is tens of kilobytes, and
+JSON5, XML, HCL and Java properties behind `@kronajs/core/json5`, `/xml`, `/hcl`
+and `/properties`, so a bundle that never opens one does not carry its
+scanner.
 
 ## License
 

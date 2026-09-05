@@ -5,7 +5,6 @@ export interface SnippetInput {
   theme: string
   locale: string
   mode: 'viewer' | 'diff'
-  yaml: boolean
   lineHeight: number
   collapsedDepth: number | undefined
   overscan: number
@@ -26,6 +25,21 @@ const punct = (text: string): CodeToken => ({ text, kind: 'punct' })
 const plain = (text: string): CodeToken => ({ text })
 
 const DEFAULTS = { lineHeight: 20, overscan: 8, context: 3, minimumHidden: 10, step: 20 }
+
+/**
+ * The formats that need an import of their own.
+ *
+ * The three the main entry point registers are absent on purpose: a line the
+ * reader does not have to write does not belong in the shortest code that
+ * produces this view.
+ */
+const ENTRY_POINTS: Record<string, string | undefined> = {
+  yaml: 'kronajs/yaml',
+  json5: 'kronajs/json5',
+  xml: 'kronajs/xml',
+  hcl: 'kronajs/hcl',
+  properties: 'kronajs/properties',
+}
 
 /**
  * Builds the snippet that reproduces exactly what the page is showing.
@@ -55,7 +69,8 @@ export function buildSnippet(input: SnippetInput): CodeToken[] {
   ]
 
   line(punct('import'), plain(' { Krona } '), punct('from'), plain(' '), str("'kronajs'"))
-  if (input.yaml) line(punct('import'), plain(' '), str("'kronajs/yaml'"))
+  const entry = ENTRY_POINTS[input.format]
+  if (entry) line(punct('import'), plain(' '), str(`'${entry}'`))
   line()
 
   const rootProps: CodeToken[] = [

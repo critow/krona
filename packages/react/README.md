@@ -32,7 +32,8 @@ import { Krona } from 'kronajs'
   zero-width characters shown as visible badges.
 
 YAML lives behind `kronajs/yaml` so its parser never reaches a bundle that only
-shows JSON. The headless model and diff are published separately as
+shows JSON; JSON5, XML, HCL and Java properties live behind `kronajs/json5`,
+`kronajs/xml`, `kronajs/hcl` and `kronajs/properties` for the same reason. The headless model and diff are published separately as
 [`@kronajs/core`](https://www.npmjs.com/package/@kronajs/core).
 
 The [full README](https://github.com/critow/krona#readme) covers every prop,

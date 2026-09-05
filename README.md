@@ -10,7 +10,7 @@
 **Fold, diff and edit configuration files — a React component that never turns your file
 into an object.**
 
-JSON/JSONC · YAML · TOML · INI/.env
+JSON/JSONC · YAML · TOML · INI/.env · JSON5 · XML · HCL · .properties
 
 [**Explore the demo →**](https://critow.github.io/krona/)
 
@@ -90,12 +90,17 @@ pipeline, pass `injectStyles={false}` and `import 'kronajs/styles.css'` yourself
 
 ## Formats
 
-Importing `kronajs` registers **JSON/JSONC**, **TOML** and **INI/.env**. YAML sits
-behind its own entry point, because the `yaml` parser is tens of kilobytes and
-should not land in a bundle that only ever shows JSON:
+Importing `kronajs` registers **JSON/JSONC**, **TOML** and **INI/.env**.
+Everything else sits behind its own entry point, so a bundle that only ever
+shows JSON carries neither the `yaml` parser (tens of kilobytes) nor a scanner
+for a format it never opens:
 
 ```tsx
 import 'kronajs/yaml'
+import 'kronajs/json5'
+import 'kronajs/xml'
+import 'kronajs/hcl'
+import 'kronajs/properties'
 ```
 
 `format="auto"` sniffs the content, but only among providers you actually
@@ -106,6 +111,10 @@ diagnostic instead of throwing.
 | Format | Entry point | What folds |
 | --- | --- | --- |
 | JSON / JSONC | `kronajs` | Objects and arrays; comments and trailing commas allowed |
+| JSON5 | `kronajs/json5` | Objects and arrays, with unquoted keys, single quotes, hex numbers and comments |
+| XML | `kronajs/xml` | Elements, from the start tag to the end tag; attributes, comments and CDATA highlight |
+| HCL / Terraform | `kronajs/hcl` | Blocks with their labels, objects, lists and heredocs |
+| Java properties | `kronajs/properties` | A value continued over several lines; `!` comments and a space for a separator |
 | YAML | `kronajs/yaml` | Indentation, block scalars (`\|`, `>`), multi-line flow collections |
 | TOML | `kronajs` | `[table]` and `[[array of tables]]`, nested by dotted path; multi-line strings and arrays |
 | INI | `kronajs` | `[section]`, nested by dotted name |
@@ -602,7 +611,8 @@ its own size.
 ## Roadmap
 
 Krona shows one configuration file, or two of them — side by side or in one
-column — lets you [edit](#editing) the single file and [search](#search) either,
+column — in [eight formats](#formats), lets you [edit](#editing) the single file
+and [search](#search) either,
 [links to a line](#linking-to-a-line) — in one document or in a comparison —
 and writes a diff out as a [unified patch](#reference). It does that in React, and the viewer and diff
 [without a framework](#without-react-krona-viewer-and-krona-diff) as well.
@@ -611,7 +621,6 @@ Everything below is deliberately absent rather than forgotten.
 
 | Not here yet | Reasoning | Likely |
 | --- | --- | --- |
-| More formats (JSON5, XML, `.properties`, HCL) | Each is a provider — an `analyze` and a `tokenize` — behind the same interface. Waiting for someone to actually need one. | Maybe |
 | Semantic diff | Reordering keys *is* a difference in a configuration file. Krona compares text, exactly like git. | Not planned |
 
 Issues and pull requests are welcome. See [Development](#development) for the

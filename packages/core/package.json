@@ -32,6 +32,46 @@
         "default": "./dist/formats/json.cjs"
       }
     },
+    "./json5": {
+      "import": {
+        "types": "./dist/formats/json5.d.mts",
+        "default": "./dist/formats/json5.mjs"
+      },
+      "require": {
+        "types": "./dist/formats/json5.d.cts",
+        "default": "./dist/formats/json5.cjs"
+      }
+    },
+    "./xml": {
+      "import": {
+        "types": "./dist/formats/xml.d.mts",
+        "default": "./dist/formats/xml.mjs"
+      },
+      "require": {
+        "types": "./dist/formats/xml.d.cts",
+        "default": "./dist/formats/xml.cjs"
+      }
+    },
+    "./hcl": {
+      "import": {
+        "types": "./dist/formats/hcl.d.mts",
+        "default": "./dist/formats/hcl.mjs"
+      },
+      "require": {
+        "types": "./dist/formats/hcl.d.cts",
+        "default": "./dist/formats/hcl.cjs"
+      }
+    },
+    "./properties": {
+      "import": {
+        "types": "./dist/formats/properties.d.mts",
+        "default": "./dist/formats/properties.mjs"
+      },
+      "require": {
+        "types": "./dist/formats/properties.d.cts",
+        "default": "./dist/formats/properties.cjs"
+      }
+    },
     "./yaml": {
       "import": {
         "types": "./dist/formats/yaml.d.mts",
@@ -100,6 +140,11 @@
     "config",
     "configuration",
     "jsonc",
+    "json5",
+    "xml",
+    "hcl",
+    "terraform",
+    "properties",
     "dotenv",
     "code-folding",
     "typescript"

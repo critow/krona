@@ -10,7 +10,7 @@
 **Свернуть, сравнить и отредактировать конфигурационный файл — React-компонент, который
 никогда не превращает ваш файл в объект.**
 
-JSON/JSONC · YAML · TOML · INI/.env
+JSON/JSONC · YAML · TOML · INI/.env · JSON5 · XML · HCL · .properties
 
 [**Открыть демо →**](https://critow.github.io/krona/)
 
@@ -90,12 +90,17 @@ import { Krona } from 'kronajs'
 
 ## Форматы
 
-Импорт `kronajs` регистрирует **JSON/JSONC**, **TOML** и **INI/.env**. YAML вынесен
-в отдельную точку входа: парсер `yaml` весит десятки килобайт и не должен
-попадать в бандл тем, кому нужен только JSON:
+Импорт `kronajs` регистрирует **JSON/JSONC**, **TOML** и **INI/.env**. Всё
+остальное вынесено в отдельные точки входа: в бандл тем, кому нужен только JSON,
+не должны попадать ни парсер `yaml` (десятки килобайт), ни сканер формата,
+который на этой странице никто не откроет:
 
 ```tsx
 import 'kronajs/yaml'
+import 'kronajs/json5'
+import 'kronajs/xml'
+import 'kronajs/hcl'
+import 'kronajs/properties'
 ```
 
 `format="auto"` определяет формат по содержимому, но только среди реально
@@ -106,6 +111,10 @@ plain text с диагностикой, а не в исключение.
 | Формат | Точка входа | Что сворачивается |
 | --- | --- | --- |
 | JSON / JSONC | `kronajs` | Объекты и массивы; комментарии и висящие запятые допустимы |
+| JSON5 | `kronajs/json5` | Объекты и массивы, с некавыченными ключами, одинарными кавычками, hex-числами и комментариями |
+| XML | `kronajs/xml` | Элементы, от открывающего тега до закрывающего; атрибуты, комментарии и CDATA подсвечиваются |
+| HCL / Terraform | `kronajs/hcl` | Блоки с метками, объекты, списки и heredoc'и |
+| Java properties | `kronajs/properties` | Значение, продолженное на несколько строк; комментарии `!` и пробел вместо разделителя |
 | YAML | `kronajs/yaml` | Отступы, блочные скаляры (`\|`, `>`), многострочные flow-коллекции |
 | TOML | `kronajs` | `[table]` и `[[array of tables]]`, вложенность по составному имени; многострочные строки и массивы |
 | INI | `kronajs` | `[section]`, вложенность по составному имени |
@@ -476,12 +485,24 @@ npm install @kronajs/element
 хочет держать в разметке (для коротких документов `source`, `left` и `right`
 работают и атрибутами). Остальное — атрибуты: `format`, `theme`, `locale`,
 `line-height`, `collapsed-depth`, `overscan`, `selected-line`,
-`show-diagnostics`, `show-search`, `show-actions`, `link-lines`, а для диффа ещё
-`collapse-unchanged`, `context`, `minimum-hidden`, `step`,
+`show-diagnostics`, `show-search`, `show-actions`, `link-lines`, `editable`, а
+для диффа ещё `collapse-unchanged`, `context`, `minimum-hidden`, `step`,
 `ignore-trailing-whitespace`, `show-toolbar`, `show-markers`, `show-minimap`,
-`view` и `narrow-width`. `expandAll()`, `collapseAll()`, `revealLine(n)` и
-`showSide(side)` — методы; сворачивание блока шлёт `krona-fold`, а выбор строки —
-`krona-select-line`.
+`view` и `narrow-width`. `expandAll()`, `collapseAll()`, `revealLine(n)`,
+`undo()`, `redo()` и `showSide(side)` — методы; сворачивание блока шлёт
+`krona-fold`, выбор строки — `krona-select-line`, а правка — `krona-change`.
+
+`editable` у вьюера — то же редактирование, что и в React: значение становится
+контролом, строка отдаёт свою строку целиком, свой блок, свою копию и своё
+удаление, а каждая правка отдаёт наружу весь документ:
+
+```html
+<krona-viewer id="config" format="toml" editable></krona-viewer>
+<script type="module">
+  const viewer = document.getElementById('config')
+  viewer.addEventListener('krona-change', (event) => save(event.detail.source))
+</script>
+```
 
 Ниже `narrow-width` дифф показывает по одной версии за раз, с переключателем
 между ними. Меряется ширина самого элемента, а не окна: диффу в сайдбаре тесно
@@ -500,8 +521,8 @@ CSS-переменные `--krona-*` границу shadow DOM пересека�
 для Angular и что меняется на React 18 — в
 [README пакета](./packages/element/README.md).
 
-**Редактирование пока только в `kronajs`.** Если нужно это и React доступен, берите тот
-пакет.
+Дифф доступен только на чтение в обоих пакетах: править сравнение — это править
+сразу два файла.
 
 ## Ядро без React
 
@@ -594,8 +615,6 @@ Krona показывает один конфигурационный файл и
 
 | Чего пока нет | Почему | Вероятность |
 | --- | --- | --- |
-| Редактирование в кастомных элементах | Элемент пока умеет читать. Каждый пункт — работа, а не перенос, а тем, у кого есть React, всё это уже доступно. | Да, по мере запросов |
-| Другие форматы (JSON5, XML, `.properties`, HCL) | Каждый — это провайдер, `analyze` и `tokenize` за тем же интерфейсом. Ждём, когда кому-то реально понадобится. | Может быть |
 | Семантический дифф | Перестановка ключей — это *настоящее* различие в конфиге. Krona сравнивает текст, ровно как git. | Не планируется |
 
 Issues и pull request'ы приветствуются. Команды — в разделе
