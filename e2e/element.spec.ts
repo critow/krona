@@ -14,7 +14,7 @@ test.describe('@kronajs/element on a plain page', () => {
     page.on('pageerror', (error) => failures.push(String(error)))
     await page.goto('/element.html')
 
-    const viewer = page.locator('krona-viewer')
+    const viewer = page.locator('#viewer')
     const diff = page.locator('krona-diff')
     await expect(viewer.locator('.krona-lines .krona-row').first()).toBeVisible()
     await expect(diff.locator('.krona-panel--left .krona-lines .krona-row').first()).toBeVisible()
@@ -30,7 +30,7 @@ test.describe('@kronajs/element on a plain page', () => {
 
   test('carries its own styles into the shadow root', async ({ page }) => {
     await page.goto('/element.html')
-    const frame = page.locator('krona-viewer .krona')
+    const frame = page.locator('#viewer .krona')
     await expect(frame).toBeVisible()
     // The page's own stylesheet cannot reach inside a shadow root, so a painted
     // background is proof the element brought the sheet with it.
@@ -39,7 +39,7 @@ test.describe('@kronajs/element on a plain page', () => {
 
   test('folds a block from the gutter', async ({ page }) => {
     await page.goto('/element.html')
-    const viewer = page.locator('krona-viewer')
+    const viewer = page.locator('#viewer')
     await expect(viewer.locator('.krona-lines .krona-row').first()).toBeVisible()
     // The document's full height, not the rendered row count: rows are
     // virtualized, so the window stays just as full whatever is hidden inside
@@ -55,5 +55,28 @@ test.describe('@kronajs/element on a plain page', () => {
     await viewer.locator('.krona-fold-toggle[aria-expanded="true"]').first().click()
     await expect.poll(heightOf).toBeLessThan(before)
     await expect(viewer.locator('.krona-fold-placeholder').first()).toBeVisible()
+  })
+
+  test('edits a value and takes the edit back', async ({ page }) => {
+    await page.goto('/element.html')
+    const editor = page.locator('#editor')
+    const value = editor.locator('.krona-value').first()
+    await expect(value).toBeVisible()
+    const original = await value.textContent()
+
+    await value.dblclick()
+    const field = editor.locator('.krona-editor-input')
+    await expect(field).toBeVisible()
+    await field.fill('"krona-e2e"')
+    await field.press('Enter')
+
+    // The page holds the text, so the readout is proof the event carried it out
+    // of the shadow root.
+    await expect(page.locator('#edits')).toHaveText(/1 change,/)
+    await expect(editor).toContainText('krona-e2e')
+
+    await page.locator('#undo').click()
+    await expect(editor).not.toContainText('krona-e2e')
+    if (original) await expect(editor).toContainText(original)
   })
 })
