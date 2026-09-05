@@ -1,0 +1,19 @@
+version: 2
+updates:
+  # The workflows pin every action to a commit, which is safe and invisible:
+  # nothing would ever tell us a pinned action had a fix. This does.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    # One pull request for the toolchain, so a week of minor bumps is one
+    # review rather than a dozen. Runtime dependencies come one at a time:
+    # there are five of them and each is a decision.
+    groups:
+      tooling:
+        dependency-type: development

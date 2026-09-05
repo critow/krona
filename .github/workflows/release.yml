@@ -5,18 +5,22 @@ on:
     tags: ['v*']
   # The same release, started by hand. A tag can only be pushed from a machine
   # with a git remote; this button is reachable from a phone, and from anything
-  # holding an API token. Both paths run the identical job.
+  # holding an API token. Both paths run the identical jobs.
   workflow_dispatch:
     inputs:
       version:
         description: 'Version to release, without the leading v — 0.2.0'
         required: true
         type: string
+      dry_run:
+        description: 'Build, check and pack everything; publish nothing'
+        required: false
+        type: boolean
+        default: false
 
+# Read-only by default. The one job that writes asks for more, and only it.
 permissions:
-  # The GitHub Release, and the OIDC token npm needs to attest provenance.
-  contents: write
-  id-token: write
+  contents: read
 
 concurrency:
   # Keyed by the version rather than the ref, so a tag push and a manual run for
@@ -27,17 +31,31 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  release:
+  build:
+    # The button can be pressed from any branch, and a branch is not a review.
+    # A tag push is checked further down, against main itself.
+    if: github.event_name == 'push' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.release.outputs.version }}
+      tag: ${{ steps.release.outputs.tag }}
     steps:
-      - uses: actions/checkout@v6
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v6
+      # Every action is pinned to the commit its floating tag pointed at when
+      # this file was written: a tag can be moved, and this workflow is the one
+      # place in the repository where somebody else's code runs next to the
+      # right to publish. The version in the comment is what that commit is.
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          # No credential in .git/config while the build and the tests run.
+          persist-credentials: false
+          # The whole history: the released commit is checked against main below.
+          fetch-depth: 0
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4.3.0
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           # Trusted publishing requires npm >= 11.5.1 and Node >= 22.14.
           # The current npm reference workflow uses Node 24.
           node-version: 24
-          registry-url: https://registry.npmjs.org
           package-manager-cache: false
       - run: pnpm install --frozen-lockfile
 
@@ -52,12 +70,29 @@ jobs:
           # for it. Everything downstream reads these two values and never has
           # to know which way the run started.
           version="${ASKED_FOR:-${REF_NAME#v}}"
+          # Held to the shape of a version here, before it reaches a file name,
+          # a registry query or any other command.
+          if [[ ! "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::'$version' is not a version"
+            exit 2
+          fi
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "tag=v$version" >> "$GITHUB_OUTPUT"
           echo "Releasing $version from $GITHUB_SHA"
 
+      - name: Check the commit is on main
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::$GITHUB_SHA is not on main; releases are cut from main only"
+            exit 1
+          fi
+
       - name: Check the version against the repository
-        run: node scripts/release-check.mjs "${{ steps.release.outputs.version }}" --notes-out release-notes.md
+        env:
+          VERSION: ${{ steps.release.outputs.version }}
+        run: node scripts/release-check.mjs "$VERSION" --notes-out release-notes.md
 
       # The tag names a commit that already passed CI, but this is the last
       # gate before a version becomes permanent, so everything that guards the
@@ -82,23 +117,90 @@ jobs:
           pnpm --filter kronajs pack --pack-destination packs
           pnpm --filter @kronajs/element pack --pack-destination packs
 
-      - name: Publish to npm
+      - name: Check the tarballs hold what the manifests promise
         env:
           VERSION: ${{ steps.release.outputs.version }}
         run: |
           set -euo pipefail
-          version="$VERSION"
-          publish_or_fetch() {
+          # `files: ["dist"]` on a package whose dist was never built packs a
+          # manifest and a README and nothing else — which is exactly what
+          # @kronajs/element 0.3.0 turned out to be on npm. Publishing is the
+          # one step that cannot be taken back, so the bytes are read first.
+          holds() {
+            tarball="$1"
+            shift
+            for entry in "$@"; do
+              if ! tar -tzf "$tarball" | grep -qx "$entry"; then
+                echo "::error::$tarball lacks $entry"
+                exit 1
+              fi
+            done
+            echo "$(basename "$tarball"): $(tar -tzf "$tarball" | wc -l) files"
+          }
+          holds "packs/kronajs-core-$VERSION.tgz" \
+            package/package.json package/dist/index.mjs package/dist/index.cjs package/dist/index.d.mts
+          holds "packs/kronajs-$VERSION.tgz" \
+            package/package.json package/dist/index.mjs package/dist/index.cjs package/dist/index.d.mts package/dist/styles.css
+          holds "packs/kronajs-element-$VERSION.tgz" \
+            package/package.json package/dist/index.mjs package/dist/index.cjs package/dist/index.d.mts package/dist/styles.css
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: release-${{ steps.release.outputs.version }}
+          path: |
+            packs/
+            release-notes.md
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    needs: build
+    if: ${{ !inputs.dry_run }}
+    runs-on: ubuntu-latest
+    # The only job that writes anywhere: npm through OIDC, the GitHub Release
+    # through the token. It runs nothing of the repository's own — no install,
+    # no build, no test — so nothing but these three steps ever sees the right
+    # to publish. The environment is where a required reviewer or a wait timer
+    # goes, between a green build and a version that can never be taken back.
+    environment: npm-publish
+    permissions:
+      contents: write
+      id-token: write
+    env:
+      VERSION: ${{ needs.build.outputs.version }}
+      TAG: ${{ needs.build.outputs.tag }}
+    steps:
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: release-${{ needs.build.outputs.version }}
+
+      - name: Publish to npm
+        run: |
+          set -euo pipefail
+          publish_or_verify() {
             package="$1"
             tarball="$2"
 
-            # A retry must not overwrite an immutable version. Download the
-            # exact npm artifact so the eventual GitHub Release carries the
-            # same bytes even when the first run stopped after publishing.
-            if npm view "${package}@${version}" version >/dev/null 2>&1; then
-              echo "${package}@${version} is already published, skipping"
-              rm "$tarball"
-              npm pack "${package}@${version}" --pack-destination packs
+            if npm view "${package}@${VERSION}" version >/dev/null 2>&1; then
+              # Already there: from an earlier run of this release that stopped
+              # later, or from somewhere this workflow knows nothing about. The
+              # bytes decide which. A version that does not match what was
+              # built here is not this release, and the run stops rather than
+              # attaching a stranger's tarball to the GitHub Release.
+              expected=$(npm view "${package}@${VERSION}" dist.integrity)
+              actual="sha512-$(openssl dgst -sha512 -binary "$tarball" | base64 -w 0)"
+              if [ "$expected" != "$actual" ]; then
+                echo "::error::${package}@${VERSION} on npm is not the tarball built here"
+                echo "npm:   $expected"
+                echo "built: $actual"
+                exit 1
+              fi
+              echo "${package}@${VERSION} is already published with these bytes, skipping"
             else
               # npm exchanges GitHub's OIDC token for a short-lived publish
               # credential. Trusted publishing adds provenance automatically.
@@ -106,16 +208,17 @@ jobs:
             fi
           }
 
-          # Core first: both adapters' dependency on it is now a real version
-          # range, and a dependency that does not exist yet fails install.
-          publish_or_fetch @kronajs/core "./packs/kronajs-core-${version}.tgz"
-          publish_or_fetch kronajs "./packs/kronajs-${version}.tgz"
-          publish_or_fetch @kronajs/element "./packs/kronajs-element-${version}.tgz"
+          # Core first: both adapters' dependency on it is a real version range,
+          # and a dependency that does not exist yet fails install.
+          publish_or_verify @kronajs/core "./packs/kronajs-core-${VERSION}.tgz"
+          publish_or_verify kronajs "./packs/kronajs-${VERSION}.tgz"
+          publish_or_verify @kronajs/element "./packs/kronajs-element-${VERSION}.tgz"
 
       - name: Create or update the GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ steps.release.outputs.tag }}
+          GH_REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
           # The release can already exist by the time this step runs: a re-run
@@ -126,7 +229,7 @@ jobs:
           #
           # `--verify-tag` is gone because a manual run is the one case where
           # the tag legitimately does not exist yet: `gh` creates it here, on
-          # the commit this run tested. What that flag guarded against — a
+          # the commit the build job tested. What that flag guarded against — a
           # release cut for a version nobody meant — is caught earlier and
           # harder by release-check, which refuses a version the packages and
           # the changelog do not both agree on.
@@ -137,6 +240,6 @@ jobs:
             gh release create "$TAG" \
               --title "$TAG" \
               --notes-file release-notes.md \
-              --target "$GITHUB_SHA" \
+              --target "$SHA" \
               packs/*.tgz
           fi
