@@ -28,7 +28,7 @@ catalog:
   vitest: 4.1.11
   '@vitest/browser': 4.1.11
   '@vitest/coverage-v8': 4.1.11
-  '@biomejs/biome': 2.5.10
+  '@biomejs/biome': 2.5.11
   vite: 8.2.2
   '@vitejs/plugin-react': 6.1.0
   playwright: 1.62.1
