@@ -8,14 +8,6 @@ Notable changes to Krona. The format follows
 
 ## 0.4.0 — 2026-09-05
 
-### Fixed
-
-- A `.properties` line that is nothing but a backslash produced a token
-  reaching one character past the end of it. Found by fuzzing, which the four
-  new providers now take part in: random input, tokens that must stay inside
-  their line and never overlap, folding ranges that must be well formed, and
-  input nested three thousand deep.
-
 ### Added
 
 - **JSON5**, behind `kronajs/json5` (`@kronajs/core/json5`,
@@ -119,6 +111,12 @@ Notable changes to Krona. The format follows
   `#R42` for the current, the way GitHub does.
 
 ### Fixed
+
+- A `.properties` line that is nothing but a backslash produced a token
+  reaching one character past the end of it. Found by fuzzing, which the four
+  new providers now take part in: random input, tokens that must stay inside
+  their line and never overlap, folding ranges that must be well formed, and
+  input nested three thousand deep.
 
 - **The custom element's narrow layout did not work.** It set `hidden` on the
   panel it meant to put away, and `.krona-panel` sets `display: flex`, which
