@@ -44,6 +44,9 @@ export interface Dict {
   yourFile: string
   yourFileNote: string
   pastePlaceholder: string
+  /** Writing the pasted document the way its format is usually written. */
+  formatDocument: string
+  formatUnsupported: string
   before: string
   after: string
   detected: string
@@ -99,6 +102,8 @@ const en: Dict = {
   yourFile: 'Your file',
   yourFileNote: 'Paste a config. The format is detected from the text; nothing leaves the page.',
   pastePlaceholder: 'Paste JSON, JSON5, YAML, TOML, INI, XML, HCL or .properties here',
+  formatDocument: 'Format',
+  formatUnsupported: 'Krona has no formatter for this format yet',
   before: 'Before',
   after: 'After',
   detected: 'detected',
@@ -173,6 +178,8 @@ const ru: Dict = {
   yourFile: 'Свой файл',
   yourFileNote: 'Вставьте конфиг. Формат определяется по тексту; со страницы ничего не уходит.',
   pastePlaceholder: 'Вставьте сюда JSON, JSON5, YAML, TOML, INI, XML, HCL или .properties',
+  formatDocument: 'Форматировать',
+  formatUnsupported: 'Для этого формата у Krona пока нет форматтера',
   before: 'Было',
   after: 'Стало',
   detected: 'определён',
