@@ -59,6 +59,18 @@ describe('findMatches', () => {
   })
 })
 
+describe('a query is text, never a pattern', () => {
+  it('matches regex metacharacters as the characters they are', () => {
+    const doc = parseDocument('cost: $5 (a+b)\nnothing here', 'text')
+    // A pattern typed into a text field is one a stranger can type too, and a
+    // viewer that stops answering is worse than one that cannot match `\\d+`.
+    expect(findMatches(doc, '(a+b)').matches).toHaveLength(1)
+    expect(findMatches(doc, '$5').matches).toHaveLength(1)
+    expect(findMatches(doc, '.').matches).toHaveLength(0)
+    expect(findMatches(doc, '(a+)+$').matches).toHaveLength(0)
+  })
+})
+
 describe('a limit that is not a number', () => {
   it('keeps the default cap instead of walking without one', () => {
     // `matches.length >= NaN` is false however many there are.

@@ -263,3 +263,51 @@ async function userPressEnter(): Promise<void> {
   active?.click()
   await Promise.resolve()
 }
+
+/**
+ * The promises the README makes about a hostile file, pinned where they are
+ * kept: in the rendered DOM. Each of these passes today — they are here to fail
+ * the day something makes them stop being true.
+ */
+describe('what a hostile document cannot do', () => {
+  it('renders markup inside a document as text, never as elements', async () => {
+    const payload = '<img src=x onerror=alert(1)><script>alert(2)</script>'
+    const screen = await render(
+      <Krona format="json">
+        <Krona.Viewer source={`{"html": "${payload}"}`} />
+      </Krona>,
+    )
+    await expect
+      .poll(() => screen.container.querySelectorAll('.krona-lines .krona-row').length)
+      .toBe(1)
+    expect(screen.container.querySelector('img, script')).toBe(null)
+    expect(screen.container.textContent).toContain('onerror')
+  })
+
+  it('never turns a value into a link', async () => {
+    const screen = await render(
+      <Krona format="json">
+        <Krona.Viewer source={'{"a": "javascript:alert(1)", "b": "https://example.com"}'} />
+      </Krona>,
+    )
+    await expect
+      .poll(() => screen.container.querySelectorAll('.krona-lines .krona-row').length)
+      .toBe(1)
+    expect(screen.container.textContent).toContain('example.com')
+    expect(screen.container.querySelector('a')).toBe(null)
+  })
+
+  it('shows __proto__ and constructor as the ordinary keys they are', async () => {
+    const screen = await render(
+      <Krona format="json">
+        <Krona.Viewer source={'{\n  "__proto__": {"polluted": true},\n  "constructor": 1\n}'} />
+      </Krona>,
+    )
+    await expect
+      .poll(() => screen.container.querySelectorAll('.krona-lines .krona-row').length)
+      .toBe(4)
+    expect(screen.container.textContent).toContain('__proto__')
+    // Nothing was built out of the document, so there was nothing to pollute.
+    expect(({} as Record<string, unknown>).polluted).toBeUndefined()
+  })
+})

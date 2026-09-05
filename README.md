@@ -54,6 +54,7 @@ JSON/JSONC · YAML · TOML · INI/.env · JSON5 · XML · HCL · .properties
 - [Large files and Web Workers](#large-files-and-web-workers)
 - [Without React: `<krona-viewer>` and `<krona-diff>`](#without-react-krona-viewer-and-krona-diff)
 - [Using the core without React](#using-the-core-without-react)
+- [Threat model](#threat-model)
 - [Design notes](#design-notes)
 - [Roadmap](#roadmap)
 - [Development](#development)
@@ -514,9 +515,13 @@ Arrow keys walk the document the same way they do in React: Tab enters the tree
 once, ↑ / ↓ move by row, → opens a folded block and then steps into it, ← closes
 one and then walks out to its parent.
 
-Each element brings the stylesheet into its own shadow root, so nothing on the
-page reaches in and nothing leaks out. Theming is unchanged: `--krona-*` custom
-properties cross a shadow boundary, so setting them on any ancestor still works.
+Each element brings the stylesheet into its own shadow root as a constructed
+stylesheet, so the page's CSS does not reach the rows, Krona's CSS does not leak
+out, and a Content-Security-Policy has nothing to refuse — CSSOM is not governed
+by `style-src`. The root is **open**, so scripts on the page can still inspect
+it; the isolation is of styles, not of the DOM. Theming is unchanged: `--krona-*`
+custom properties cross a shadow boundary, so setting them on any ancestor still
+works.
 
 Per-framework notes — the `isCustomElement` line Vue needs, Angular's
 `CUSTOM_ELEMENTS_SCHEMA`, and what changes on React 18 — are in the
@@ -568,6 +573,38 @@ const { rows, stats } = alignDiff(diffLines(before, after))
 | `scanUnsafeCharacters(text)` | Bidi and invisible characters, with positions |
 | `visibleText(text)` | The same characters written as `U+XXXX`, for a place that cannot carry a badge |
 | `toSnapshot` / `fromSnapshot` | Structured-clone-safe projection, for workers |
+
+## Threat model
+
+A file shown in Krona is untrusted input, and the library is built so that the
+worst a hostile one can do is look wrong:
+
+- **Content reaches the page as text nodes only.** No `innerHTML`, no
+  autolinking, no attribute assembled from a document. The linter enforces the
+  first; tests pin the rest, including that `<script>` in a value renders as
+  characters and a `javascript:` value never becomes a link.
+- **No JavaScript object is ever built from a file**, so `__proto__` and
+  `constructor` are keys like any other and prototype pollution has nothing to
+  pollute. The registry is a `Map`, paths are strings, per-line state is typed
+  arrays.
+- **Every parser bound has a default** in `DEFAULT_LIMITS` — size, line count,
+  depth, folding ranges, tokenized line length, YAML validation — and past any
+  of them the document degrades to plain text with a diagnostic rather than a
+  frozen tab. Search is a literal scan, never a regular expression. YAML
+  aliases are never expanded.
+- **Bidi overrides and invisible characters are painted as `U+XXXX` badges** —
+  in the rows, and flattened the same way into the copy-path tooltip, which
+  cannot carry a badge.
+
+What stays with the host: `labels`, `className`, `style`, `locale`, the parse
+`limits` and the file names given to `unifiedPatch` are trusted inputs — pass
+them from your own code, not from a document. A page with a
+Content-Security-Policy passes its nonce as `styleNonce`, or imports
+`kronajs/styles.css` itself; the custom elements need neither, since their
+stylesheet is constructed rather than inlined.
+
+Anything that breaks one of these promises is a security bug — the channel for
+reporting it privately is in [SECURITY.md](./SECURITY.md).
 
 ## Design notes
 

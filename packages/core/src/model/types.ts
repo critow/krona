@@ -93,6 +93,15 @@ export interface Diagnostic {
 export interface ParseLimits {
   /** Maximum accepted input size in UTF-16 code units. Default 10 MiB. */
   readonly maxInputLength: number
+  /**
+   * Maximum number of lines kept.
+   *
+   * Size alone does not bound the work: a file of ten million newlines fits
+   * inside `maxInputLength` and still asks for a record per line, plus the
+   * arrays that run beside them. Past this many the rest is dropped and the
+   * document opens as plain text with a diagnostic. Default 1_000_000.
+   */
+  readonly maxLines: number
   /** Folding ranges deeper than this are dropped. Default 64. */
   readonly maxDepth: number
   /** Total folding ranges kept. Default 200_000. */

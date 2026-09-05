@@ -156,9 +156,19 @@ export function KronaDiff({
     [labels, config.labels, config.locale],
   )
 
+  // The parse limit is the diff's limit too: a host that raised or lowered how
+  // much text it is willing to parse meant the same for comparing it, and a
+  // document already too large to parse has nothing to gain from an exact diff.
+  const maxInputLength = config.limits?.maxInputLength
   const aligned = useMemo(
-    () => alignDiff(diffLines(leftModel.source, rightModel.source, { ignoreTrailingWhitespace })),
-    [leftModel.source, rightModel.source, ignoreTrailingWhitespace],
+    () =>
+      alignDiff(
+        diffLines(leftModel.source, rightModel.source, {
+          ignoreTrailingWhitespace,
+          ...(maxInputLength === undefined ? {} : { maxInputLength }),
+        }),
+      ),
+    [leftModel.source, rightModel.source, ignoreTrailingWhitespace, maxInputLength],
   )
 
   const rowIndex = useMemo(

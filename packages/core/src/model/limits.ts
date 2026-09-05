@@ -7,6 +7,7 @@ import type { ParseLimits, ParseOptions, ResolvedParseOptions } from './types'
 export const DEFAULT_LIMITS: ParseLimits = {
   maxInputLength: 10 * 1024 * 1024,
   maxDepth: 64,
+  maxLines: 1_000_000,
   maxFoldRanges: 200_000,
   maxTokenizedLineLength: 10_000,
   maxValidatedLength: 64 * 1024,
@@ -34,6 +35,7 @@ export function resolveOptions(options: ParseOptions | undefined): ResolvedParse
   return {
     limits: {
       maxInputLength: bound(overrides.maxInputLength, DEFAULT_LIMITS.maxInputLength),
+      maxLines: bound(overrides.maxLines, DEFAULT_LIMITS.maxLines),
       maxDepth: bound(overrides.maxDepth, DEFAULT_LIMITS.maxDepth),
       maxFoldRanges: bound(overrides.maxFoldRanges, DEFAULT_LIMITS.maxFoldRanges),
       maxTokenizedLineLength: bound(

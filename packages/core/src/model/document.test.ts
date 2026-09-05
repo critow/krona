@@ -22,7 +22,40 @@ describe('splitLines', () => {
   })
 })
 
+describe('splitLines with a limit', () => {
+  it('stops once it has the lines it was asked for', () => {
+    expect(splitLines('a\nb\nc', 2)).toEqual(['a', 'b'])
+    expect(splitLines('a\nb\nc', 3)).toEqual(['a', 'b', 'c'])
+    expect(splitLines('a\nb\nc', 9)).toEqual(['a', 'b', 'c'])
+    expect(splitLines('abc', 1)).toEqual(['abc'])
+  })
+
+  it('still reads a trailing newline the way it does without one', () => {
+    expect(splitLines('a\n', 5)).toEqual(['a'])
+    expect(splitLines('', 5)).toEqual([''])
+    expect(splitLines('\n', 5)).toEqual([''])
+  })
+})
+
 describe('parseDocument', () => {
+  it('keeps only the first lines of a document with too many of them', () => {
+    // Size alone does not bound the work: a file of newlines fits under
+    // `maxInputLength` and still asks for a record per line.
+    const model = parseDocument('a\nb\nc\nd', 'json', { limits: { maxLines: 2 } })
+    expect(model.format).toBe('text')
+    expect(model.lines.map((line) => line.text)).toEqual(['a', 'b'])
+    expect(model.diagnostics[0]?.code).toBe('too-many-lines')
+    expect(model.foldingRanges).toEqual([])
+  })
+
+  it('stops splitting an oversized document at the line limit', () => {
+    const model = parseDocument('x\n'.repeat(1000), 'json', {
+      limits: { maxInputLength: 100, maxLines: 10 },
+    })
+    expect(model.lines).toHaveLength(10)
+    expect(model.diagnostics[0]?.code).toBe('input-too-large')
+  })
+
   it('falls back to plain text for an unknown format, with a diagnostic', () => {
     const model = parseDocument('hello', 'klingon')
     expect(model.format).toBe('text')

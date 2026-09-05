@@ -73,6 +73,30 @@ describe('diffLines', () => {
   })
 })
 
+describe('a diff past maxInputLength', () => {
+  it('answers with the coarse result at once', () => {
+    // The timeout bounds Myers and nothing else: the splitting, the hashing and
+    // the row list all happen before the clock is ever consulted.
+    const result = diffLines('a\nb', 'a\nc', { maxInputLength: 2 })
+    expect(result.approximate).toBe(true)
+    expect(result.changes).toEqual([
+      { op: 'equal', leftStart: 0, rightStart: 0, count: 1 },
+      { op: 'delete', leftStart: 1, rightStart: 1, count: 1 },
+      { op: 'insert', leftStart: 2, rightStart: 1, count: 1 },
+    ])
+  })
+
+  it('still reads both documents as the lines they are', () => {
+    const result = diffLines('a\nb', 'a\nc', { maxInputLength: 2 })
+    expect(result.left).toEqual(['a', 'b'])
+    expect(result.right).toEqual(['a', 'c'])
+  })
+
+  it('runs the exact algorithm on anything within the limit', () => {
+    expect(diffLines('a\nb', 'a\nc').approximate).toBe(false)
+  })
+})
+
 describe('alignDiff', () => {
   it('pairs facing replacements into changed rows', () => {
     expect(kinds('port: 80\nx: 1', 'port: 443\nx: 1')).toEqual(['changed', 'equal'])

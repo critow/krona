@@ -25,6 +25,7 @@ below it.
 | `limits` | `Partial<ParseLimits>` | see [Safety limits](#safety-limits) | Overrides for the parser's bounds |
 | `providers` | `FormatRegistry` | module registry | Custom provider lookup |
 | `injectStyles` | `boolean` | `true` | Adds the stylesheet to `document.head` on mount |
+| `styleNonce` | `string` | — | Nonce for that `<style>`, for a page whose Content-Security-Policy names one in `style-src` |
 | `className` / `style` | — | — | Applied to the themed container |
 
 ### `<Krona.Viewer>`
@@ -215,6 +216,7 @@ than a frozen tab.
 | Limit | Default | What happens past it |
 | --- | --- | --- |
 | `maxInputLength` | 10 MiB | Plain text, no folding or highlighting, error diagnostic |
+| `maxLines` | 1 000 000 | Plain text; the first million lines are kept and the rest dropped, error diagnostic |
 | `maxDepth` | 64 | Deeper folding ranges are dropped, warning diagnostic |
 | `maxFoldRanges` | 200 000 | Folding stops, warning diagnostic |
 | `maxTokenizedLineLength` | 10 000 | That line renders unstyled |
@@ -222,7 +224,11 @@ than a frozen tab.
 
 The diff has its own budget: Myers is O(ND), so a `timeout` (1500 ms by default)
 falls back to a common prefix/suffix approximation, the same trade git makes
-when its heuristics give up.
+when its heuristics give up. Past `maxInputLength` — the parse limit, by
+default — the exact algorithm is not run at all and that approximation comes
+back at once: the timeout bounds Myers itself, while splitting the files,
+hashing every line to find anchors and building the row list all happen before
+the clock is ever consulted.
 
 ## Core API
 
