@@ -99,6 +99,7 @@ const BRACKETS: Record<FoldKind, readonly [string, string] | null> = {
   section: ['{', '}'],
   block: ['{', '}'],
   array: ['[', ']'],
+  element: ['<', '/>'],
   scalar: null,
 }
 

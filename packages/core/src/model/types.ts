@@ -8,7 +8,16 @@
  */
 
 /** Formats Krona ships providers for. Custom providers may use any other id. */
-export type BuiltinFormat = 'json' | 'yaml' | 'toml' | 'ini' | 'text'
+export type BuiltinFormat =
+  | 'json'
+  | 'json5'
+  | 'yaml'
+  | 'toml'
+  | 'ini'
+  | 'xml'
+  | 'hcl'
+  | 'properties'
+  | 'text'
 
 /**
  * A format id. `'auto'` asks Krona to pick among the *registered* providers.
@@ -44,7 +53,7 @@ export interface Line {
 }
 
 /** What a folding range wraps, used to pick a placeholder and an icon. */
-export type FoldKind = 'object' | 'array' | 'section' | 'block' | 'scalar'
+export type FoldKind = 'object' | 'array' | 'section' | 'block' | 'element' | 'scalar'
 
 /**
  * A collapsible range of lines. `startLine` stays visible when collapsed;

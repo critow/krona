@@ -107,13 +107,15 @@ function renderSegments(
 /**
  * Brackets come from the range's kind rather than its `summary`, so a collapsed
  * block reads the way the format writes it — `{ 3 items }` for a mapping,
- * `[ 3 items ]` for a sequence — in every format, not just JSON.
+ * `[ 3 items ]` for a sequence, `< 3 items />` for an element — in every format,
+ * not just JSON.
  */
 const BRACKETS: Record<FoldKind, readonly [string, string] | null> = {
   object: ['{', '}'],
   section: ['{', '}'],
   block: ['{', '}'],
   array: ['[', ']'],
+  element: ['<', '/>'],
   scalar: null,
 }
 
