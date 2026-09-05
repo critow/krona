@@ -61,7 +61,11 @@ function splitEntry(text: string, from: number): { key: number; mark: number; va
       return { key: i, mark: -1, value: next }
     }
   }
-  return { key: i, mark: -1, value: i }
+  // A line ending in a backslash leaves the scan one past its end, since the
+  // escape took the character after it — and a token reaching past the line it
+  // is on is the one thing every renderer here assumes cannot happen.
+  const end = Math.min(i, text.length)
+  return { key: end, mark: -1, value: end }
 }
 
 function skipSpace(text: string, from: number): number {

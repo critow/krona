@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import '../index'
+import '../formats/hcl'
+import '../formats/json5'
+import '../formats/properties'
+import '../formats/xml'
 import '../formats/yaml'
 import { parseDocument } from '../model/document'
 
@@ -57,6 +61,21 @@ const ALPHABET = [
   ']]',
   '---',
   '<<',
+  // Enough markup, comment and heredoc punctuation for the alphabet to produce
+  // input the newer providers can actually get lost in.
+  '<a>',
+  '</a>',
+  '<!--',
+  '-->',
+  '<![CDATA[',
+  ']]>',
+  '<?',
+  '?>',
+  '/*',
+  '*/',
+  '//',
+  '<<-EOT',
+  '\\\n',
 ]
 
 function randomSource(random: () => number, length: number): string {
@@ -68,7 +87,23 @@ function randomSource(random: () => number, length: number): string {
   return out
 }
 
-const FORMATS = ['json', 'yaml', 'toml', 'ini'] as const
+const FORMATS = ['json', 'json5', 'yaml', 'toml', 'ini', 'xml', 'hcl', 'properties'] as const
+
+/**
+ * Input built to nest as deeply as each format can, since that is what would
+ * overflow a stack. A format with nothing to nest gets one very long line,
+ * which is the other shape that goes wrong.
+ */
+const DEEP: Record<(typeof FORMATS)[number], string> = {
+  json: `${'{"a":'.repeat(3000)}1${'}'.repeat(3000)}`,
+  json5: `${'{a:'.repeat(3000)}1${'}'.repeat(3000)}`,
+  yaml: Array.from({ length: 3000 }, (_, i) => `${'  '.repeat(i)}k: 1`).join('\n'),
+  toml: `${'{"a":'.repeat(3000)}1${'}'.repeat(3000)}`,
+  ini: `${'{"a":'.repeat(3000)}1${'}'.repeat(3000)}`,
+  xml: `${'<a>'.repeat(3000)}text${'</a>'.repeat(3000)}`,
+  hcl: `${'a = {'.repeat(3000)}${'}'.repeat(3000)}`,
+  properties: `a = ${'\\\n  more'.repeat(3000)}`,
+}
 
 describe.each(FORMATS)('%s provider fuzzing', (format) => {
   it('never throws and never hangs on random input', () => {
@@ -125,10 +160,7 @@ describe.each(FORMATS)('%s provider fuzzing', (format) => {
   it(
     'handles deeply nested input without overflowing the stack',
     () => {
-      const source =
-        format === 'yaml'
-          ? Array.from({ length: 3000 }, (_, i) => `${'  '.repeat(i)}k: 1`).join('\n')
-          : `${'{"a":'.repeat(3000)}1${'}'.repeat(3000)}`
+      const source = DEEP[format]
       expect(() => parseDocument(source, format)).not.toThrow()
     },
     DEEP_TIMEOUT,
