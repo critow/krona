@@ -85,6 +85,16 @@ describe('properties provider', () => {
     expect(detectFormat(spaced, lines(spaced))).toBe('properties')
   })
 
+  it('keeps a token inside its line when the line is one backslash', () => {
+    // Found by fuzzing: the escape took the character after it, which on the
+    // last one of a line is the line break, and the key ran a character past
+    // the end of the text it belongs to.
+    const model = doc('\\\nnext = 1')
+    for (const token of model.tokensAt(0)) {
+      expect(token.end).toBeLessThanOrEqual(model.lines[0]?.text.length ?? 0)
+    }
+  })
+
   it('degrades gracefully on garbage', () => {
     const model = doc('\\\\\\\n====\n:::\n   ')
     for (let line = 0; line < model.lines.length; line++) {

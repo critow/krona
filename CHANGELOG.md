@@ -6,6 +6,14 @@ Notable changes to Krona. The format follows
 
 ## Unreleased
 
+### Fixed
+
+- A `.properties` line that is nothing but a backslash produced a token
+  reaching one character past the end of it. Found by fuzzing, which the four
+  new providers now take part in: random input, tokens that must stay inside
+  their line and never overlap, folding ranges that must be well formed, and
+  input nested three thousand deep.
+
 ### Added
 
 - **JSON5**, behind `kronajs/json5` (`@kronajs/core/json5`,
