@@ -6,6 +6,63 @@ Notable changes to Krona. The format follows
 
 ## Unreleased
 
+### Fixed
+
+Everything below came out of a security audit of the repository. None of it is
+reachable by a document Krona renders — the rest of that audit found no way in
+through one — but each is a host mistake, or a hostile attribute, that used to
+cost more than it should.
+
+- **A malformed `locale` blanked the viewer.** `new Intl.NumberFormat('en_US')`
+  throws, and it ran while a viewer was rendering, so a host that read its
+  locale out of a URL lost the whole region rather than the grouping in a
+  number. It falls back to the runtime default.
+
+- **`unifiedPatch` wrote file names into the header verbatim.** A patch is
+  line-oriented, and a name with a line break in it ended the header early and
+  let the rest of the name pose as hunks of its own. Line breaks become spaces.
+
+- **`applyEdit` accepted `NaN` and fractional offsets.** `NaN` compares false
+  with every bound, so the range check passed it through and `slice` rounded
+  it — and the inverse edit recorded coordinates that undid nothing. Offsets
+  must now be whole numbers inside the document.
+
+- **A formatter that threw took the edit with it.** `provider.format` was the
+  one provider hook without a guard; it now leaves the text as the reader typed
+  it, and a replacement pointing outside the document is not applied.
+
+- **A limit that was not a number switched its guard off in silence.** `NaN`
+  and negative values fall back to the default, `Infinity` is honoured as no
+  bound at all, and a fraction is truncated — in `resolveOptions` and in
+  `findMatches`, where a `NaN` limit meant no cap at all.
+
+- **A part carrying an unknown slot name crashed the render.** `__proto__`
+  indexed `Object.prototype`, whose `push` does not exist. An unknown name goes
+  to the fallback region, which is what a part without a name already did.
+
+- **The copy-path tooltip showed hidden characters as themselves.** The rows
+  badge bidi overrides and invisible characters; a tooltip drawn by CSS from an
+  attribute cannot, so a key with an override in it made the path read
+  differently from what it copied. Both packages now flatten it with the same
+  `U+XXXX` labels, through the new `visibleText`.
+
+- **Numeric attributes on the custom elements had no upper bound.**
+  `overscan="1e9"` asked the virtualizer for every row of the document at once,
+  and `Infinity` passed the old check as readily as `8`. Each attribute is held
+  to a documented range, and `step` can no longer be negative, which expanded a
+  hidden run the wrong way.
+
+- **Two attributes were read but not watched.** `<krona-viewer>` consulted
+  `narrow-width` and `link-lines`, and `<krona-diff>` consulted `show-markers`,
+  without observing them — so changing one left the old answer on screen until
+  something unrelated redrew it. Changing `narrow-width` now measures again
+  rather than waiting for a resize that may never come.
+
+### Added
+
+- `visibleText(text)` in the core: the same bidi and invisible characters the
+  rows badge, written as `U+XXXX` for the places that can only hold text.
+
 ### Changed
 
 - **The release workflow is two jobs.** `build` holds a read-only token, checks

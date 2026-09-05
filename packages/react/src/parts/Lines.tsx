@@ -8,6 +8,7 @@ import {
   type Token,
   type TokenType,
   valueSpansAt,
+  visibleText,
 } from '@kronajs/core'
 import { type CSSProperties, Fragment, memo, type ReactNode, useState } from 'react'
 import { type LineEditing, type LineSearch, useLineSource } from '../context/lineSource'
@@ -262,7 +263,7 @@ function RowActions({
         <button
           type="button"
           className={copied === 'path' ? 'krona-action--confirmed' : undefined}
-          data-tip={copied === 'path' ? labels.copied : `${labels.copyPath}: ${path}`}
+          data-tip={copied === 'path' ? labels.copied : `${labels.copyPath}: ${visibleText(path)}`}
           aria-label={labels.copyPath}
           onClick={() => copy('path', path)}
         >

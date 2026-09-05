@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import '../formats/json'
 import '../formats/yaml'
 import { parseDocument } from '../model/document'
+import { registerFormat, unregisterFormat } from '../model/registry'
 import {
   applyEdit,
   blockSpanAt,
@@ -32,6 +33,14 @@ function textOf(source: string, span: { start: number; end: number }): string {
   return source.slice(span.start, span.end)
 }
 
+/** The least a provider can be, so a test can give it one bad formatter. */
+const PLAIN = {
+  displayName: 'Plain',
+  extensions: [],
+  analyze: () => ({ foldingRanges: [] }),
+  tokenize: () => [],
+}
+
 describe('applyEdit', () => {
   it('replaces the span and hands back the edit that undoes it', () => {
     const { source, inverse } = applyEdit('abcdef', { start: 2, end: 4, text: 'XYZ' })
@@ -52,6 +61,16 @@ describe('applyEdit', () => {
   it('refuses a span outside the document', () => {
     expect(() => applyEdit('ab', { start: 0, end: 9, text: '' })).toThrow(RangeError)
     expect(() => applyEdit('ab', { start: 2, end: 1, text: '' })).toThrow(RangeError)
+  })
+})
+
+describe('applyEdit offsets', () => {
+  it('refuses an offset that is not a whole number', () => {
+    // `NaN` compares false with every bound, so without the check it slips
+    // through and the inverse edit records coordinates that undo nothing.
+    expect(() => applyEdit('ab', { start: Number.NaN, end: 1, text: 'x' })).toThrow(RangeError)
+    expect(() => applyEdit('ab', { start: 0, end: Number.NaN, text: 'x' })).toThrow(RangeError)
+    expect(() => applyEdit('ab', { start: 0.5, end: 1, text: 'x' })).toThrow(RangeError)
   })
 })
 
@@ -216,6 +235,35 @@ describe('formattedEdit', () => {
       '  },',
     ])
     expect(parse(next).diagnostics).toEqual([])
+  })
+
+  it('leaves the edit alone when the provider\u2019s formatter throws', () => {
+    registerFormat({
+      ...PLAIN,
+      id: 'throwfmt',
+      format: () => {
+        throw new Error('nope')
+      },
+    })
+    const model = parseDocument('a b', 'throwfmt')
+    const edit = { start: 1, end: 2, text: '-' }
+    expect(formattedEdit(model, edit, true)).toBe(edit)
+    unregisterFormat('throwfmt')
+  })
+
+  it('ignores a replacement that points outside the document', () => {
+    registerFormat({
+      ...PLAIN,
+      id: 'wildfmt',
+      format: () => [
+        { start: 10, end: 20, text: 'X' },
+        { start: -1, end: 0, text: 'Y' },
+      ],
+    })
+    const model = parseDocument('a b', 'wildfmt')
+    const edit = { start: 1, end: 2, text: '-' }
+    expect(formattedEdit(model, edit, true)).toBe(edit)
+    unregisterFormat('wildfmt')
   })
 
   it('is one edit, so one undo takes the formatting with it', () => {

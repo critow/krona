@@ -23,6 +23,19 @@ const LONG = (marker: string) =>
   ].join('\n')
 
 describe('unifiedPatch', () => {
+  it('keeps a file name carrying line breaks on one header line', () => {
+    // A patch is line-oriented: a name with a `\n` in it would end the header
+    // early and let the rest of the name pose as hunks of its own.
+    const patch = patchOf(LONG('3'), LONG('9'), {
+      from: 'a\n+++ evil\n@@ -1 +1 @@',
+      to: 'b\r\n--- x',
+    })
+    const lines = patch.split('\n')
+    expect(lines[0]).toBe('--- a +++ evil @@ -1 +1 @@')
+    expect(lines[1]).toBe('+++ b --- x')
+    expect(lines.filter((line) => line.startsWith('@@'))).toHaveLength(1)
+  })
+
   it('says nothing when there is nothing to say', () => {
     expect(patchOf('{"a": 1}', '{"a": 1}')).toBe('')
   })

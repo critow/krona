@@ -51,6 +51,11 @@ export class KronaViewerElement extends KronaBase {
     'show-search',
     'show-actions',
     'editable',
+    // Read by the base class and by the row actions: an attribute a repaint
+    // consults but nobody watches leaves the element showing the old answer
+    // until something unrelated redraws it.
+    'narrow-width',
+    'link-lines',
   ]
 
   #source = ''
@@ -207,6 +212,7 @@ export class KronaViewerElement extends KronaBase {
     // Anything else changes how the same document is shown, not what it is.
     if (name === 'format') this.#model = null
     if (name === 'collapsed-depth') this.#needsDefaultFold = true
+    if (name === 'narrow-width') this.remeasure()
     this.schedule()
   }
 

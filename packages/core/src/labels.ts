@@ -90,11 +90,28 @@ export interface KronaLabels {
 }
 
 /**
+ * A number formatter for `locale`, or for the runtime default where the tag is
+ * not one `Intl` accepts.
+ *
+ * `new Intl.NumberFormat('en_US')` throws, and this runs while a viewer is
+ * rendering: a host that read its locale out of a URL would blank the region
+ * Krona sits in. A malformed tag is a mistake worth surviving — the labels read
+ * fine with default grouping.
+ */
+function numberFormat(locale: string | undefined): Intl.NumberFormat {
+  try {
+    return new Intl.NumberFormat(locale)
+  } catch {
+    return new Intl.NumberFormat()
+  }
+}
+
+/**
  * Builds the English defaults. Numbers are formatted with `Intl.NumberFormat`
  * so grouping follows `locale` even before a translation is supplied.
  */
 export function createDefaultLabels(locale?: string): KronaLabels {
-  const format = new Intl.NumberFormat(locale)
+  const format = numberFormat(locale)
   return {
     expandAll: 'Expand all',
     collapseAll: 'Collapse all',

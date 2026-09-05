@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { hasUnsafeCharacters, scanUnsafeCharacters } from './unicode'
+import { hasUnsafeCharacters, scanUnsafeCharacters, visibleText } from './unicode'
 
 // Built from code points rather than pasted literally: an invisible character
 // in a test file is exactly the hazard these tests are about.
@@ -41,5 +41,17 @@ describe('scanUnsafeCharacters', () => {
     for (const line of ['plain', `x${RLO}`, `y${ZWSP}`, 'tab\there']) {
       expect(hasUnsafeCharacters(line)).toBe(scanUnsafeCharacters(line).length > 0)
     }
+  })
+})
+
+describe('visibleText', () => {
+  it('writes a hidden character as its code, in place', () => {
+    expect(visibleText('user\u202Eadmin')).toBe('userU+202Eadmin')
+    expect(visibleText('a\u200Bb\u200Bc')).toBe('aU+200BbU+200Bc')
+  })
+
+  it('hands back text with nothing to hide, unchanged and identical', () => {
+    const plain = 'server.tls.ciphers[0]'
+    expect(visibleText(plain)).toBe(plain)
   })
 })

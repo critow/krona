@@ -19,7 +19,7 @@ import {
   type RowIndex,
   unifiedEntries,
 } from '@kronajs/core'
-import { KronaBase, type KronaSelectLineDetail } from './base'
+import { asNumber, KronaBase, type KronaSelectLineDetail } from './base'
 import { Column, type ColumnRow, ScrollSync } from './column'
 import { el } from './dom'
 import { SearchBox } from './search'
@@ -91,6 +91,7 @@ export class KronaDiffElement extends KronaBase {
     'show-actions',
     'link-lines',
     'show-minimap',
+    'show-markers',
   ]
 
   #left = ''
@@ -256,6 +257,7 @@ export class KronaDiffElement extends KronaBase {
       this.#invalidate()
       return
     }
+    if (name === 'narrow-width') this.remeasure()
     this.schedule()
   }
 
@@ -338,8 +340,8 @@ export class KronaDiffElement extends KronaBase {
     for (let row = 0; row < rows.length; row++) {
       if (hasFoldAt(row, rows, left, right)) keepRows.add(row)
     }
-    const context = this.#number('context')
-    const minimumHidden = this.#number('minimum-hidden')
+    const context = this.#number('context', 0, 1000)
+    const minimumHidden = this.#number('minimum-hidden', 1, 1_000_000)
     this.#regions = collapseUnchanged(rows, {
       keepRows,
       ...(context === undefined ? {} : { context }),
@@ -347,15 +349,18 @@ export class KronaDiffElement extends KronaBase {
     })
   }
 
-  #number(attribute: string): number | undefined {
+  /** A whole number within `[min, max]`, or `undefined` where none was given. */
+  #number(attribute: string, min: number, max: number): number | undefined {
     const raw = this.getAttribute(attribute)
     if (raw === null || raw === '') return undefined
-    const value = Number(raw)
-    return Number.isNaN(value) ? undefined : value
+    const value = asNumber(raw, Number.NaN, min, max)
+    return Number.isNaN(value) ? undefined : Math.floor(value)
   }
 
   #step(): number {
-    return this.#number('step') ?? 20
+    // A negative step would expand a hidden run the wrong way, past the ends
+    // of the run it belongs to.
+    return this.#number('step', 1, 1_000_000) ?? 20
   }
 
   /** Word-level spans for one changed row, computed once and kept. */

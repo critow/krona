@@ -243,3 +243,41 @@ describe('<krona-viewer>', () => {
     expect(element.isConnected).toBe(false)
   })
 })
+
+describe('numeric attributes', () => {
+  it('declines a number that would render the whole document at once', async () => {
+    // `overscan="1e9"` asks the virtualizer for every row there is, which is a
+    // frozen tab. An attribute can arrive from markup nobody here wrote.
+    const body = Array.from({ length: 4000 }, (_, i) => `  "k${i}": ${i},`).join('\n')
+    const element = await ready(
+      mount({ format: 'json', overscan: '1e9' }, `{\n${body}\n  "z": 0\n}`),
+    )
+    expect(rows(element).length).toBeLessThan(1200)
+  })
+
+  it('falls back to the default row height for an infinite one', async () => {
+    const element = await ready(mount({ format: 'json', 'line-height': 'Infinity' }))
+    const frame = shadow(element).querySelector('.krona') as HTMLElement
+    expect(frame.style.getPropertyValue('--krona-line-height')).toBe('20px')
+  })
+
+  it('holds a row height that is merely large to something a browser can paint', async () => {
+    const element = await ready(mount({ format: 'json', 'line-height': '1e9' }))
+    const frame = shadow(element).querySelector('.krona') as HTMLElement
+    expect(frame.style.getPropertyValue('--krona-line-height')).toBe('1000px')
+  })
+})
+
+describe('attributes the element watches', () => {
+  it('repaints when an attribute it reads is changed after the fact', async () => {
+    // `link-lines` is read while a row is painted; an attribute consulted by a
+    // repaint but watched by nobody leaves the old answer on screen until
+    // something unrelated redraws it.
+    const element = await ready(mount({ format: 'json' }))
+    expect(shadow(element).querySelector('[aria-label="Link to this line"]')).toBe(null)
+    element.setAttribute('link-lines', '')
+    await expect
+      .poll(() => shadow(element).querySelector('[aria-label="Link to this line"]'))
+      .not.toBe(null)
+  })
+})

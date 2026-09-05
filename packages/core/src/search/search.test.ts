@@ -59,6 +59,16 @@ describe('findMatches', () => {
   })
 })
 
+describe('a limit that is not a number', () => {
+  it('keeps the default cap instead of walking without one', () => {
+    // `matches.length >= NaN` is false however many there are.
+    const model = parseDocument('a'.repeat(6000), 'text')
+    const result = findMatches(model, 'a', { limit: Number.NaN })
+    expect(result.matches).toHaveLength(5000)
+    expect(result.truncated).toBe(true)
+  })
+})
+
 describe('matchAfter', () => {
   const matches = [
     { lineIndex: 1, start: 11, end: 20 },

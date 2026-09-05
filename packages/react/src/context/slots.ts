@@ -14,10 +14,16 @@ export interface SlottedComponent {
   kronaSlot?: KronaSlot
 }
 
+const SLOTS: ReadonlySet<string> = new Set<KronaSlot>(['chrome', 'canvas', 'panels'])
+
 function slotOf(node: ReactNode, fallback: KronaSlot): KronaSlot {
   if (!isValidElement(node)) return fallback
-  const type = node.type as SlottedComponent
-  return type?.kronaSlot ?? fallback
+  const slot = (node.type as SlottedComponent)?.kronaSlot
+  // Three regions exist and no more. TypeScript says so to a TypeScript
+  // caller; a component from plain JavaScript can carry any string, and
+  // `groups['__proto__']` would answer with `Object.prototype`, whose `push`
+  // does not exist — one stray field and the whole render throws.
+  return typeof slot === 'string' && SLOTS.has(slot) ? (slot as KronaSlot) : fallback
 }
 
 /**

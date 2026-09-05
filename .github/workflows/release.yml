@@ -126,16 +126,22 @@ jobs:
           # manifest and a README and nothing else — which is exactly what
           # @kronajs/element 0.3.0 turned out to be on npm. Publishing is the
           # one step that cannot be taken back, so the bytes are read first.
+          # The listing is read into a file and grepped there rather than
+          # piped: `tar | grep -q` exits the moment it matches, tar takes the
+          # SIGPIPE, and under `pipefail` the pipeline then reports a failure
+          # for the entry it just found. The first version of this step passed
+          # here and failed in CI for exactly that reason.
           holds() {
             tarball="$1"
             shift
+            tar -tzf "$tarball" > entries.txt
             for entry in "$@"; do
-              if ! tar -tzf "$tarball" | grep -qx "$entry"; then
+              if ! grep -qx "$entry" entries.txt; then
                 echo "::error::$tarball lacks $entry"
                 exit 1
               fi
             done
-            echo "$(basename "$tarball"): $(tar -tzf "$tarball" | wc -l) files"
+            echo "$(basename "$tarball"): $(wc -l < entries.txt) files"
           }
           holds "packs/kronajs-core-$VERSION.tgz" \
             package/package.json package/dist/index.mjs package/dist/index.cjs package/dist/index.d.mts

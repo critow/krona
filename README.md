@@ -566,6 +566,7 @@ const { rows, stats } = alignDiff(diffLines(before, after))
 | `buildSegments(text, tokens, intraline, whole, matches?, current?)` | `Segment[]` — the runs a line splits into once tokens, word-level highlights, search matches and unsafe characters are merged |
 | `contentColumnsOf(...models)` | Width to reserve, in characters, so the horizontal extent does not shift while scrolling |
 | `scanUnsafeCharacters(text)` | Bidi and invisible characters, with positions |
+| `visibleText(text)` | The same characters written as `U+XXXX`, for a place that cannot carry a badge |
 | `toSnapshot` / `fromSnapshot` | Structured-clone-safe projection, for workers |
 
 ## Design notes

@@ -72,6 +72,19 @@ describe('what a row offers', () => {
     await expect.poll(() => written).toEqual(['server.port'])
   })
 
+  it('shows a hidden character in the copy-path tooltip as its code', async () => {
+    // Same rule as the rows, and as the React package: a tooltip cannot carry a
+    // badge, so the path is flattened with the same labels.
+    const element = mount<KronaViewerElement>('krona-viewer', { format: 'json' })
+    element.source = `{\n  "user${String.fromCharCode(0x202e)}admin": 1\n}`
+    await expect
+      .poll(() => shadow(element).querySelectorAll('.krona-lines .krona-row').length)
+      .toBeGreaterThan(0)
+    const tip = action(element, '2', 'Copy path')?.dataset.tip ?? ''
+    expect(tip).toContain('U+202E')
+    expect(tip).not.toContain(String.fromCharCode(0x202e))
+  })
+
   it('copies the whole block from the line that opens it', async () => {
     const element = await viewer()
     action(element, '3', 'Copy')?.click()

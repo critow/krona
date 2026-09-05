@@ -1,7 +1,7 @@
 import type { Span } from '../diff/intraline'
 import { OffsetIndex } from '../model/lines'
 import { defaultRegistry } from '../model/registry'
-import type { DocumentModel, FormatRegistry, TokenType } from '../model/types'
+import type { DocumentModel, FormatRegistry, TextReplacement, TokenType } from '../model/types'
 
 /**
  * A replacement of one span of the source text.
@@ -40,7 +40,16 @@ export interface EditResult {
  */
 export function applyEdit(source: string, edit: SourceEdit): EditResult {
   const { start, end, text } = edit
-  if (start < 0 || end > source.length || start > end) {
+  // `NaN` compares false with everything, so a range check alone lets it
+  // through and `slice` quietly rounds a fraction — either way the inverse
+  // edit records coordinates that no longer undo anything.
+  if (
+    !Number.isInteger(start) ||
+    !Number.isInteger(end) ||
+    start < 0 ||
+    end > source.length ||
+    start > end
+  ) {
     throw new RangeError(`Krona: edit span ${start}..${end} is outside the document.`)
   }
   return {
@@ -291,11 +300,29 @@ export function formattedEdit(
 
   const applied = applyEdit(model.source, edit).source
   const span = { start: widenToLineBreak(applied, edit.start), end: edit.start + edit.text.length }
+  // The one provider hook `parseDocument` does not call, and so the one that
+  // does not get its guard there. A formatter that throws leaves the text as
+  // the reader typed it, and a replacement pointing outside the document is
+  // not applied: formatting is a convenience, never a reason to lose an edit.
+  let replacements: readonly TextReplacement[]
+  try {
+    replacements = provider.format(applied, span, { expand })
+  } catch {
+    return edit
+  }
+  const usable = [...replacements]
+    .filter(
+      (replacement) =>
+        Number.isInteger(replacement.start) &&
+        Number.isInteger(replacement.end) &&
+        replacement.start >= 0 &&
+        replacement.end >= replacement.start &&
+        replacement.end <= applied.length,
+    )
+    // Back to front, so an earlier replacement cannot move a later one.
+    .sort((a, b) => b.start - a.start)
   let next = applied
-  const replacements = [...provider.format(applied, span, { expand })]
-  // Back to front, so an earlier replacement cannot move a later one.
-  replacements.sort((a, b) => b.start - a.start)
-  for (const replacement of replacements) {
+  for (const replacement of usable) {
     next = next.slice(0, replacement.start) + replacement.text + next.slice(replacement.end)
   }
   return next === applied ? edit : minimalEdit(model.source, next)
