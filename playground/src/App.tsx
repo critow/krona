@@ -1,4 +1,8 @@
 import { alignDiff, detectFormat, diffLines, Krona, unifiedPatch, useKronaDiff } from 'kronajs'
+import 'kronajs/hcl'
+import 'kronajs/json5'
+import 'kronajs/properties'
+import 'kronajs/xml'
 import 'kronajs/yaml'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { DICTS, type Lang } from './i18n'
@@ -322,7 +326,6 @@ export function App() {
         theme,
         locale: lang,
         mode,
-        yaml: sample.format === 'yaml',
         lineHeight,
         collapsedDepth,
         overscan,

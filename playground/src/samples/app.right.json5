@@ -1,0 +1,24 @@
+{
+  // The edge service, as JSON5: unquoted keys, comments, trailing commas.
+  name: 'edge',
+  port: 8443,
+  limits: {
+    body: 0x200000,
+    timeout: +1.5e3,
+    retries: 5,
+  },
+  tls: {
+    enabled: true,
+    ciphers: [
+      'TLS_AES_256_GCM_SHA384',
+      'TLS_CHACHA20_POLY1305_SHA256',
+    ],
+    /* A hostname with a quote in it is why single quotes are here at all. */
+    host: 'edge.example',
+  },
+  upstreams: [
+    { name: 'api', url: 'http://10.0.0.1:9000' },
+    { name: 'auth', url: 'http://10.0.0.3:9000' },
+  ],
+  logging: 'debug',
+}

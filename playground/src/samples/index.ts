@@ -2,13 +2,21 @@ import envRightSample from './.env.right.sample?raw'
 import envSample from './.env.sample?raw'
 import appIni from './app.ini?raw'
 import appJson from './app.json?raw'
+import appJson5 from './app.json5?raw'
 import appRightIni from './app.right.ini?raw'
 import appRightJson from './app.right.json?raw'
+import appRightJson5 from './app.right.json5?raw'
+import applicationProperties from './application.properties?raw'
+import applicationRightProperties from './application.right.properties?raw'
 import { bigJson, mostlyUnchanged } from './big'
 import cargoRightToml from './Cargo.right.toml?raw'
 import cargoToml from './Cargo.toml?raw'
 import composeRightYaml from './compose.right.yaml?raw'
 import composeYaml from './compose.yaml?raw'
+import mainRightTf from './main.right.tf?raw'
+import mainTf from './main.tf?raw'
+import pomRightXml from './pom.right.xml?raw'
+import pomXml from './pom.xml?raw'
 import reorderedJson from './reordered.json?raw'
 import reorderedRightJson from './reordered.right.json?raw'
 import unrelatedLeftYaml from './unrelated.left.yaml?raw'
@@ -21,7 +29,7 @@ import unrelatedRightYaml from './unrelated.right.yaml?raw'
 export interface Sample {
   id: string
   label: string
-  format: 'json' | 'yaml' | 'toml' | 'ini'
+  format: 'json' | 'json5' | 'yaml' | 'toml' | 'ini' | 'xml' | 'hcl' | 'properties'
   /** One line on what this sample is here to show. */
   note: string
   left: string
@@ -68,6 +76,38 @@ export const SAMPLES: Sample[] = [
     format: 'ini',
     left: envSample,
     right: envRightSample,
+  },
+  {
+    id: 'json5',
+    note: 'Unquoted keys, single quotes, hex numbers and comments.',
+    label: 'app.json5',
+    format: 'json5',
+    left: appJson5,
+    right: appRightJson5,
+  },
+  {
+    id: 'xml',
+    note: 'Elements fold from their opening tag to their closing one.',
+    label: 'pom.xml',
+    format: 'xml',
+    left: pomXml,
+    right: pomRightXml,
+  },
+  {
+    id: 'hcl',
+    note: 'Blocks fold with their labels; a heredoc is one entry.',
+    label: 'main.tf',
+    format: 'hcl',
+    left: mainTf,
+    right: mainRightTf,
+  },
+  {
+    id: 'properties',
+    note: 'A value continued over several lines folds to one row.',
+    label: 'application.properties',
+    format: 'properties',
+    left: applicationProperties,
+    right: applicationRightProperties,
   },
   {
     id: 'reordered',
