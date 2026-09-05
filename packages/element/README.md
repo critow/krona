@@ -31,7 +31,7 @@ for short documents.)
 
 | Attribute | Default | What it does |
 | --- | --- | --- |
-| `format` | `auto` | `json`, `json5`, `yaml`, `toml`, `ini`, or `auto` to sniff |
+| `format` | `auto` | `json`, `json5`, `yaml`, `toml`, `ini`, `xml`, `hcl`, `properties`, or `auto` to sniff |
 | `theme` | `auto` | `light`, `dark`, or `auto` to follow `prefers-color-scheme` |
 | `locale` | runtime default | BCP 47 locale used to format numbers in the default strings |
 | `line-height` | `20` | Row height in pixels; virtualization needs it fixed |
@@ -230,8 +230,9 @@ register one, or register under a name of your own.
 
 Formats: JSON/JSONC, TOML and INI/.env register from the main entry point; YAML
 lives behind `@kronajs/element/yaml` because its parser is tens of kilobytes, and
-JSON5 behind `@kronajs/element/json5` so a page that never opens one does not
-carry its scanner.
+JSON5, XML, HCL and Java properties behind `@kronajs/element/json5`, `/xml`,
+`/hcl` and `/properties`, so a page that never opens one does not carry its
+scanner.
 
 ## License
 
