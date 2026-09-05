@@ -1,6 +1,6 @@
 {
   "name": "@kronajs/element",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Collapsible tree view for JSON, YAML, TOML and INI/.env config files — a custom element, usable from any framework or none.",
   "license": "MIT",
   "type": "module",
