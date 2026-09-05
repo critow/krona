@@ -33,6 +33,16 @@
         "default": "./dist/formats/json.cjs"
       }
     },
+    "./json5": {
+      "import": {
+        "types": "./dist/formats/json5.d.mts",
+        "default": "./dist/formats/json5.mjs"
+      },
+      "require": {
+        "types": "./dist/formats/json5.d.cts",
+        "default": "./dist/formats/json5.cjs"
+      }
+    },
     "./yaml": {
       "import": {
         "types": "./dist/formats/yaml.d.mts",
@@ -110,6 +120,7 @@
     "config",
     "configuration",
     "jsonc",
+    "json5",
     "dotenv",
     "tree-view",
     "editor",

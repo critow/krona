@@ -8,6 +8,20 @@ Notable changes to Krona. The format follows
 
 ### Added
 
+- **JSON5**, behind `kronajs/json5` (`@kronajs/core/json5`,
+  `@kronajs/element/json5`). Unquoted keys, single-quoted strings, hex and
+  signed numbers, `Infinity` and `NaN`, trailing commas, `//` and `/* */`
+  comments, and strings continued onto the next line with a backslash — all
+  folding, pathing and highlighting the same way JSON already does.
+
+  Its scanner is hand-written and brings no dependency with it: Krona needs the
+  shape of a file and the class of each span, never its value, and one scanner
+  serves both the folding and the highlighting, so the two cannot disagree about
+  where a comment ends.
+
+  `format="auto"` picks JSON5 only over files JSON could not hold — an unquoted
+  key, a single-quoted string. A document that is valid JSON is JSON.
+
 - Editing in `<krona-viewer>`. `editable` turns the document into something the
   reader can change: double-click a value to edit it in place, or reach it with
   the arrows and press Enter; the row actions edit the line as raw text, edit a

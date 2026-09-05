@@ -90,12 +90,14 @@ pipeline, pass `injectStyles={false}` and `import 'kronajs/styles.css'` yourself
 
 ## Formats
 
-Importing `kronajs` registers **JSON/JSONC**, **TOML** and **INI/.env**. YAML sits
-behind its own entry point, because the `yaml` parser is tens of kilobytes and
-should not land in a bundle that only ever shows JSON:
+Importing `kronajs` registers **JSON/JSONC**, **TOML** and **INI/.env**. YAML and
+JSON5 sit behind their own entry points, so a bundle that only ever shows JSON
+carries neither the `yaml` parser (tens of kilobytes) nor a scanner for a format
+it never opens:
 
 ```tsx
 import 'kronajs/yaml'
+import 'kronajs/json5'
 ```
 
 `format="auto"` sniffs the content, but only among providers you actually
@@ -106,6 +108,7 @@ diagnostic instead of throwing.
 | Format | Entry point | What folds |
 | --- | --- | --- |
 | JSON / JSONC | `kronajs` | Objects and arrays; comments and trailing commas allowed |
+| JSON5 | `kronajs/json5` | Objects and arrays, with unquoted keys, single quotes, hex numbers and comments |
 | YAML | `kronajs/yaml` | Indentation, block scalars (`\|`, `>`), multi-line flow collections |
 | TOML | `kronajs` | `[table]` and `[[array of tables]]`, nested by dotted path; multi-line strings and arrays |
 | INI | `kronajs` | `[section]`, nested by dotted name |
